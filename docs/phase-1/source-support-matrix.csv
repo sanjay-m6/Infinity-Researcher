@@ -1,0 +1,11 @@
+Source Name,Tier,Official URL,Documentation URL,Connector Type,Auth Required,Default Rate Limit,PDF Download Supported,MVP Recommendation,Confidence
+OpenAlex,Tier A,https://openalex.org,https://docs.openalex.org,REST API,Optional (Free key grants 100k req/day),10-30 req/s,Yes (via open_access.oa_url),P0 (Core MVP),Verified
+Crossref,Tier A,https://www.crossref.org,https://api.crossref.org,REST API,No (Polite pool via mailto),5-10 req/s,No (Metadata only / publisher links),P0 (Core MVP),Verified
+Semantic Scholar,Tier A,https://semanticscholar.org,https://api.semanticscholar.org/api-docs/graph,REST API,Optional (Key grants 1 req/s),1 req/s (Key) / Shared (No key),Yes (via openAccessPdf),P0 (Core MVP),Verified
+arXiv,Tier A,https://arxiv.org,https://arxiv.org/help/api/user-manual,REST/Atom XML,No,Max 1 req/3s (3 req/s limit),Yes (via export.arxiv.org/pdf),P0 (Core MVP),Verified
+Europe PMC,Tier A,https://europepmc.org,https://europepmc.org/RestfulWebService,REST API,No,Fair use (<= 10 req/s),Yes (PMC OA subset),P0 (Core MVP),Verified
+DOAJ,Tier A,https://doaj.org,https://doaj.org/api/v4/docs,REST API,No,1-2 req/s (<= 1000 max depth),Yes (via bibjson.link OA),P1,Verified
+CORE,Tier A,https://core.ac.uk,https://core.ac.uk/services/api,REST API,Yes (Free key),Token bucket,Yes (via downloadUrl),P1,Verified
+bioRxiv / medRxiv,Tier A,https://www.biorxiv.org,https://api.biorxiv.org/details,REST API,No,1 req/s recommended,Yes (direct preprint DOI URL),P1,Verified
+Local PDF Import,Tier A,Local Filesystem,N/A,Local File Parser,No (Local OS),Bounded by disk/CPU,Yes (local storage),P0 (Core MVP),Verified
+Commercial Publishers,Tier C,Various,N/A,Manual Link Out,N/A,N/A,No (Browser Link Only),Tier C (Link Out Only),Verified

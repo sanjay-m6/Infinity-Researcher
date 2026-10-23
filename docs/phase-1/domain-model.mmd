@@ -1,0 +1,154 @@
+erDiagram
+    PAPERS ||--o{ PAPER_AUTHORS : "has"
+    AUTHORS ||--o{ PAPER_AUTHORS : "participates_in"
+    PAPERS ||--o{ SOURCE_RECORDS : "contributed_by"
+    SOURCES ||--o{ SOURCE_RECORDS : "originates"
+    PAPERS ||--o{ FILES : "stores"
+    PAPERS ||--o{ NOTES : "annotated_with"
+    PAPERS ||--o{ PAPER_TAGS : "tagged_with"
+    TAGS ||--o{ PAPER_TAGS : "applied_to"
+    PAPERS ||--o{ COLLECTION_PAPERS : "grouped_in"
+    COLLECTIONS ||--o{ COLLECTION_PAPERS : "contains"
+    PAPERS ||--o{ JOBS : "targets"
+
+    PAPERS {
+        string id PK "UUID v4"
+        string canonical_doi UK "Nullable lowercase 10.xxxx"
+        string title "Normalized Title"
+        string clean_title_key "Normalized Key for Fuzzy Matching"
+        string abstract "Text or Markdown"
+        string publication_date "ISO-8601 (YYYY-MM-DD or YYYY)"
+        integer publication_year "Derived 4-digit integer"
+        string venue "Journal / Conference Name"
+        string venue_type "journal, conference, repository, book"
+        string language "ISO 639-1 code default en"
+        integer citation_count "Aggregated count"
+        integer reference_count "Aggregated reference count"
+        boolean is_open_access "True if authorized OA route exists"
+        string license "License identifier (e.g. CC-BY-4.0)"
+        string primary_landing_url "Canonical HTTPS URL"
+        boolean has_file "1 if local file exists"
+        string metadata_confidence "verified, unverified, user_edited"
+        datetime created_at "UTC ISO-8601"
+        datetime updated_at "UTC ISO-8601"
+    }
+
+    AUTHORS {
+        string id PK "UUID v4"
+        string full_name "Display Name"
+        string family_name "Last Name"
+        string given_name "First Name"
+        string orcid UK "Nullable 0000-0000-0000-0000"
+        datetime created_at "UTC ISO-8601"
+    }
+
+    PAPER_AUTHORS {
+        string paper_id PK, FK
+        string author_id PK, FK
+        integer author_order "0-indexed author position"
+        string affiliation "Institutional affiliation at publication"
+        string role "author, editor, translator"
+    }
+
+    SOURCES {
+        string id PK "e.g. openalex, crossref, arxiv, europe_pmc"
+        string name "Display Name"
+        string tier "tier_a, tier_b, tier_c"
+        string base_url "Official Base URL"
+        boolean is_enabled "1 if enabled by user"
+        integer rate_limit_rps "Max requests per second"
+        integer concurrency_limit "Max simultaneous requests"
+        datetime created_at "UTC ISO-8601"
+        datetime updated_at "UTC ISO-8601"
+    }
+
+    SOURCE_RECORDS {
+        string id PK "UUID v4"
+        string paper_id FK "Reference to canonical paper"
+        string source_id FK "Reference to sources"
+        string source_record_id "Provider specific ID (e.g. W2963403866)"
+        string source_url "Original provider landing or API URL"
+        string raw_payload_json "Bounded JSON snapshot of response"
+        string open_access_pdf_url "Direct OA PDF URL if provided"
+        datetime retrieved_at "UTC ISO-8601"
+    }
+
+    FILES {
+        string id PK "UUID v4"
+        string paper_id FK "Reference to canonical paper"
+        string relative_path UK "Path relative to managed library directory"
+        string original_filename "Filename at time of ingestion"
+        string checksum_sha256 UK "Cryptographic content hash"
+        integer size_bytes "File size in bytes"
+        string mime_type "application/pdf"
+        string text_extraction_status "pending, extracted, failed, not_applicable"
+        string extraction_error "Error message if extraction failed"
+        datetime downloaded_at "UTC ISO-8601"
+    }
+
+    COLLECTIONS {
+        string id PK "UUID v4"
+        string parent_id FK "Nullable self-reference for nested folders"
+        string name "Collection Name"
+        string description "Optional text description"
+        string color_hex "Hex color tag for UI"
+        datetime created_at "UTC ISO-8601"
+        datetime updated_at "UTC ISO-8601"
+    }
+
+    COLLECTION_PAPERS {
+        string collection_id PK, FK
+        string paper_id PK, FK
+        datetime added_at "UTC ISO-8601"
+    }
+
+    TAGS {
+        string id PK "UUID v4"
+        string name UK "Unique tag name"
+        string color_hex "UI display color"
+        datetime created_at "UTC ISO-8601"
+    }
+
+    PAPER_TAGS {
+        string paper_id PK, FK
+        string tag_id PK, FK
+        datetime tagged_at "UTC ISO-8601"
+    }
+
+    NOTES {
+        string id PK "UUID v4"
+        string paper_id FK "Reference to canonical paper"
+        string title "Note Title"
+        string content_markdown "User research commentary in Markdown"
+        datetime created_at "UTC ISO-8601"
+        datetime updated_at "UTC ISO-8601"
+    }
+
+    JOBS {
+        string id PK "UUID v4"
+        string job_type "search, download, import, extract_text, export"
+        string target_id "Optional paper_id or batch_id"
+        string source_id "Optional source_id"
+        string status "queued, running, succeeded, failed, cancelled, paused"
+        integer progress_percent "0 to 100"
+        integer bytes_processed "Current bytes or items"
+        integer total_bytes "Total bytes or items"
+        string error_message "Diagnostic error description"
+        datetime created_at "UTC ISO-8601"
+        datetime started_at "Nullable UTC ISO-8601"
+        datetime completed_at "Nullable UTC ISO-8601"
+    }
+
+    SEARCH_HISTORY {
+        string id PK "UUID v4"
+        string query "Search query string"
+        string sources_json "JSON array of queried source IDs"
+        integer result_count "Number of results returned"
+        datetime executed_at "UTC ISO-8601"
+    }
+
+    APP_SETTINGS {
+        string key PK "e.g. storage.library_path, network.polite_email"
+        string value "Serialized value or string"
+        datetime updated_at "UTC ISO-8601"
+    }

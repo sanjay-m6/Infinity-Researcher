@@ -1,0 +1,62 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  quality-gate:
+    name: Lint, Test & Build Validation
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Setup Rust Stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Verify Code Formatting (Prettier)
+        run: npm run format:check
+
+      - name: TypeScript Type Checking
+        run: npm run typecheck
+
+      - name: ESLint Check
+        run: npm run lint
+
+      - name: Frontend Unit Tests (Vitest)
+        run: npm run test
+
+      - name: Build Frontend Production Assets
+        run: npm run build
+
+      - name: Rust Formatting Check (cargo fmt)
+        working-directory: ./src-tauri
+        run: cargo fmt --check
+
+      - name: Rust Clippy Lint (cargo clippy)
+        working-directory: ./src-tauri
+        run: cargo clippy -- -D warnings
+
+      - name: Rust Unit Tests (cargo test)
+        working-directory: ./src-tauri
+        run: cargo test

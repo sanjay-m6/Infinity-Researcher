@@ -1,8 +1,13 @@
 import React from "react";
-import { DiagnosticView } from "../components/DiagnosticView";
+import { AppProvider } from "../context/AppContext";
+import { AppShell } from "../components/layout/AppShell";
 
 export const App: React.FC = () => {
-  return <DiagnosticView />;
+  return (
+    <AppProvider>
+      <AppShell />
+    </AppProvider>
+  );
 };
 
 export default App;

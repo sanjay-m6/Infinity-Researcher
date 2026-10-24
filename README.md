@@ -20,12 +20,27 @@ Built with **Tauri 2**, **Rust**, **React 19**, **TypeScript**, **Vite 8**, and 
 ```
 research-paper-scraper/
 ├── src/                               # React 19 frontend
-│   ├── app/                           # App root shell
-│   ├── components/                    # UI components (DiagnosticView)
+│   ├── app/                           # App root shell (App.tsx)
+│   ├── components/                    # Reusable design system primitives & layout
+│   │   ├── layout/                    # AppShell, Sidebar, Toolbar, PageHeader
+│   │   └── ui/                        # Button, Badge, Input, SearchInput, Modal, ConfirmDialog, Drawer, EmptyState, CommandPalette, ToastContainer
+│   ├── context/                       # Centralized AppContext for view state, theme, and fixtures
+│   ├── data/                          # Centralized typed demo fixtures (demo-data.ts)
+│   ├── features/                      # Screen views
+│   │   ├── dashboard/                 # DashboardView
+│   │   ├── discover/                  # DiscoverView
+│   │   ├── library/                   # LibraryView
+│   │   ├── downloads/                 # DownloadsView
+│   │   ├── collections/               # CollectionsView
+│   │   ├── sources/                   # SourcesView
+│   │   ├── activity/                  # ActivityView
+│   │   ├── settings/                  # SettingsView
+│   │   └── paper-details/             # PaperDetailDrawer
+│   ├── hooks/                         # useApp hook
 │   ├── lib/                           # Typed Tauri IPC bridge (tauri-bridge.ts)
 │   ├── styles/                        # Tailwind CSS v4 entry point & theme tokens
-│   ├── test/                          # Frontend test setup and Vitest suites
-│   └── types/                         # TypeScript interfaces mirroring Rust DTOs
+│   ├── test/                          # Frontend test setup, Vitest unit & integration suites
+│   └── types/                         # TypeScript domain models and IPC interfaces
 ├── src-tauri/                         # Native Rust backend
 │   ├── capabilities/                  # Scoped Tauri 2 window permissions
 │   ├── src/
@@ -41,7 +56,8 @@ research-paper-scraper/
 │   └── tauri.conf.json                # Desktop window geometry & strict CSP
 ├── docs/
 │   ├── phase-1/                       # Approved requirements, PRD, source research, domain model, ADRs
-│   └── phase-2/                       # Foundation architecture, security baseline, quality reports
+│   ├── phase-2/                       # Foundation architecture, security baseline, quality reports
+│   └── phase-3/                       # Screen inventory, design system, demo data spec, completion report
 ├── .github/workflows/                 # CI quality workflows (ci.yml)
 ├── package.json                       # Frontend dependencies & npm scripts
 └── vite.config.ts                     # Vite + Tailwind v4 + Vitest configuration
@@ -148,3 +164,9 @@ Build outputs are generated under `src-tauri/target/release/bundle/`.
   * [Security Baseline](file:///d:/Paper/docs/phase-2/security-baseline.md)
   * [Testing & Quality Gates](file:///d:/Paper/docs/phase-2/testing-and-quality-gates.md)
   * [Open Decisions & Technical Debt](file:///d:/Paper/docs/phase-2/open-decisions.md)
+* **[Phase 3 Modern UI & Design System](file:///d:/Paper/docs/phase-3/phase-3-completion-report.md):**
+  * [UI Screen Inventory](file:///d:/Paper/docs/phase-3/screen-inventory.md)
+  * [Design System & Tokens](file:///d:/Paper/docs/phase-3/design-system.md)
+  * [Demo Data Specification](file:///d:/Paper/docs/phase-3/demo-data-specification.md)
+  * [Phase 3 Completion Report](file:///d:/Paper/docs/phase-3/phase-3-completion-report.md)
+

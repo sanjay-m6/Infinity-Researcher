@@ -9,12 +9,12 @@ import {
   Sun,
   Moon,
   Laptop,
-  HardDrive,
+  Database,
   Activity,
   RotateCcw,
   CheckCircle2,
   AlertTriangle,
-  Folder,
+  Sparkles,
 } from "lucide-react";
 
 export const SettingsView: React.FC = () => {
@@ -26,6 +26,10 @@ export const SettingsView: React.FC = () => {
     isHealthLoading,
     refreshHealth,
     showToast,
+    databaseInfo,
+    isDbLoading,
+    refreshDatabase,
+    seedSampleData,
   } = useApp();
 
   const [isDiagnosticModalOpen, setIsDiagnosticModalOpen] = useState(false);
@@ -113,42 +117,84 @@ export const SettingsView: React.FC = () => {
       <section className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-4">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-            <HardDrive className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            Local-First Storage Location
+            <Database className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            Local-First SQLite Database & Storage
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            All downloaded PDF files, cached full-text records, and SQLite databases
-            remain on your local disk.
+            Your entire scholarly research library, collections, notes, and tags are stored in a local SQLite 3 database with WAL mode and FTS5 search.
           </p>
         </div>
 
-        <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-              Active Storage Directory:
-            </span>
-            <Badge variant="outline" size="sm">
-              Local Machine
-            </Badge>
+        <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Database File Path:
+              </span>
+              <Badge variant="outline" size="sm" className="font-mono text-[10px]">
+                {databaseInfo ? `SQLite 3 · v${databaseInfo.schema_version}` : isTauri ? "Connected" : "Web Preview"}
+              </Badge>
+            </div>
+            <p className="text-xs font-mono bg-white dark:bg-slate-900 px-3 py-2 rounded-md border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 truncate">
+              {databaseInfo?.path ||
+                backendHealth?.default_storage_dir
+                  ? `${backendHealth?.default_storage_dir}\\research-paper-scraper.sqlite3`
+                  : "Local OS AppData Directory"}
+            </p>
           </div>
-          <p className="text-xs font-mono bg-white dark:bg-slate-900 px-3 py-2 rounded-md border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 truncate">
-            {backendHealth?.default_storage_dir ||
-              "C:\\Users\\...\\AppData\\Local\\research_paper_scraper (Default)"}
-          </p>
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-[11px] text-slate-400">
-              Custom folder relocation and backup tools are planned for Phase 4.
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Journal Mode</span>
+              <span className="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400 uppercase">
+                {databaseInfo?.journal_mode || "WAL (Write-Ahead Log)"}
+              </span>
+            </div>
+            <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Foreign Keys</span>
+              <span className="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400">
+                {databaseInfo?.foreign_keys ? "ENABLED (ON)" : "ACTIVE"}
+              </span>
+            </div>
+            <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Full-Text Search</span>
+              <span className="text-xs font-mono font-semibold text-violet-600 dark:text-violet-400">
+                FTS5 (Unicode Tokenizer)
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800/80">
+            <span className="text-[11px] text-slate-500">
+              Zero cloud sync, no tracking, complete privacy for academic citations.
             </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled
-              title="Folder browsing bridge will be wired in Phase 4"
-              className="text-xs"
-            >
-              <Folder className="w-3.5 h-3.5" />
-              Browse (Phase 4)
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  void refreshDatabase();
+                  showToast("Database diagnostics refreshed.", "info");
+                }}
+                isLoading={isDbLoading}
+                className="text-xs"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Refresh DB
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  void seedSampleData();
+                }}
+                isLoading={isDbLoading}
+                className="text-xs"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Seed Sample Papers
+              </Button>
+            </div>
           </div>
         </div>
       </section>

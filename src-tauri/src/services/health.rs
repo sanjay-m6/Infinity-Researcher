@@ -30,6 +30,14 @@ impl HealthService {
         let config = state.config.read().await;
         let platform = format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH);
 
+        let db_status = match state.database {
+            Some(ref db) => match db.get_info() {
+                Ok(info) => format!("ready (SQLite 3, schema v{}, {})", info.schema_version, info.journal_mode),
+                Err(e) => format!("error ({})", e),
+            },
+            None => "uninitialized".to_string(),
+        };
+
         HealthResponse {
             status: "healthy".to_string(),
             app_version: config.app_version.clone(),
@@ -38,7 +46,7 @@ impl HealthService {
             uptime_secs: state.uptime_secs(),
             default_storage_dir: config.default_library_dir.to_string_lossy().to_string(),
             subsystems: SubsystemHealth {
-                database: "not_initialized (Scheduled for Phase 4)".to_string(),
+                database: db_status,
                 network_engine: "ready (Base HTTP Client)".to_string(),
                 scraper_pipeline: "not_implemented (Scheduled for Phase 5-6)".to_string(),
                 pdf_processor: "not_implemented (Scheduled for Phase 7)".to_string(),
@@ -59,9 +67,6 @@ mod tests {
         assert_eq!(health.status, "healthy");
         assert!(health.backend_ready);
         assert!(!health.platform.is_empty());
-        assert_eq!(
-            health.subsystems.database,
-            "not_initialized (Scheduled for Phase 4)"
-        );
+        assert_eq!(health.subsystems.database, "uninitialized");
     }
 }

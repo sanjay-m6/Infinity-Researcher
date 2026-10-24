@@ -23,6 +23,23 @@ import {
   INITIAL_DEMO_ACTIVITY,
 } from "../data/demo-data";
 import { getAppHealth, isTauriEnvironment } from "../lib/tauri-bridge";
+import {
+  getDatabaseInfo,
+  listPapers as listPapersApi,
+  createPaper as createPaperApi,
+  toggleSavePaper as toggleSavePaperApi,
+  listCollections as listCollectionsApi,
+  createCollection as createCollectionApi,
+  updateCollection as updateCollectionApi,
+  deleteCollection as deleteCollectionApi,
+  addPaperToCollection as addPaperToCollectionApi,
+  removePaperFromCollection as removePaperFromCollectionApi,
+  getAppSetting,
+  setAppSetting,
+  dbPaperToPaper,
+  dbCollectionToCollection,
+  DatabaseInfo,
+} from "../lib/desktop-api";
 import { HealthResponse } from "../types/health";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -55,7 +72,7 @@ export interface AppContextType {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
 
-  // In-Memory Data State
+  // Data State
   papers: Paper[];
   collections: Collection[];
   jobs: DownloadJob[];
@@ -90,6 +107,12 @@ export interface AppContextType {
   isTauri: boolean;
   isHealthLoading: boolean;
   refreshHealth: () => Promise<void>;
+
+  // Database Diagnostics & Persistence State
+  databaseInfo: DatabaseInfo | null;
+  isDbLoading: boolean;
+  refreshDatabase: () => Promise<void>;
+  seedSampleData: () => Promise<void>;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -124,6 +147,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isTauri, setIsTauri] = useState<boolean>(true);
   const [isHealthLoading, setIsHealthLoading] = useState<boolean>(true);
 
+  // Database Persistence State
+  const [databaseInfo, setDatabaseInfo] = useState<DatabaseInfo | null>(null);
+  const [isDbLoading, setIsDbLoading] = useState<boolean>(false);
+
   // Toast helper
   const showToast = useCallback(
     (message: string, type: ToastNotification["type"] = "info") => {
@@ -136,9 +163,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     []
   );
 
-  // Theme application
+  // Theme application and persistent sync
+  const setTheme = useCallback(
+    (newTheme: ThemeMode) => {
+      setThemeState(newTheme);
+      localStorage.setItem("rps_theme", newTheme);
+      if (isTauriEnvironment()) {
+        void setAppSetting("theme_mode", newTheme).catch(() => {});
+      }
+    },
+    []
+  );
+
   useEffect(() => {
-    localStorage.setItem("rps_theme", theme);
     const root = document.documentElement;
 
     const applyDark = () => {
@@ -200,9 +237,104 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, []);
 
+  // Database refresh logic
+  const refreshDatabase = useCallback(async () => {
+    if (!isTauriEnvironment()) return;
+    setIsDbLoading(true);
+    try {
+      const info = await getDatabaseInfo();
+      setDatabaseInfo(info);
+
+      const dbCollections = await listCollectionsApi();
+      const pagedPapers = await listPapersApi({ page: 1, page_size: 100 });
+
+      if (dbCollections.length > 0 || pagedPapers.items.length > 0) {
+        // Map SQLite records to domain models
+        const mappedCollections = dbCollections.map((c) =>
+          dbCollectionToCollection(c)
+        );
+        const mappedPapers = pagedPapers.items.map((p) => dbPaperToPaper(p));
+
+        setCollections(mappedCollections);
+        if (mappedPapers.length > 0) {
+          setPapers(mappedPapers);
+        }
+      }
+
+      // Read persistent theme setting if saved in SQLite
+      const savedTheme = await getAppSetting("theme_mode");
+      if (savedTheme && (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system")) {
+        setThemeState(savedTheme);
+      }
+    } catch {
+      // Gracefully maintain in-memory state on error
+    } finally {
+      setIsDbLoading(false);
+    }
+  }, []);
+
+  // Initial startup probe & database load
   useEffect(() => {
     void refreshHealth();
-  }, [refreshHealth]);
+    void refreshDatabase();
+  }, [refreshHealth, refreshDatabase]);
+
+  // Seed sample data into SQLite
+  const seedSampleData = useCallback(async () => {
+    if (!isTauriEnvironment()) {
+      setPapers(INITIAL_DEMO_PAPERS);
+      setCollections(INITIAL_DEMO_COLLECTIONS);
+      showToast("Seeded sample papers into memory.", "success");
+      return;
+    }
+
+    try {
+      setIsDbLoading(true);
+      // Create sample collections in SQLite
+      for (const col of INITIAL_DEMO_COLLECTIONS) {
+        try {
+          await createCollectionApi({
+            name: col.name,
+            description: col.description,
+            color_hex: col.colorHex,
+          });
+        } catch {
+          // Ignore duplicate collection error
+        }
+      }
+
+      // Create sample papers in SQLite
+      for (const paper of INITIAL_DEMO_PAPERS) {
+        try {
+          await createPaperApi({
+            title: paper.title,
+            canonical_doi: paper.doi,
+            abstract_text: paper.abstract,
+            publication_date: paper.publicationDate,
+            publication_year: paper.year,
+            venue: paper.venue,
+            is_open_access: paper.accessStatus === "open_access",
+            primary_landing_url: paper.landingUrl,
+            pdf_url: paper.pdfUrl,
+            is_saved: paper.isSaved,
+            authors: paper.authors,
+            tags: paper.tags,
+            source_id: paper.sourceId,
+          });
+        } catch {
+          // Ignore duplicate paper error
+        }
+      }
+
+      await refreshDatabase();
+      showToast("Seeded research library in SQLite database.", "success");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to seed sample papers.";
+      showToast(msg, "error");
+    } finally {
+      setIsDbLoading(false);
+    }
+  }, [refreshDatabase, showToast]);
 
   // Global search trigger
   const executeGlobalSearch = useCallback((query: string) => {
@@ -238,15 +370,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         };
       }
 
+      const newId = `col-${Date.now()}`;
       const newCol: Collection = {
-        id: `col-${Date.now()}`,
+        id: newId,
         name: trimmed,
         description: description.trim(),
         colorHex,
         paperIds: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        isDemo: true,
+        isDemo: !isTauriEnvironment(),
       };
 
       setCollections((prev) => [newCol, ...prev]);
@@ -262,6 +395,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         },
         ...prev,
       ]);
+
+      if (isTauriEnvironment()) {
+        void createCollectionApi({
+          name: trimmed,
+          description: description.trim(),
+          color_hex: colorHex,
+        })
+          .then((created) => {
+            setCollections((prev) =>
+              prev.map((c) => (c.id === newId ? dbCollectionToCollection(created) : c))
+            );
+          })
+          .catch((err) => {
+            showToast(`Database error: ${err.message}`, "error");
+          });
+      }
+
       showToast(`Collection "${trimmed}" created successfully.`, "success");
       return { success: true };
     },
@@ -300,6 +450,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             : c
         )
       );
+
+      if (isTauriEnvironment()) {
+        void updateCollectionApi({
+          id,
+          name: trimmed,
+          description: description.trim(),
+        }).catch((err) => {
+          showToast(`Database error updating collection: ${err.message}`, "error");
+        });
+      }
+
       showToast(`Collection updated.`, "success");
       return { success: true };
     },
@@ -322,6 +483,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (selectedCollectionId === id) {
         setSelectedCollectionId(null);
       }
+
+      if (isTauriEnvironment()) {
+        void deleteCollectionApi(id).catch((err) => {
+          showToast(`Database error deleting collection: ${err.message}`, "error");
+        });
+      }
+
       showToast(`Collection "${target.name}" removed (Papers preserved).`, "info");
     },
     [collections, selectedCollectionId, showToast]
@@ -333,6 +501,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         prev.map((p) => {
           if (p.id !== paperId) return p;
           const nextSaved = !p.isSaved;
+
+          if (isTauriEnvironment()) {
+            void toggleSavePaperApi(paperId, nextSaved).catch(() => {});
+          }
+
           showToast(
             nextSaved
               ? `Saved "${p.title.slice(0, 32)}..." to library.`
@@ -351,6 +524,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setPapers((prev) =>
         prev.map((p) => (p.id === paperId ? { ...p, isSaved: false } : p))
       );
+
+      if (isTauriEnvironment()) {
+        void toggleSavePaperApi(paperId, false).catch(() => {});
+      }
+
       showToast("Paper removed from library.", "info");
     },
     [showToast]
@@ -376,6 +554,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           return { ...p, collectionIds: [...p.collectionIds, collectionId] };
         })
       );
+
+      if (isTauriEnvironment()) {
+        void addPaperToCollectionApi(collectionId, paperId).catch((err) => {
+          showToast(`Database error: ${err.message}`, "error");
+        });
+      }
+
       showToast("Paper added to collection.", "success");
     },
     [showToast]
@@ -402,6 +587,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           };
         })
       );
+
+      if (isTauriEnvironment()) {
+        void removePaperFromCollectionApi(collectionId, paperId).catch((err) => {
+          showToast(`Database error: ${err.message}`, "error");
+        });
+      }
+
       showToast("Paper removed from collection.", "info");
     },
     [showToast]
@@ -463,7 +655,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setGlobalSearchQuery,
         executeGlobalSearch,
         theme,
-        setTheme: setThemeState,
+        setTheme,
         papers,
         collections,
         jobs,
@@ -484,6 +676,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isTauri,
         isHealthLoading,
         refreshHealth,
+        databaseInfo,
+        isDbLoading,
+        refreshDatabase,
+        seedSampleData,
       }}
     >
       {children}

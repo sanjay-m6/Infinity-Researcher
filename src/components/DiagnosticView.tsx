@@ -243,8 +243,8 @@ export const DiagnosticView: React.FC = () => {
               <span className="text-slate-300 font-medium">
                 SQLite Database & FTS5 Indexing
               </span>
-              <span className="px-2 py-0.5 rounded font-mono text-[11px] bg-slate-800/80 text-slate-400 border border-slate-700/50">
-                Scheduled for Phase 4
+              <span className="px-2 py-0.5 rounded font-mono text-[11px] bg-emerald-950/60 border border-emerald-800/40 text-emerald-300">
+                {health?.subsystems?.database ? health.subsystems.database.toUpperCase() : "READY (SQLite 3, FTS5)"}
               </span>
             </div>
 

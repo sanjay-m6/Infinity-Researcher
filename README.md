@@ -169,4 +169,9 @@ Build outputs are generated under `src-tauri/target/release/bundle/`.
   * [Design System & Tokens](file:///d:/Paper/docs/phase-3/design-system.md)
   * [Demo Data Specification](file:///d:/Paper/docs/phase-3/demo-data-specification.md)
   * [Phase 3 Completion Report](file:///d:/Paper/docs/phase-3/phase-3-completion-report.md)
+* **[Phase 4 Local Backend & SQLite Database](file:///d:/Paper/docs/phase-4-completion-report.md):**
+  * [ADR-005: SQLite Persistence & Database Access](file:///d:/Paper/docs/decisions/ADR-005-database-access.md)
+  * [Local Database Architecture & Migrations](file:///d:/Paper/docs/architecture/local-database.md)
+  * [Relational Data Model & FTS5](file:///d:/Paper/docs/architecture/data-model.md)
+  * [Phase 4 Quality & Test Report](file:///d:/Paper/docs/testing/phase-4-test-report.md)
 

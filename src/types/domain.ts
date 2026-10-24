@@ -32,7 +32,7 @@ export interface Paper {
   citationCount: number;
   addedAt: string;
   isSaved: boolean;
-  isDemo: true;
+  isDemo?: boolean;
 }
 
 export interface Collection {
@@ -43,7 +43,7 @@ export interface Collection {
   paperIds: string[];
   createdAt: string;
   updatedAt: string;
-  isDemo: true;
+  isDemo?: boolean;
 }
 
 export type JobStatus = "queued" | "running" | "completed" | "failed";

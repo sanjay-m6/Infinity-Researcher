@@ -1,5 +1,5 @@
-use rusqlite::{params, Connection, Result};
 use crate::domain::settings::AppSetting;
+use rusqlite::{params, Connection, Result};
 
 pub struct SettingsRepository;
 
@@ -27,7 +27,8 @@ impl SettingsRepository {
     }
 
     pub fn list(conn: &Connection) -> Result<Vec<AppSetting>> {
-        let mut stmt = conn.prepare("SELECT key, value, updated_at FROM app_settings ORDER BY key ASC")?;
+        let mut stmt =
+            conn.prepare("SELECT key, value, updated_at FROM app_settings ORDER BY key ASC")?;
         let rows = stmt.query_map([], |row| {
             Ok(AppSetting {
                 key: row.get(0)?,

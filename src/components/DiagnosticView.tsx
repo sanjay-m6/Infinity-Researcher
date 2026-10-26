@@ -75,7 +75,7 @@ export const DiagnosticView: React.FC = () => {
                 <Layers className="w-5 h-5" aria-hidden="true" />
               </div>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                Research Paper Scraper
+                Infinity Researcher
               </h1>
             </div>
             <p className="text-xs font-medium text-slate-400 tracking-wide uppercase">

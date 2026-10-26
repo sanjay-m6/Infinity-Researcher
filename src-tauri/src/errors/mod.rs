@@ -13,8 +13,23 @@ pub enum AppError {
     #[error("Command execution error: {0}")]
     Command(String),
 
+    #[error("Network error: {0}")]
+    Network(String),
+
     #[error("Internal error: {0}")]
     Internal(String),
+
+    #[error("Database error: {0}")]
+    Database(String),
+
+    #[error("Storage error: {0}")]
+    Storage(String),
+}
+
+impl From<rusqlite::Error> for AppError {
+    fn from(err: rusqlite::Error) -> Self {
+        AppError::Database(err.to_string())
+    }
 }
 
 /// Sanitized, serializable error representation exposed across the Tauri IPC boundary.
@@ -42,12 +57,21 @@ impl From<AppError> for CommandError {
             AppError::Config(msg) => Self::new("ERR_CONFIG", msg, false),
             AppError::Validation(msg) => Self::new("ERR_VALIDATION", msg, false),
             AppError::Command(msg) => Self::new("ERR_COMMAND", msg, true),
+            AppError::Network(msg) => Self::new("ERR_NETWORK", msg, true),
+            AppError::Database(_) => Self::new("ERR_DATABASE", "A database error occurred.", true),
+            AppError::Storage(msg) => Self::new("ERR_STORAGE", msg, false),
             AppError::Internal(_) => Self::new(
                 "ERR_INTERNAL",
                 "An unexpected internal error occurred. Please try again.",
                 true,
             ),
         }
+    }
+}
+
+impl From<rusqlite::Error> for CommandError {
+    fn from(err: rusqlite::Error) -> Self {
+        AppError::from(err).into()
     }
 }
 

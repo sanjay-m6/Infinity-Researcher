@@ -2,11 +2,16 @@ export type NavSection =
   | "dashboard"
   | "discover"
   | "library"
+  | "review_matrix"
+  | "integrity"
   | "downloads"
   | "collections"
   | "sources"
+  | "ieee"
   | "activity"
+  | "ai_hub"
   | "settings";
+
 
 export type AccessStatus = "open_access" | "restricted" | "preprint";
 export type DocumentStatus =
@@ -33,7 +38,19 @@ export interface Paper {
   addedAt: string;
   isSaved: boolean;
   isDemo?: boolean;
+  openAccessStatus?: string;
+  accessEvidenceType?: string;
+  accessEvidenceNote?: string | null;
+  licenseName?: string | null;
+  licenseUrl?: string | null;
+  retrievalMethod?: string;
+  accessConfirmedAt?: string | null;
+  contentHash?: string | null;
+  localPdfPath?: string | null;
+  readingStatus?: string;
+  readingProgress?: number;
 }
+
 
 export interface Collection {
   id: string;
@@ -61,7 +78,7 @@ export interface DownloadJob {
   startedAt: string;
   completedAt?: string;
   errorMessage?: string;
-  isDemo: true;
+  isDemo?: boolean;
 }
 
 export type SourceCategory =
@@ -79,7 +96,7 @@ export interface SourceProvider {
   status: SourceStatus;
   rateLimit: string;
   docUrl: string;
-  isDemo: true;
+  isDemo?: boolean;
 }
 
 export type ActivityType = "search" | "download" | "import" | "collection" | "system";
@@ -93,7 +110,7 @@ export interface ActivityEvent {
   title: string;
   details: string;
   relatedId?: string;
-  isDemo: true;
+  isDemo?: boolean;
 }
 
 export interface SearchFilters {

@@ -1,10 +1,10 @@
 pub mod migrations;
 
+use rusqlite::Connection;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
-use rusqlite::Connection;
-use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
 use crate::errors::AppError;
@@ -54,9 +54,8 @@ impl Database {
 
     /// Opens an in-memory SQLite database for unit and integration testing.
     pub fn open_in_memory() -> Result<Self, AppError> {
-        let mut conn = Connection::open_in_memory().map_err(|e| {
-            AppError::Internal(format!("Failed to open in-memory database: {}", e))
-        })?;
+        let mut conn = Connection::open_in_memory()
+            .map_err(|e| AppError::Internal(format!("Failed to open in-memory database: {}", e)))?;
 
         Self::configure_pragmas(&mut conn)?;
         migrations::run_migrations(&mut conn).map_err(|e| {
@@ -126,7 +125,7 @@ mod tests {
         let db = Database::open_in_memory().expect("in-memory db initialization failed");
         let info = db.get_info().expect("get_info failed");
 
-        assert_eq!(info.schema_version, 1);
+        assert_eq!(info.schema_version, migrations::CURRENT_SCHEMA_VERSION);
         assert!(info.foreign_keys);
         assert_eq!(info.path, ":memory:");
     }

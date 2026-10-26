@@ -1,8 +1,8 @@
-use tauri::State;
 use crate::domain::note::{Note, NoteSaveInput};
 use crate::errors::CommandError;
 use crate::services::NoteService;
 use crate::state::AppState;
+use tauri::State;
 
 #[tauri::command]
 pub async fn get_notes_for_paper(
@@ -23,10 +23,7 @@ pub async fn save_note(
 }
 
 #[tauri::command]
-pub async fn delete_note(
-    state: State<'_, AppState>,
-    id: String,
-) -> Result<bool, CommandError> {
+pub async fn delete_note(state: State<'_, AppState>, id: String) -> Result<bool, CommandError> {
     let db = state.db()?;
     NoteService::delete_note(db, &id).map_err(Into::into)
 }

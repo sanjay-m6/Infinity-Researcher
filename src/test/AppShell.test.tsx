@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
+import { INITIAL_DEMO_PAPERS, INITIAL_DEMO_COLLECTIONS } from "../data/demo-data";
 
 describe("AppShell Integration Tests", () => {
   beforeEach(() => {
@@ -12,8 +13,8 @@ describe("AppShell Integration Tests", () => {
   it("renders the application shell with product title and navigation items", () => {
     render(<App />);
 
-    expect(screen.getByText("Research Paper")).toBeInTheDocument();
-    expect(screen.getByText("Local Workbench")).toBeInTheDocument();
+    expect(screen.getAllByText("Infinity Researcher").length).toBeGreaterThan(0);
+    expect(screen.getByText("Discover. Understand.")).toBeInTheDocument();
 
     const nav = screen.getByRole("navigation", { name: "Main Navigation" });
     expect(within(nav).getByRole("button", { name: /Dashboard/i })).toBeInTheDocument();
@@ -40,7 +41,7 @@ describe("AppShell Integration Tests", () => {
     // Navigate to Discover
     await user.click(within(nav).getByRole("button", { name: /Discover/i }));
     expect(
-      screen.getByRole("heading", { name: "Discover Scholarly Literature", level: 1 })
+      screen.getByRole("heading", { name: "Discover Research Papers", level: 1 })
     ).toBeInTheDocument();
 
     // Navigate to Library
@@ -65,7 +66,7 @@ describe("AppShell Integration Tests", () => {
     await user.click(within(nav).getByRole("button", { name: /Sources/i }));
     expect(
       screen.getByRole("heading", {
-        name: "Academic Sources & Provider Directory",
+        name: "Website Sources & Scraper Profiles",
         level: 1,
       })
     ).toBeInTheDocument();
@@ -100,7 +101,7 @@ describe("AppShell Integration Tests", () => {
 
   it("opens the Paper Details drawer when clicking a paper row", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App initialPapers={INITIAL_DEMO_PAPERS} />);
 
     // Click on the first recent paper on Dashboard
     const paperTitle = screen.getByText("Attention Is All You Need");
@@ -121,7 +122,7 @@ describe("AppShell Integration Tests", () => {
 
   it("validates and prevents duplicate collection creation", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App initialCollections={INITIAL_DEMO_COLLECTIONS} />);
 
     const nav = screen.getByRole("navigation", { name: "Main Navigation" });
 

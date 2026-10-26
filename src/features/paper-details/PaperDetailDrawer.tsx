@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "../../context/AppContext";
 import { Drawer } from "../../components/ui/Drawer";
 import { Button } from "../../components/ui/Button";
@@ -13,12 +13,21 @@ import {
   Calendar,
   Layers,
   Check,
+  Download,
+  RefreshCw,
 } from "lucide-react";
+import {
+  getPaperPdfInfo,
+  resolvePaperPdf,
+  enqueuePdfDownload,
+} from "../../lib/desktop-api";
+import { PaperPdfInfo } from "../../lib/desktop-api/types";
 
 export const PaperDetailDrawer: React.FC = () => {
   const {
     selectedPaperId,
     setSelectedPaperId,
+    setReadingPaper,
     papers,
     collections,
     toggleSavePaper,
@@ -29,6 +38,19 @@ export const PaperDetailDrawer: React.FC = () => {
 
   const [isAbstractExpanded, setIsAbstractExpanded] = useState(false);
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
+  const [pdfInfo, setPdfInfo] = useState<PaperPdfInfo | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedPaperId) {
+      setPdfInfo(null);
+      return;
+    }
+    getPaperPdfInfo(selectedPaperId)
+      .then(setPdfInfo)
+      .catch(() => setPdfInfo(null));
+  }, [selectedPaperId]);
 
   const paper = papers.find((p) => p.id === selectedPaperId);
 
@@ -59,6 +81,50 @@ export const PaperDetailDrawer: React.FC = () => {
   };
 
   const isLongAbstract = paper.abstract.length > 280;
+
+  const handleResolvePdf = async () => {
+    if (!paper) return;
+    setIsResolving(true);
+    try {
+      const res = await resolvePaperPdf(paper.id);
+      showToast(`PDF Resolution: ${res.status.replace(/_/g, " ")}`, "info");
+      const updated = await getPaperPdfInfo(paper.id);
+      setPdfInfo(updated);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      showToast(msg || "Failed to resolve PDF candidates", "error");
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!paper) return;
+    const targetUrl = pdfInfo?.download_url || paper.pdfUrl;
+    if (!targetUrl) {
+      showToast("No download URL available. Try finding open-access PDF first.", "warning");
+      return;
+    }
+    setIsDownloading(true);
+    try {
+      await enqueuePdfDownload({
+        paper_id: paper.id,
+        paper_title: paper.title,
+        url: targetUrl,
+        source_id: paper.sourceId || "manual",
+      });
+      showToast("PDF download started in background queue", "success");
+      const updated = await getPaperPdfInfo(paper.id);
+      setPdfInfo(updated);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      showToast(msg || "Failed to enqueue PDF download", "error");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const hasLocalPdf = Boolean(pdfInfo?.has_local_file || paper.documentStatus === "available");
 
   return (
     <Drawer
@@ -139,10 +205,10 @@ export const PaperDetailDrawer: React.FC = () => {
             </Badge>
 
             <Badge
-              variant={paper.documentStatus === "available" ? "success" : "default"}
+              variant={hasLocalPdf ? "success" : "default"}
               size="sm"
             >
-              Document: {paper.documentStatus === "available" ? "Demo PDF" : "Not Cached"}
+              Document: {hasLocalPdf ? "Verified Local PDF" : "Not Downloaded"}
             </Badge>
           </div>
         </div>
@@ -264,12 +330,58 @@ export const PaperDetailDrawer: React.FC = () => {
         </div>
 
         {/* Actions Bar */}
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap gap-2.5">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2.5">
+          {hasLocalPdf ? (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                setReadingPaper({
+                  id: paper.id,
+                  title: paper.title,
+                  sourceUrl: paper.landingUrl,
+                });
+              }}
+              className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm"
+            >
+              <BookOpen className="w-3.5 h-3.5 mr-1.5" />
+              Read PDF (Embedded)
+            </Button>
+          ) : (
+            <>
+              {pdfInfo?.download_url || paper.pdfUrl ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  disabled={isDownloading}
+                  onClick={handleDownloadPdf}
+                  className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                >
+                  <Download className="w-3.5 h-3.5 mr-1.5" />
+                  {isDownloading ? "Downloading..." : "Download PDF"}
+                </Button>
+              ) : null}
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isResolving}
+                onClick={handleResolvePdf}
+                className="text-xs"
+              >
+                <RefreshCw
+                  className={`w-3.5 h-3.5 mr-1.5 ${isResolving ? "animate-spin" : ""}`}
+                />
+                {isResolving ? "Resolving..." : "Find Open-Access PDF"}
+              </Button>
+            </>
+          )}
+
           <a
             href={paper.landingUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             Open Source Page
@@ -287,16 +399,6 @@ export const PaperDetailDrawer: React.FC = () => {
               <Copy className="w-3.5 h-3.5" />
             )}
             Copy BibTeX
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled
-            title="Full PDF text extraction engine is scheduled for Phase 8"
-            className="text-xs"
-          >
-            Read Document (Phase 8)
           </Button>
         </div>
       </div>

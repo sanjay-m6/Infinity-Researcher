@@ -41,3 +41,20 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Python virtualenv, pycache, and test caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+ENV/
+env/
+python-engine/.venv/
+python-engine/__pycache__/
+python-engine/*/__pycache__/
+python-engine/*/*/__pycache__/

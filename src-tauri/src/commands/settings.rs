@@ -1,8 +1,8 @@
-use tauri::State;
 use crate::domain::settings::AppSetting;
 use crate::errors::CommandError;
 use crate::services::SettingsService;
 use crate::state::AppState;
+use tauri::State;
 
 #[tauri::command]
 pub async fn get_app_setting(

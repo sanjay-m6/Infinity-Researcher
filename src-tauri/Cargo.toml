@@ -1,9 +1,10 @@
 [package]
-name = "research-paper-scraper"
+name = "infinity-researcher"
 version = "0.1.0"
-description = "Standalone desktop research paper scraper and library application"
-authors = ["Research Paper Scraper Authors"]
+description = "Infinity Researcher — An AI-powered research workspace, created by Sanjay."
+authors = ["Sanjay <Infinity Web Technology>"]
 edition = "2021"
+license = "MIT"
 
 [lib]
 name = "research_paper_scraper_lib"
@@ -24,6 +25,15 @@ tokio = { version = "1", features = ["full"] }
 rusqlite = { version = "0.40.2", features = ["bundled", "uuid", "chrono"] }
 uuid = { version = "1.29.0", features = ["v4", "serde"] }
 chrono = { version = "0.4.45", features = ["serde"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+url = "2.5"
+quick-xml = { version = "0.37", features = ["serialize"] }
+async-trait = "0.1"
+regex = "1.10"
+scraper = "0.22"
+sha2 = "0.10"
+lopdf = "0.34"
+spider = { version = "2.53.9", default-features = false, features = ["sync"] }
 
 [profile.release]
 codegen-units = 1

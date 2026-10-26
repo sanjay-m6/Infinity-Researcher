@@ -1,5 +1,5 @@
-use rusqlite::{params, Connection, Result};
 use crate::domain::collection::Collection;
+use rusqlite::{params, Connection, Result};
 
 pub struct CollectionRepository;
 
@@ -142,14 +142,40 @@ impl CollectionRepository {
     }
 
     pub fn get_collections_for_paper(conn: &Connection, paper_id: &str) -> Result<Vec<String>> {
-        let mut stmt = conn.prepare(
-            "SELECT collection_id FROM collection_papers WHERE paper_id = ?1",
-        )?;
+        let mut stmt =
+            conn.prepare("SELECT collection_id FROM collection_papers WHERE paper_id = ?1")?;
         let rows = stmt.query_map(params![paper_id], |row| row.get(0))?;
         let mut ids = Vec::new();
         for r in rows {
             ids.push(r?);
         }
         Ok(ids)
+    }
+
+    pub fn bulk_add_papers(
+        conn: &Connection,
+        collection_id: &str,
+        paper_ids: &[String],
+    ) -> Result<usize> {
+        let mut count = 0;
+        for pid in paper_ids {
+            Self::add_paper(conn, collection_id, pid)?;
+            count += 1;
+        }
+        Ok(count)
+    }
+
+    pub fn bulk_remove_papers(
+        conn: &Connection,
+        collection_id: &str,
+        paper_ids: &[String],
+    ) -> Result<usize> {
+        let mut count = 0;
+        for pid in paper_ids {
+            if Self::remove_paper(conn, collection_id, pid)? {
+                count += 1;
+            }
+        }
+        Ok(count)
     }
 }

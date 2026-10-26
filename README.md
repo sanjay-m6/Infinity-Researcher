@@ -1,6 +1,15 @@
-# Research Paper Scraper
+# Infinity-Researcher
 
-A standalone, local-first desktop application engineered for academic researchers. Discover papers across verified scholarly sources, collect normalized metadata, download authorized open-access documents, organize a persistent local library, search indexed records and in-document text offline, and export standardized citations.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Built with Tauri 2](https://img.shields.io/badge/Tauri-2.0-24C8D8?logo=tauri&logoColor=white)](https://tauri.app)
+[![React 19](https://img.shields.io/badge/React-19.1-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![Rust](https://img.shields.io/badge/Rust-2021-DEA584?logo=rust&logoColor=black)](https://www.rust-lang.org)
+
+> **Discover. Understand. Research.**  
+> Created by **Sanjay** | **Infinity Web Technology**  
+> Copyright © 2026 Sanjay. All rights reserved.
+
+A standalone, local-first AI-powered research workspace desktop application engineered for academic researchers. Discover papers across permitted scholarly websites and repositories, collect normalized metadata, download authorized open-access documents, read PDFs offline in the integrated reader, perform literature review matrices, and organize a persistent local library.
 
 Built with **Tauri 2**, **Rust**, **React 19**, **TypeScript**, **Vite 8**, and **Tailwind CSS v4**.
 
@@ -8,10 +17,10 @@ Built with **Tauri 2**, **Rust**, **React 19**, **TypeScript**, **Vite 8**, and 
 
 ## Architecture Highlights
 
-* **Local-First & Sovereign:** All bibliographies, collections, notes, and PDF files reside on the researcher's local machine in a local SQLite database (WAL mode) and managed document directory. Zero mandatory remote servers or cloud accounts.
-* **Privilege Separation:** The React frontend runs in a sandboxed webview context protected by a strict Content Security Policy. Privileged operations (networking, filesystem I/O, database access) are owned exclusively by the native Rust backend.
-* **Ethical Academic Sourcing:** Interacts strictly with documented academic APIs and repository feeds (OpenAlex, Crossref, Semantic Scholar, arXiv, Europe PMC, DOAJ). Strictly adheres to published rate limits and terms of use; never bypasses paywalls or CAPTCHAs.
-* **Safe Ingestion Pipeline:** Outbound requests are protected by an Anti-SSRF guard; streamed downloads verify `%PDF-` file signatures and size limits before moving files into the library.
+* **Website-Driven Discovery (No-API Engine):** Discovers literature by requesting permitted public HTML pages and extracting standard embedded metadata (Highwire Press, Dublin Core, Schema.org JSON-LD) and normal hyperlinks. Never calls third-party academic provider APIs, private/undocumented network endpoints, or cloud scraping proxies.
+* **Local-First & Sovereign:** All bibliographies, collections, crawl state, and PDF files reside on the researcher's local machine in a local SQLite database (WAL mode) and managed document directory. Zero mandatory remote servers or cloud accounts.
+* **Integrated Offline PDF Reader:** Embedded reader powered by sandboxed PDF.js with page navigation, zoom/fit modes, 90° rotation, full-text search, thumbnail previews, and persistent reading state.
+* **Strict Ethical & Safety Boundaries:** Automated URL validation via Anti-SSRF guards (blocking private/loopback/metadata addresses), full robots.txt compliance, polite crawl delay enforcement, and magic-byte `%PDF-` validation before file storage. Paywalls and bot challenges are never bypassed.
 
 ---
 
@@ -174,4 +183,21 @@ Build outputs are generated under `src-tauri/target/release/bundle/`.
   * [Local Database Architecture & Migrations](file:///d:/Paper/docs/architecture/local-database.md)
   * [Relational Data Model & FTS5](file:///d:/Paper/docs/architecture/data-model.md)
   * [Phase 4 Quality & Test Report](file:///d:/Paper/docs/testing/phase-4-test-report.md)
+* **[Phase 5 Academic Connectors & Unified Discovery](file:///d:/Paper/docs/phase-5-implementation-report.md):**
+  * [Source Connectors & Specification Matrix](file:///d:/Paper/docs/source-connectors.md)
+  * [Academic Search Architecture & Connector Framework](file:///d:/Paper/docs/academic-search-architecture.md)
+  * [Provider Setup, Rate Limits & Credentials](file:///d:/Paper/docs/provider-setup.md)
+  * [Phase 5 Implementation & Audit Report](file:///d:/Paper/docs/phase-5-implementation-report.md)
+* **[Phase 6 Website Scraping Engine](file:///d:/Paper/docs/phase-6-implementation-report.md):**
+  * [Website Scraper Architecture](file:///d:/Paper/docs/website-scraper-architecture.md)
+  * [Crawl Profiles Guide & Custom Rules](file:///d:/Paper/docs/crawl-profiles-guide.md)
+  * [Phase 6 Implementation & Audit Report](file:///d:/Paper/docs/phase-6-implementation-report.md)
+* **[Phase 7 Paper Processing, Deduplication & PDF Integrity](file:///d:/Paper/docs/phase-7-testing-and-verification.md):**
+  * [Processing Pipeline Architecture](file:///d:/Paper/docs/phase-7-processing-pipeline.md)
+  * [Metadata Normalization & Identifier Namespaces](file:///d:/Paper/docs/phase-7-metadata-normalization.md)
+  * [Intelligent Deduplication & Merge Policy](file:///d:/Paper/docs/phase-7-deduplication-policy.md)
+  * [PDF Processing & Document Integrity](file:///d:/Paper/docs/phase-7-pdf-processing.md)
+  * [Phase 7 Testing & Verification Report](file:///d:/Paper/docs/phase-7-testing-and-verification.md)
+
+
 

@@ -1,5 +1,5 @@
-use rusqlite::{params, Connection, Result};
 use crate::domain::tag::Tag;
+use rusqlite::{params, Connection, Result};
 
 pub struct TagRepository;
 
@@ -74,18 +74,51 @@ impl TagRepository {
         Ok(rows > 0)
     }
 
-    pub fn get_tags_for_paper(conn: &Connection, paper_id: &str) -> Result<Vec<String>> {
-        let mut stmt = conn.prepare(
-            "SELECT t.name FROM tags t
-             JOIN paper_tags pt ON pt.tag_id = t.id
-             WHERE pt.paper_id = ?1
-             ORDER BY t.name ASC",
+    pub fn delete_tag(conn: &Connection, tag_id: &str) -> Result<bool> {
+        conn.execute("DELETE FROM paper_tags WHERE tag_id = ?1", params![tag_id])?;
+        let rows = conn.execute("DELETE FROM tags WHERE id = ?1", params![tag_id])?;
+        Ok(rows > 0)
+    }
+
+    pub fn rename_tag(conn: &Connection, tag_id: &str, new_name: &str) -> Result<bool> {
+        let trimmed = new_name.trim();
+        let rows = conn.execute(
+            "UPDATE tags SET name = ?1 WHERE id = ?2",
+            params![trimmed, tag_id],
         )?;
-        let rows = stmt.query_map(params![paper_id], |row| row.get(0))?;
-        let mut names = Vec::new();
-        for r in rows {
-            names.push(r?);
+        Ok(rows > 0)
+    }
+
+    pub fn bulk_assign_tag(
+        conn: &Connection,
+        paper_ids: &[String],
+        tag_name: &str,
+    ) -> Result<usize> {
+        let tag = Self::create_or_get(conn, tag_name, "#64748b")?;
+        let mut count = 0;
+        for pid in paper_ids {
+            Self::assign_tag(conn, pid, &tag.id)?;
+            count += 1;
         }
-        Ok(names)
+        Ok(count)
+    }
+
+    pub fn bulk_remove_tag(
+        conn: &Connection,
+        paper_ids: &[String],
+        tag_name: &str,
+    ) -> Result<usize> {
+        let mut count = 0;
+        let trimmed = tag_name.trim();
+        for pid in paper_ids {
+            let rows = conn.execute(
+                "DELETE FROM paper_tags WHERE paper_id = ?1 AND tag_id IN (SELECT id FROM tags WHERE lower(name) = lower(?2))",
+                params![pid, trimmed],
+            )?;
+            if rows > 0 {
+                count += 1;
+            }
+        }
+        Ok(count)
     }
 }

@@ -15,7 +15,9 @@ impl NoteService {
     pub fn save_note(db: &Database, input: NoteSaveInput) -> Result<Note, AppError> {
         let content = input.content_markdown.trim();
         if content.is_empty() {
-            return Err(AppError::Validation("Note content cannot be empty.".to_string()));
+            return Err(AppError::Validation(
+                "Note content cannot be empty.".to_string(),
+            ));
         }
 
         let now = chrono::Utc::now().to_rfc3339();

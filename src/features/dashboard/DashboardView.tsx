@@ -82,7 +82,7 @@ export const DashboardView: React.FC = () => {
             <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums">
               {papers.length}
             </span>
-            <span className="text-[10px] text-slate-400 font-medium">Demo dataset</span>
+            <span className="text-[10px] text-slate-400 font-medium">Indexed locally</span>
           </div>
           <div className="mt-3 flex items-center text-xs text-indigo-600 dark:text-indigo-400 font-medium group-hover:translate-x-0.5 transition-transform">
             <span>Browse library</span>
@@ -241,47 +241,72 @@ export const DashboardView: React.FC = () => {
           </div>
 
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
-            {papers.slice(0, 5).map((paper) => (
-              <div
-                key={paper.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setSelectedPaperId(paper.id)}
-                onKeyDown={(e) => e.key === "Enter" && setSelectedPaperId(paper.id)}
-                className="p-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
-                      {paper.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                      {paper.authors.join(", ")}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-slate-400">
-                      <span>{paper.venue}</span>
-                      <span>•</span>
-                      <span className="font-mono">{paper.year}</span>
-                      <span>•</span>
-                      <Badge variant="primary" size="sm">
-                        {paper.sourceName}
-                      </Badge>
-                      {paper.accessStatus === "open_access" && (
-                        <Badge variant="success" size="sm">
-                          Open Access
+            {papers.length === 0 ? (
+              <div className="p-8 text-center space-y-3">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    No papers in your library yet
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                    Search academic sources or crawl repositories to discover and save research papers.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActiveSection("discover")}
+                  className="mt-2 text-xs"
+                >
+                  <Search className="w-3.5 h-3.5 mr-1" />
+                  Search Academic Sources
+                </Button>
+              </div>
+            ) : (
+              papers.slice(0, 5).map((paper) => (
+                <div
+                  key={paper.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedPaperId(paper.id)}
+                  onKeyDown={(e) => e.key === "Enter" && setSelectedPaperId(paper.id)}
+                  className="p-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
+                        {paper.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        {paper.authors.join(", ")}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-slate-400">
+                        <span>{paper.venue}</span>
+                        <span>•</span>
+                        <span className="font-mono">{paper.year}</span>
+                        <span>•</span>
+                        <Badge variant="primary" size="sm">
+                          {paper.sourceName}
                         </Badge>
-                      )}
+                        {paper.accessStatus === "open_access" && (
+                          <Badge variant="success" size="sm">
+                            Open Access
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="shrink-0 flex items-center gap-2">
+                      <span className="text-xs text-slate-400 tabular-nums">
+                        {paper.citationCount.toLocaleString()} cit.
+                      </span>
+                      <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 dark:text-slate-600 dark:group-hover:text-indigo-400 transition-colors" />
                     </div>
                   </div>
-                  <div className="shrink-0 flex items-center gap-2">
-                    <span className="text-xs text-slate-400 tabular-nums">
-                      {paper.citationCount.toLocaleString()} cit.
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 dark:text-slate-600 dark:group-hover:text-indigo-400 transition-colors" />
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -346,26 +371,32 @@ export const DashboardView: React.FC = () => {
                 All Logs
               </button>
             </div>
-            <div className="space-y-2.5">
-              {activity.slice(0, 4).map((act) => (
-                <div key={act.id} className="text-xs space-y-0.5">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-medium text-slate-700 dark:text-slate-300 truncate">
-                      {act.title}
-                    </span>
-                    <span className="text-slate-400 font-mono text-[10px]">
-                      {new Date(act.timestamp).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
+            {activity.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-400">
+                No recent activity recorded yet
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {activity.slice(0, 4).map((act) => (
+                  <div key={act.id} className="text-xs space-y-0.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-medium text-slate-700 dark:text-slate-300 truncate">
+                        {act.title}
+                      </span>
+                      <span className="text-slate-400 font-mono text-[10px]">
+                        {new Date(act.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px] truncate">
+                      {act.details}
+                    </p>
                   </div>
-                  <p className="text-slate-500 dark:text-slate-400 text-[11px] truncate">
-                    {act.details}
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

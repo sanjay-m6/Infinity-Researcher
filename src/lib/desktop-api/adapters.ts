@@ -38,10 +38,23 @@ export function dbPaperToPaper(db: DbPaper): Paper {
     collectionIds: db.collection_ids || [],
     citationCount: db.citation_count,
     addedAt: db.created_at,
+
     isSaved: db.is_saved,
     isDemo: false,
+    openAccessStatus: db.open_access_status,
+    accessEvidenceType: db.access_evidence_type,
+    accessEvidenceNote: db.access_evidence_note,
+    licenseName: db.license_name,
+    licenseUrl: db.license_url,
+    retrievalMethod: db.retrieval_method,
+    accessConfirmedAt: db.access_confirmed_at,
+    contentHash: db.content_hash,
+    localPdfPath: db.local_pdf_path,
+    readingStatus: db.reading_status,
+    readingProgress: db.reading_progress,
   };
 }
+
 
 /**
  * Transforms a raw SQLite Collection entity into the UI-friendly Collection representation.

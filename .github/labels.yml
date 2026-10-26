@@ -1,0 +1,67 @@
+- name: bug
+  color: d73a4a
+  description: Confirmed defect or error report
+
+- name: enhancement
+  color: a2eeef
+  description: New feature or capability request
+
+- name: ui/ux
+  color: c5def5
+  description: User interface, layout, typography, or visual experience
+
+- name: onboarding
+  color: bfd4f2
+  description: First-run setup wizard and guided user orientation
+
+- name: performance
+  color: fbca04
+  description: Latency, memory, disk usage, or CPU optimization
+
+- name: scraper
+  color: d4c5f9
+  description: Academic crawling, parsing, or metadata connector issue
+
+- name: pdf-reader
+  color: 0075ca
+  description: PDF rendering, page navigation, or annotation issue
+
+- name: ai
+  color: 7057ff
+  description: AI model synthesis, RAG, prompt formatting, or provider issue
+
+- name: installer
+  color: e99695
+  description: Windows installer, NSIS, MSI, or packaging problem
+
+- name: updater
+  color: f9d0c4
+  description: In-app signed update check, download, or restart issue
+
+- name: documentation
+  color: 0075ca
+  description: Improvements or additions to user documentation or guides
+
+- name: question
+  color: d876e3
+  description: Research workflow question or usage inquiry
+
+- name: "priority: critical"
+  color: b60205
+  description: Work-stopping defect requiring urgent attention
+
+- name: "priority: high"
+  color: d93f0b
+  description: Major functionality failure with significant impact
+
+- name: "priority: normal"
+  color: fbca04
+  description: Standard priority defect or enhancement
+
+- name: "priority: low"
+  color: 0e8a16
+  description: Minor cosmetic issue or non-urgent suggestion
+
+- name: needs-triage
+  color: ededed
+  description: Newly submitted report awaiting maintainer review

@@ -1,0 +1,38 @@
+name: Feature Request
+description: Propose a new capability or improvement for Infinity Researcher.
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make **Infinity Researcher** even better? We welcome scholarly workflow enhancements!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Scholarly Use Case
+      description: What challenge or friction do you experience in your research?
+      placeholder: When writing literature reviews, I need to compare multiple experimental baselines...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed Solution / Behavior
+      description: Describe your proposed feature and how you envision it working in the application.
+    validations:
+      required: true
+  - type: textarea
+    id: benefit
+    attributes:
+      label: Value & Research Impact
+      description: How would this help scientists, PhD students, and researchers?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context or Alternatives
+      description: Any existing tools, mockups, or alternative solutions considered.
+    validations:
+      required: false

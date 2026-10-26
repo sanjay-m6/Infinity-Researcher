@@ -1,5 +1,5 @@
-use rusqlite::{params, Connection, Result};
 use crate::domain::source::Source;
+use rusqlite::{params, Connection, Result};
 
 pub struct SourceRepository;
 

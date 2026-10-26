@@ -32,7 +32,10 @@ impl HealthService {
 
         let db_status = match state.database {
             Some(ref db) => match db.get_info() {
-                Ok(info) => format!("ready (SQLite 3, schema v{}, {})", info.schema_version, info.journal_mode),
+                Ok(info) => format!(
+                    "ready (SQLite 3, schema v{}, {})",
+                    info.schema_version, info.journal_mode
+                ),
                 Err(e) => format!("error ({})", e),
             },
             None => "uninitialized".to_string(),

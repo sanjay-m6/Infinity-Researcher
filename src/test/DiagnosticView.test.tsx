@@ -32,7 +32,7 @@ describe("DiagnosticView Component", () => {
 
     render(<DiagnosticView />);
 
-    expect(screen.getByText("Research Paper Scraper")).toBeInTheDocument();
+    expect(screen.getByText("Infinity Researcher")).toBeInTheDocument();
     expect(
       screen.getByText("Desktop Foundation / Phase 2 Diagnostics")
     ).toBeInTheDocument();

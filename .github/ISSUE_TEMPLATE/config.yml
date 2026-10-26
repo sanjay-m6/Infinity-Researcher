@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Infinity Researcher Documentation
+    url: https://github.com/sanjay-m6/Infinity-Researcher/tree/main/docs
+    about: Read architectural guides, scraping policies, and matrix workflows.
+  - name: Community Discussions & Questions
+    url: https://github.com/sanjay-m6/Infinity-Researcher/discussions
+    about: Ask questions and discuss academic research workflows with other scholars.

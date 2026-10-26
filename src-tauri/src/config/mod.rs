@@ -24,7 +24,7 @@ impl Default for AppConfig {
         let default_library_dir = home_dir.join("Documents").join("ResearchPapers");
 
         Self {
-            app_name: "Research Paper Scraper".to_string(),
+            app_name: "Infinity Researcher".to_string(),
             app_version: env!("CARGO_PKG_VERSION").to_string(),
             default_library_dir,
             max_file_size_bytes: 100 * 1024 * 1024, // 100 MB ceiling
@@ -77,8 +77,10 @@ mod tests {
 
     #[test]
     fn test_invalid_concurrency_rejected() {
-        let mut config = AppConfig::default();
-        config.default_concurrency_limit = 0;
+        let mut config = AppConfig {
+            default_concurrency_limit: 0,
+            ..Default::default()
+        };
         assert!(config.validate().is_err());
 
         config.default_concurrency_limit = 50;

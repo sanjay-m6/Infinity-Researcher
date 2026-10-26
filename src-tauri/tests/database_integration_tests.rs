@@ -1,7 +1,11 @@
 use research_paper_scraper_lib::database::Database;
-use research_paper_scraper_lib::domain::collection::{CollectionCreateInput, CollectionUpdateInput};
+use research_paper_scraper_lib::domain::collection::{
+    CollectionCreateInput, CollectionUpdateInput,
+};
 use research_paper_scraper_lib::domain::note::NoteSaveInput;
-use research_paper_scraper_lib::domain::paper::{PaperCreateInput, PaperListQuery, PaperUpdateInput};
+use research_paper_scraper_lib::domain::paper::{
+    PaperCreateInput, PaperListQuery, PaperUpdateInput,
+};
 use research_paper_scraper_lib::services::{
     CollectionService, NoteService, PaperService, SettingsService, SourceService, TagService,
 };
@@ -13,7 +17,10 @@ fn test_database_initialization_and_seeded_sources() {
     let sources = SourceService::list_sources(&db).expect("failed to list sources");
     assert_eq!(sources.len(), 8, "Expected 8 academic sources to be seeded");
 
-    let arxiv = sources.iter().find(|s| s.id == "arxiv").expect("arxiv source not found");
+    let arxiv = sources
+        .iter()
+        .find(|s| s.id == "arxiv")
+        .expect("arxiv source not found");
     assert_eq!(arxiv.name, "arXiv");
     assert_eq!(arxiv.tier, "tier_a");
     assert!(arxiv.is_enabled);
@@ -45,6 +52,9 @@ fn test_paper_crud_and_deduplication() {
         collection_ids: None,
         tags: Some(vec!["Deep Learning".to_string(), "Transformers".to_string()]),
         source_id: Some("arxiv".to_string()),
+        reading_status: Some("unread".to_string()),
+        reading_progress: Some(0.0),
+        ..Default::default()
     };
 
     let created = PaperService::create_paper(&db, input).expect("failed to create paper");
@@ -73,6 +83,9 @@ fn test_paper_crud_and_deduplication() {
         collection_ids: None,
         tags: None,
         source_id: None,
+        reading_status: None,
+        reading_progress: None,
+        ..Default::default()
     };
     let err_doi = PaperService::create_paper(&db, duplicate_doi_input);
     assert!(err_doi.is_err(), "Expected error on duplicate DOI");
@@ -95,6 +108,9 @@ fn test_paper_crud_and_deduplication() {
         collection_ids: None,
         tags: None,
         source_id: None,
+        reading_status: None,
+        reading_progress: None,
+        ..Default::default()
     };
     let err_title = PaperService::create_paper(&db, duplicate_title_input);
     assert!(err_title.is_err(), "Expected error on duplicate title key");
@@ -115,6 +131,9 @@ fn test_paper_crud_and_deduplication() {
         authors: None,
         collection_ids: None,
         tags: None,
+        reading_status: Some("reading".to_string()),
+        reading_progress: Some(0.4),
+        ..Default::default()
     };
     let updated = PaperService::update_paper(&db, update_input).expect("failed to update paper");
     assert_eq!(updated.title, "Attention Is All You Need (Revised)");
@@ -122,8 +141,8 @@ fn test_paper_crud_and_deduplication() {
     assert!(!updated.is_saved);
 
     // 5. Toggle save paper
-    let saved_state = PaperService::toggle_save_paper(&db, &created.id, true)
-        .expect("failed to toggle save");
+    let saved_state =
+        PaperService::toggle_save_paper(&db, &created.id, true).expect("failed to toggle save");
     assert!(saved_state);
 
     // 6. Delete paper and check cascading deletion
@@ -142,7 +161,10 @@ fn test_fts5_full_text_search() {
     let paper1 = PaperCreateInput {
         title: "Quantum Computation and Quantum Information".to_string(),
         canonical_doi: Some("10.1017/CBO9780511976667".to_string()),
-        abstract_text: Some("Comprehensive introduction to the main ideas and techniques of quantum computation.".to_string()),
+        abstract_text: Some(
+            "Comprehensive introduction to the main ideas and techniques of quantum computation."
+                .to_string(),
+        ),
         publication_date: Some("2010-01-01".to_string()),
         publication_year: Some(2010),
         venue: Some("Cambridge University Press".to_string()),
@@ -156,6 +178,9 @@ fn test_fts5_full_text_search() {
         collection_ids: None,
         tags: Some(vec!["Quantum Computing".to_string()]),
         source_id: None,
+        reading_status: None,
+        reading_progress: None,
+        ..Default::default()
     };
     let _ = PaperService::create_paper(&db, paper1).expect("create paper 1 failed");
 
@@ -176,6 +201,9 @@ fn test_fts5_full_text_search() {
         collection_ids: None,
         tags: Some(vec!["Computer Vision".to_string()]),
         source_id: None,
+        reading_status: None,
+        reading_progress: None,
+        ..Default::default()
     };
     let _ = PaperService::create_paper(&db, paper2).expect("create paper 2 failed");
 
@@ -186,7 +214,10 @@ fn test_fts5_full_text_search() {
     };
     let results_quantum = PaperService::list_papers(&db, query_quantum).expect("search failed");
     assert_eq!(results_quantum.total_count, 1);
-    assert_eq!(results_quantum.items[0].title, "Quantum Computation and Quantum Information");
+    assert_eq!(
+        results_quantum.items[0].title,
+        "Quantum Computation and Quantum Information"
+    );
 
     // Search by abstract keyword
     let query_residual = PaperListQuery {
@@ -195,7 +226,10 @@ fn test_fts5_full_text_search() {
     };
     let results_residual = PaperService::list_papers(&db, query_residual).expect("search failed");
     assert_eq!(results_residual.total_count, 1);
-    assert_eq!(results_residual.items[0].title, "Deep Residual Learning for Image Recognition");
+    assert_eq!(
+        results_residual.items[0].title,
+        "Deep Residual Learning for Image Recognition"
+    );
 
     // Search by author keyword
     let query_he = PaperListQuery {
@@ -204,7 +238,10 @@ fn test_fts5_full_text_search() {
     };
     let results_he = PaperService::list_papers(&db, query_he).expect("search failed");
     assert_eq!(results_he.total_count, 1);
-    assert_eq!(results_he.items[0].title, "Deep Residual Learning for Image Recognition");
+    assert_eq!(
+        results_he.items[0].title,
+        "Deep Residual Learning for Image Recognition"
+    );
 }
 
 #[test]
@@ -257,6 +294,9 @@ fn test_collection_crud_and_paper_relationships() {
             collection_ids: Some(vec![col.id.clone()]),
             tags: None,
             source_id: None,
+            reading_status: None,
+            reading_progress: None,
+            ..Default::default()
         },
     )
     .expect("create paper failed");
@@ -283,17 +323,21 @@ fn test_collection_crud_and_paper_relationships() {
         .expect("remove paper failed");
     assert!(removed);
 
-    let collections_after = CollectionService::list_collections(&db).expect("list collections failed");
+    let collections_after =
+        CollectionService::list_collections(&db).expect("list collections failed");
     let target_after = collections_after.iter().find(|c| c.id == col.id).unwrap();
     assert_eq!(target_after.paper_count, 0);
 
     // 6. Delete collection: Paper must NOT be deleted
-    let deleted_col = CollectionService::delete_collection(&db, &col.id)
-        .expect("delete collection failed");
+    let deleted_col =
+        CollectionService::delete_collection(&db, &col.id).expect("delete collection failed");
     assert!(deleted_col);
 
     let paper_still_exists = PaperService::get_paper(&db, &paper.id).expect("query paper failed");
-    assert!(paper_still_exists.is_some(), "Paper must not be deleted when collection is deleted");
+    assert!(
+        paper_still_exists.is_some(),
+        "Paper must not be deleted when collection is deleted"
+    );
 }
 
 #[test]
@@ -320,6 +364,9 @@ fn test_notes_and_tags_and_settings() {
             collection_ids: None,
             tags: None,
             source_id: None,
+            reading_status: None,
+            reading_progress: None,
+            ..Default::default()
         },
     )
     .expect("paper creation failed");
@@ -341,8 +388,8 @@ fn test_notes_and_tags_and_settings() {
     assert_eq!(notes.len(), 1);
 
     // 3. Tags
-    let tag = TagService::assign_tag_to_paper(&db, &paper.id, "Methodology")
-        .expect("assign tag failed");
+    let tag =
+        TagService::assign_tag_to_paper(&db, &paper.id, "Methodology").expect("assign tag failed");
     assert_eq!(tag.name, "Methodology");
     let all_tags = TagService::list_tags(&db).expect("list tags failed");
     assert_eq!(all_tags.len(), 1);

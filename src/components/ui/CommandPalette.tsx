@@ -11,7 +11,16 @@ import {
   Clock,
   Settings,
   FileText,
+  Sparkles,
+  TableProperties,
+  FileCheck2,
+  Globe,
+  Info,
+  Bug,
+  Compass as CompassIcon,
+  GitPullRequest,
 } from "lucide-react";
+import { GithubIcon } from "./GithubIcon";
 import { NavSection } from "../../types/domain";
 
 export const CommandPalette: React.FC = () => {
@@ -21,6 +30,9 @@ export const CommandPalette: React.FC = () => {
     setActiveSection,
     setSelectedPaperId,
     papers,
+    setIsAboutModalOpen,
+    openFeedbackCenter,
+    setIsOnboardingOpen,
   } = useApp();
 
   const [query, setQuery] = useState("");
@@ -53,7 +65,14 @@ export const CommandPalette: React.FC = () => {
 
   if (!isCommandPaletteOpen) return null;
 
-  const navItems: { label: string; section: NavSection; icon: React.ReactNode }[] = [
+  interface CommandItem {
+    label: string;
+    section?: NavSection;
+    action?: () => void;
+    icon: React.ReactNode;
+  }
+
+  const navItems: CommandItem[] = [
     {
       label: "Dashboard",
       section: "dashboard",
@@ -64,7 +83,31 @@ export const CommandPalette: React.FC = () => {
       section: "discover",
       icon: <Compass className="w-4 h-4" />,
     },
-    { label: "Paper Library", section: "library", icon: <Library className="w-4 h-4" /> },
+    {
+      label: "Review Matrix (Literature Review)",
+      section: "review_matrix",
+      icon: <TableProperties className="w-4 h-4 text-indigo-500" />,
+    },
+    {
+      label: "Paper Library",
+      section: "library",
+      icon: <Library className="w-4 h-4" />,
+    },
+    {
+      label: "Research Integrity Suite",
+      section: "integrity",
+      icon: <FileCheck2 className="w-4 h-4 text-emerald-500" />,
+    },
+    {
+      label: "AI Workspace & RAG",
+      section: "ai_hub",
+      icon: <Sparkles className="w-4 h-4 text-indigo-500" />,
+    },
+    {
+      label: "IEEE Open Access Hub",
+      section: "ieee",
+      icon: <Globe className="w-4 h-4 text-sky-500" />,
+    },
     {
       label: "Download Queue",
       section: "downloads",
@@ -80,8 +123,51 @@ export const CommandPalette: React.FC = () => {
       section: "sources",
       icon: <Layers className="w-4 h-4" />,
     },
-    { label: "Activity Logs", section: "activity", icon: <Clock className="w-4 h-4" /> },
-    { label: "Settings", section: "settings", icon: <Settings className="w-4 h-4" /> },
+    {
+      label: "Activity Logs",
+      section: "activity",
+      icon: <Clock className="w-4 h-4" />,
+    },
+    {
+      label: "Settings",
+      section: "settings",
+      icon: <Settings className="w-4 h-4" />,
+    },
+    {
+      label: "Report a Bug / Request a Feature",
+      action: () => openFeedbackCenter("bug"),
+      icon: <Bug className="w-4 h-4 text-rose-500" />,
+    },
+    {
+      label: "Contribute on GitHub",
+      action: () =>
+        window.open(
+          "https://github.com/sanjay-m6/Infinity-Researcher",
+          "_blank",
+          "noopener,noreferrer"
+        ),
+      icon: <GitPullRequest className="w-4 h-4 text-indigo-500" />,
+    },
+    {
+      label: "Open GitHub Repository (sanjay-m6/Infinity-Researcher)",
+      action: () =>
+        window.open(
+          "https://github.com/sanjay-m6/Infinity-Researcher",
+          "_blank",
+          "noopener,noreferrer"
+        ),
+      icon: <GithubIcon className="w-4 h-4" />,
+    },
+    {
+      label: "Run Setup & Onboarding Wizard",
+      action: () => setIsOnboardingOpen(true),
+      icon: <CompassIcon className="w-4 h-4 text-indigo-500" />,
+    },
+    {
+      label: "About Infinity Researcher (Created by Sanjay)",
+      action: () => setIsAboutModalOpen(true),
+      icon: <Info className="w-4 h-4 text-indigo-400" />,
+    },
   ];
 
   const filteredNav = navItems.filter((item) =>
@@ -100,8 +186,12 @@ export const CommandPalette: React.FC = () => {
 
   const totalResults = filteredNav.length + filteredPapers.length;
 
-  const handleSelectNav = (section: NavSection) => {
-    setActiveSection(section);
+  const handleSelectNav = (item: CommandItem) => {
+    if (item.action) {
+      item.action();
+    } else if (item.section) {
+      setActiveSection(item.section);
+    }
     setIsCommandPaletteOpen(false);
   };
 
@@ -120,7 +210,7 @@ export const CommandPalette: React.FC = () => {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (selectedIndex < filteredNav.length) {
-        handleSelectNav(filteredNav[selectedIndex].section);
+        handleSelectNav(filteredNav[selectedIndex]);
       } else {
         const paperIndex = selectedIndex - filteredNav.length;
         if (filteredPapers[paperIndex]) {
@@ -171,9 +261,9 @@ export const CommandPalette: React.FC = () => {
                 const isSelected = selectedIndex === idx;
                 return (
                   <button
-                    key={item.section}
+                    key={item.label}
                     type="button"
-                    onClick={() => handleSelectNav(item.section)}
+                    onClick={() => handleSelectNav(item)}
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
                       isSelected

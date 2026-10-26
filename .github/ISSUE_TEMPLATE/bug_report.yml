@@ -1,0 +1,94 @@
+name: Bug Report
+description: Report an issue, defect, or unexpected behavior in Infinity Researcher.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue in **Infinity Researcher**!
+        Please fill in the fields below. Never include passwords, API keys, or private document contents.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the problem clearly and concisely.
+      placeholder: When I clicked 'Extract Evidence' in the Review Matrix, the application...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+      placeholder: The claim should have been extracted with supporting page numbers.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can maintainers reproduce the issue?
+      value: |
+        1. Open '...'
+        2. Click on '...'
+        3. Observe error '...'
+    validations:
+      required: true
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Reproducibility
+      options:
+        - Always
+        - Sometimes
+        - Once
+        - Unable to reproduce reliably
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      options:
+        - Discover / Search
+        - Scraper / Source Connector
+        - PDF Reader
+        - Literature Review Matrix
+        - Research Integrity Suite
+        - AI Workspace / Copilot
+        - Library / Collections
+        - Onboarding
+        - Windows Installer / Packaging
+        - In-App Updater
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Minor (Cosmetic / Small inconvenience)
+        - Normal (Standard bug / Workaround exists)
+        - Major (Feature broken / Significant disruption)
+        - Critical (Crash / Data loss / Blocks research work)
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Application version, OS, and hardware.
+      value: |
+        - Application: Infinity Researcher v0.1.0
+        - OS: Windows 10/11 x64
+        - Core: Tauri 2 + Rust
+    validations:
+      required: false
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized Diagnostics / Logs (Optional)
+      description: Please verify that all tokens, keys, and personal paths are redacted before submitting.
+    validations:
+      required: false

@@ -1,5 +1,5 @@
-use rusqlite::{params, Connection, Result};
 use crate::domain::note::Note;
+use rusqlite::{params, Connection, Result};
 
 pub struct NoteRepository;
 
@@ -28,6 +28,27 @@ impl NoteRepository {
             notes.push(r?);
         }
         Ok(notes)
+    }
+
+    pub fn get_by_id(conn: &Connection, id: &str) -> Result<Option<Note>> {
+        let mut stmt = conn.prepare(
+            "SELECT id, paper_id, title, content_markdown, created_at, updated_at
+             FROM notes
+             WHERE id = ?1",
+        )?;
+        let mut rows = stmt.query(params![id])?;
+        if let Some(row) = rows.next()? {
+            Ok(Some(Note {
+                id: row.get(0)?,
+                paper_id: row.get(1)?,
+                title: row.get(2)?,
+                content_markdown: row.get(3)?,
+                created_at: row.get(4)?,
+                updated_at: row.get(5)?,
+            }))
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn save(conn: &Connection, note: &Note) -> Result<()> {

@@ -18,9 +18,7 @@ import {
 import {
   INITIAL_DEMO_PAPERS,
   INITIAL_DEMO_COLLECTIONS,
-  INITIAL_DEMO_JOBS,
   INITIAL_DEMO_SOURCES,
-  INITIAL_DEMO_ACTIVITY,
 } from "../data/demo-data";
 import { getAppHealth, isTauriEnvironment } from "../lib/tauri-bridge";
 import {
@@ -28,6 +26,7 @@ import {
   listPapers as listPapersApi,
   createPaper as createPaperApi,
   toggleSavePaper as toggleSavePaperApi,
+  deletePaper as deletePaperApi,
   listCollections as listCollectionsApi,
   createCollection as createCollectionApi,
   updateCollection as updateCollectionApi,
@@ -41,6 +40,7 @@ import {
   DatabaseInfo,
 } from "../lib/desktop-api";
 import { HealthResponse } from "../types/health";
+import { IssueCategory } from "../lib/github/types";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -50,18 +50,34 @@ export interface ToastNotification {
   type: "success" | "info" | "warning" | "error";
 }
 
+export interface ReadingPaperTarget {
+  id: string;
+  title: string;
+  sourceUrl?: string | null;
+}
+
 export interface AppContextType {
   // Navigation & View State
   activeSection: NavSection;
   setActiveSection: (section: NavSection) => void;
   selectedPaperId: string | null;
   setSelectedPaperId: (id: string | null) => void;
+  readingPaper: ReadingPaperTarget | null;
+  setReadingPaper: (paper: ReadingPaperTarget | null) => void;
   selectedCollectionId: string | null;
   setSelectedCollectionId: (id: string | null) => void;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   isCommandPaletteOpen: boolean;
   setIsCommandPaletteOpen: (open: boolean) => void;
+  isAboutModalOpen: boolean;
+  setIsAboutModalOpen: (open: boolean) => void;
+  isOnboardingOpen: boolean;
+  setIsOnboardingOpen: (open: boolean) => void;
+  isFeedbackCenterOpen: boolean;
+  setIsFeedbackCenterOpen: (open: boolean) => void;
+  feedbackCategory: IssueCategory;
+  openFeedbackCenter: (cat?: IssueCategory) => void;
 
   // Search State across toolbar and Discover
   globalSearchQuery: string;
@@ -113,17 +129,71 @@ export interface AppContextType {
   isDbLoading: boolean;
   refreshDatabase: () => Promise<void>;
   seedSampleData: () => Promise<void>;
+  clearAllData: () => Promise<void>;
+}
+
+export interface AppProviderProps {
+  children: ReactNode;
+  initialPapers?: Paper[];
+  initialCollections?: Collection[];
+  initialJobs?: DownloadJob[];
+  initialActivity?: ActivityEvent[];
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AppProvider: React.FC<AppProviderProps> = ({
+  children,
+  initialPapers = [],
+  initialCollections = [],
+  initialJobs = [],
+  initialActivity = [],
+}) => {
   // Navigation
   const [activeSection, setActiveSection] = useState<NavSection>("dashboard");
   const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
+  const [readingPaper, setReadingPaper] = useState<ReadingPaperTarget | null>(null);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState<boolean>(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
+  const [isFeedbackCenterOpen, setIsFeedbackCenterOpen] = useState<boolean>(false);
+  const [feedbackCategory, setFeedbackCategory] = useState<IssueCategory>("bug");
+
+  const openFeedbackCenter = useCallback((cat?: IssueCategory) => {
+    if (cat) setFeedbackCategory(cat);
+    setIsFeedbackCenterOpen(true);
+  }, []);
+
+  // Check if first-run onboarding is needed
+  useEffect(() => {
+    // In automated testing environments, do not auto-launch wizard unless explicitly invoked
+    if (
+      (typeof process !== "undefined" && (process.env?.NODE_ENV === "test" || process.env?.VITEST)) ||
+      (typeof window !== "undefined" && (window as unknown as { __VITEST_ENVIRONMENT__?: unknown }).__VITEST_ENVIRONMENT__)
+    ) {
+      return;
+    }
+
+    void (async () => {
+      try {
+        const completed = await getAppSetting("onboarding_completed");
+        if (!completed) {
+          const ls = localStorage.getItem("rps_onboarding_completed");
+          if (!ls) {
+            setIsOnboardingOpen(true);
+          }
+        }
+      } catch {
+        const ls = localStorage.getItem("rps_onboarding_completed");
+        if (!ls) {
+          setIsOnboardingOpen(true);
+        }
+      }
+    })();
+  }, []);
+
   const [globalSearchQuery, setGlobalSearchQuery] = useState<string>("");
 
   // Theme
@@ -132,12 +202,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return (saved as ThemeMode) || "system";
   });
 
-  // Data
-  const [papers, setPapers] = useState<Paper[]>(INITIAL_DEMO_PAPERS);
-  const [collections, setCollections] = useState<Collection[]>(INITIAL_DEMO_COLLECTIONS);
-  const [jobs, setJobs] = useState<DownloadJob[]>(INITIAL_DEMO_JOBS);
+  // Data (defaults to clean 0 records in production)
+  const [papers, setPapers] = useState<Paper[]>(initialPapers);
+  const [collections, setCollections] = useState<Collection[]>(initialCollections);
+  const [jobs, setJobs] = useState<DownloadJob[]>(initialJobs);
   const [sources] = useState<SourceProvider[]>(INITIAL_DEMO_SOURCES);
-  const [activity, setActivity] = useState<ActivityEvent[]>(INITIAL_DEMO_ACTIVITY);
+  const [activity, setActivity] = useState<ActivityEvent[]>(initialActivity);
 
   // Toast
   const [toast, setToast] = useState<ToastNotification | null>(null);
@@ -248,18 +318,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const dbCollections = await listCollectionsApi();
       const pagedPapers = await listPapersApi({ page: 1, page_size: 100 });
 
-      if (dbCollections.length > 0 || pagedPapers.items.length > 0) {
-        // Map SQLite records to domain models
-        const mappedCollections = dbCollections.map((c) =>
-          dbCollectionToCollection(c)
-        );
-        const mappedPapers = pagedPapers.items.map((p) => dbPaperToPaper(p));
+      // Always synchronize state directly with real SQLite database
+      const mappedCollections = dbCollections.map((c) =>
+        dbCollectionToCollection(c)
+      );
+      const mappedPapers = pagedPapers.items.map((p) => dbPaperToPaper(p));
 
-        setCollections(mappedCollections);
-        if (mappedPapers.length > 0) {
-          setPapers(mappedPapers);
-        }
-      }
+      setCollections(mappedCollections);
+      setPapers(mappedPapers);
 
       // Read persistent theme setting if saved in SQLite
       const savedTheme = await getAppSetting("theme_mode");
@@ -336,6 +402,44 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [refreshDatabase, showToast]);
 
+  // Purge all mock, test, and persistent data completely
+  const clearAllData = useCallback(async () => {
+    try {
+      setIsDbLoading(true);
+      if (isTauriEnvironment()) {
+        const paged = await listPapersApi({ page: 1, page_size: 1000 });
+        for (const p of paged.items) {
+          try {
+            await deletePaperApi(p.id);
+          } catch {
+            // continue
+          }
+        }
+        const cols = await listCollectionsApi();
+        for (const c of cols) {
+          try {
+            await deleteCollectionApi(c.id);
+          } catch {
+            // continue
+          }
+        }
+      }
+      setPapers([]);
+      setCollections([]);
+      setJobs([]);
+      setActivity([]);
+      setSelectedPaperId(null);
+      setSelectedCollectionId(null);
+      await refreshDatabase();
+      showToast("Cleared all library papers, collections, and mock data.", "success");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to clear library data.";
+      showToast(msg, "error");
+    } finally {
+      setIsDbLoading(false);
+    }
+  }, [refreshDatabase, showToast]);
+
   // Global search trigger
   const executeGlobalSearch = useCallback((query: string) => {
     setGlobalSearchQuery(query);
@@ -379,7 +483,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         paperIds: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        isDemo: !isTauriEnvironment(),
+        isDemo: false,
       };
 
       setCollections((prev) => [newCol, ...prev]);
@@ -391,7 +495,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           status: "success",
           title: "Collection Created",
           details: `Created new collection "${trimmed}"`,
-          isDemo: true,
+          isDemo: false,
         },
         ...prev,
       ]);
@@ -645,12 +749,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setActiveSection,
         selectedPaperId,
         setSelectedPaperId,
+        readingPaper,
+        setReadingPaper,
         selectedCollectionId,
         setSelectedCollectionId,
         isSidebarCollapsed,
         setIsSidebarCollapsed,
         isCommandPaletteOpen,
         setIsCommandPaletteOpen,
+        isAboutModalOpen,
+        setIsAboutModalOpen,
+        isOnboardingOpen,
+        setIsOnboardingOpen,
+        isFeedbackCenterOpen,
+        setIsFeedbackCenterOpen,
+        feedbackCategory,
+        openFeedbackCenter,
         globalSearchQuery,
         setGlobalSearchQuery,
         executeGlobalSearch,
@@ -680,6 +794,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isDbLoading,
         refreshDatabase,
         seedSampleData,
+        clearAllData,
       }}
     >
       {children}

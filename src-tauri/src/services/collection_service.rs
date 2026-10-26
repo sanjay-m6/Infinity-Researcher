@@ -12,7 +12,9 @@ impl CollectionService {
     ) -> Result<Collection, AppError> {
         let name = input.name.trim();
         if name.is_empty() {
-            return Err(AppError::Validation("Collection name cannot be blank.".to_string()));
+            return Err(AppError::Validation(
+                "Collection name cannot be blank.".to_string(),
+            ));
         }
         if name.len() > 50 {
             return Err(AppError::Validation(
@@ -23,8 +25,9 @@ impl CollectionService {
         let conn = db.lock()?;
 
         // Check for duplicate name (case-insensitive)
-        if let Some(_) = CollectionRepository::get_by_name(&conn, name)
+        if CollectionRepository::get_by_name(&conn, name)
             .map_err(|e| AppError::Internal(format!("Database error checking duplicate: {}", e)))?
+            .is_some()
         {
             return Err(AppError::Validation(format!(
                 "A collection named \"{}\" already exists.",
@@ -67,7 +70,9 @@ impl CollectionService {
     ) -> Result<bool, AppError> {
         let name = input.name.trim();
         if name.is_empty() {
-            return Err(AppError::Validation("Collection name cannot be blank.".to_string()));
+            return Err(AppError::Validation(
+                "Collection name cannot be blank.".to_string(),
+            ));
         }
 
         let conn = db.lock()?;
@@ -116,7 +121,33 @@ impl CollectionService {
         paper_id: &str,
     ) -> Result<bool, AppError> {
         let conn = db.lock()?;
-        CollectionRepository::remove_paper(&conn, collection_id, paper_id)
-            .map_err(|e| AppError::Internal(format!("Failed to remove paper from collection: {}", e)))
+        CollectionRepository::remove_paper(&conn, collection_id, paper_id).map_err(|e| {
+            AppError::Internal(format!("Failed to remove paper from collection: {}", e))
+        })
+    }
+
+    pub fn bulk_add_papers(
+        db: &Database,
+        collection_id: &str,
+        paper_ids: &[String],
+    ) -> Result<usize, AppError> {
+        let conn = db.lock()?;
+        CollectionRepository::bulk_add_papers(&conn, collection_id, paper_ids).map_err(|e| {
+            AppError::Internal(format!("Failed to bulk add papers to collection: {}", e))
+        })
+    }
+
+    pub fn bulk_remove_papers(
+        db: &Database,
+        collection_id: &str,
+        paper_ids: &[String],
+    ) -> Result<usize, AppError> {
+        let conn = db.lock()?;
+        CollectionRepository::bulk_remove_papers(&conn, collection_id, paper_ids).map_err(|e| {
+            AppError::Internal(format!(
+                "Failed to bulk remove papers from collection: {}",
+                e
+            ))
+        })
     }
 }

@@ -78,7 +78,7 @@ jobs:
         run: |
           cargo fmt --check
           cargo clippy -- -D warnings
-          cargo test
+          cargo test --tests
 
       - name: Build Tauri Application & Generate Signed Updater Bundle
         uses: tauri-apps/tauri-action@v0

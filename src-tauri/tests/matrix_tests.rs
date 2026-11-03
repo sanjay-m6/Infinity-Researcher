@@ -35,16 +35,27 @@ fn test_literature_review_matrix_and_copilot_workflow() {
     assert_eq!(updated.total_papers, 1);
     let row = &updated.rows[0];
     assert_eq!(row.paper_id, "p_quant_1");
-    assert_eq!(row.paper_title, "Scalable Fault-Tolerant Quantum Architecture");
+    assert_eq!(
+        row.paper_title,
+        "Scalable Fault-Tolerant Quantum Architecture"
+    );
 
     // Check extracted fields
-    assert!(row.extractions.contains_key("research_question") || row.extractions.contains_key("main_findings"));
+    assert!(
+        row.extractions.contains_key("research_question")
+            || row.extractions.contains_key("main_findings")
+    );
     if let Some(findings) = row.extractions.get("main_findings") {
-        assert!(findings.extracted_value.to_lowercase().contains("superior") || findings.extracted_value.to_lowercase().contains("results"));
+        assert!(
+            findings.extracted_value.to_lowercase().contains("superior")
+                || findings.extracted_value.to_lowercase().contains("results")
+        );
         assert!(findings.confidence > 0.5);
     }
     if let Some(sample) = row.extractions.get("sample_size") {
-        assert!(sample.extracted_value.contains("10,000") || sample.extracted_value.contains("samples"));
+        assert!(
+            sample.extracted_value.contains("10,000") || sample.extracted_value.contains("samples")
+        );
     }
 
     // 5. Test updating an extraction manually
@@ -58,7 +69,9 @@ fn test_literature_review_matrix_and_copilot_workflow() {
         page_number: Some(3),
         char_offset_start: Some(120),
         char_offset_end: Some(160),
-        source_passage: Some("evaluated on simulated syndrome graphs with N = 10,000 samples".to_string()),
+        source_passage: Some(
+            "evaluated on simulated syndrome graphs with N = 10,000 samples".to_string(),
+        ),
         status: "user_verified".to_string(),
         created_at: String::new(),
         updated_at: String::new(),
@@ -66,8 +79,14 @@ fn test_literature_review_matrix_and_copilot_workflow() {
     MatrixService::upsert_extraction(&db, manual_ext).expect("upsert should succeed");
 
     let detail_after_edit = MatrixService::get_workspace_detail(&db, "default_matrix").unwrap();
-    let edited_sample = detail_after_edit.rows[0].extractions.get("sample_size").unwrap();
-    assert_eq!(edited_sample.extracted_value, "N = 10,000 Monte Carlo syndrome cycles");
+    let edited_sample = detail_after_edit.rows[0]
+        .extractions
+        .get("sample_size")
+        .unwrap();
+    assert_eq!(
+        edited_sample.extracted_value,
+        "N = 10,000 Monte Carlo syndrome cycles"
+    );
     assert_eq!(edited_sample.status, "user_verified");
     assert_eq!(edited_sample.page_number, Some(3));
 
@@ -91,9 +110,13 @@ fn test_literature_review_matrix_and_copilot_workflow() {
         &db,
         "session_test_1",
         "How does the decoder scale?",
-        Some("default_matrix"),
+        None,
         Some("p_quant_1"),
-    ).expect("ask_copilot should succeed");
+        None,
+        None,
+        None,
+    )
+    .expect("ask_copilot should succeed");
 
     assert_eq!(copilot_msg.role, "assistant");
     assert!(!evidence.is_empty());

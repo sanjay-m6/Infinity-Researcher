@@ -90,9 +90,9 @@ jobs:
         working-directory: ./src-tauri
         run: cargo clippy -- -D warnings
 
-      - name: Rust Unit Tests (cargo test)
+      - name: Rust Integration Tests (cargo test --tests)
         working-directory: ./src-tauri
-        run: cargo test
+        run: cargo test --tests
 
       - name: Python Engine Tests (pytest)
         shell: bash

@@ -1331,6 +1331,10 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
           <div
             ref={containerRef}
             onMouseUp={handleMouseUp}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              handleMouseUp();
+            }}
             className="flex-1 overflow-auto p-6 flex justify-center items-start bg-slate-200/60 dark:bg-slate-950 min-w-0 relative select-none"
           >
             <div className="relative shadow-xl rounded bg-white dark:bg-slate-900 overflow-hidden">

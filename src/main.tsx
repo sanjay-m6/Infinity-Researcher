@@ -6,6 +6,31 @@ import "./styles/index.css";
 
 // Global error fallback to guarantee the UI never silently degrades into a blank screen before mounting
 if (typeof window !== "undefined") {
+  // Block default browser right-click context menu (Back, Refresh, Save as, Print, More tools)
+  document.addEventListener(
+    "contextmenu",
+    (event) => {
+      event.preventDefault();
+    },
+    { capture: true }
+  );
+
+  // Block default browser accelerator keys (F5, Ctrl+R, Ctrl+P, Alt+Left/Right)
+  window.addEventListener(
+    "keydown",
+    (event) => {
+      const key = event.key.toLowerCase();
+      if (
+        event.key === "F5" ||
+        ((event.ctrlKey || event.metaKey) && (key === "r" || key === "p")) ||
+        (event.altKey && (event.key === "ArrowLeft" || event.key === "ArrowRight"))
+      ) {
+        event.preventDefault();
+      }
+    },
+    { capture: true }
+  );
+
   const showFallback = (msg: string) => {
     console.error("Global startup error:", msg);
     const root = document.getElementById("root");

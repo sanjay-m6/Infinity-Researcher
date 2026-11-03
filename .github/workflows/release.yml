@@ -69,6 +69,10 @@ jobs:
           npm run test
           npm run build
 
+      - name: Provision Sidecar Binary for Tauri Packaging
+        shell: pwsh
+        run: python scripts/build-python-sidecar.py --stub
+
       - name: Backend Quality Gate (Format, Clippy, Tests)
         working-directory: ./src-tauri
         run: |

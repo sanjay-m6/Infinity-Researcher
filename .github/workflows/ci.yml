@@ -78,6 +78,10 @@ jobs:
       - name: Build Frontend Production Bundle
         run: npm run build
 
+      - name: Provision Sidecar Binary for Tauri Validation
+        shell: pwsh
+        run: python scripts/build-python-sidecar.py --stub
+
       - name: Rust Code Formatting (cargo fmt)
         working-directory: ./src-tauri
         run: cargo fmt --check

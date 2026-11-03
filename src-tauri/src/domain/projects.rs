@@ -35,7 +35,7 @@ pub struct ResearchProject {
     pub primary_domain_id: Option<String>,
     pub subdomain_id: Option<String>,
     pub custom_domain_text: Option<String>,
-    pub status: String, // 'active', 'completed', 'archived', 'on_hold'
+    pub status: String,   // 'active', 'completed', 'archived', 'on_hold'
     pub priority: String, // 'low', 'medium', 'high', 'critical'
     pub progress_percent: f64,
     pub start_date: Option<String>,
@@ -287,4 +287,3 @@ pub struct ApplyPlanInput {
     pub project_id: String,
     pub milestones: Vec<ProposedMilestone>,
 }
-

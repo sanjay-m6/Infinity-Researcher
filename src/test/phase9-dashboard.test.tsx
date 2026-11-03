@@ -156,7 +156,9 @@ const ContextStateInspector: React.FC = () => {
       <span data-testid="selected-paper-id">{selectedPaperId || "none"}</span>
       <span data-testid="reading-paper-id">{readingPaper?.id || "none"}</span>
       <span data-testid="selected-collection-id">{selectedCollectionId || "none"}</span>
-      <span data-testid="command-palette-open">{isCommandPaletteOpen ? "open" : "closed"}</span>
+      <span data-testid="command-palette-open">
+        {isCommandPaletteOpen ? "open" : "closed"}
+      </span>
       <span data-testid="global-search-query">{globalSearchQuery || "none"}</span>
     </div>
   );
@@ -183,7 +185,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
         </AppProvider>
       );
 
-      expect(screen.getByRole("heading", { level: 1, name: "Scholarly Workspace" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 1, name: "Scholarly Workspace" })
+      ).toBeInTheDocument();
       expect(
         screen.getByText(/Local-first academic research workbench/i)
       ).toBeInTheDocument();
@@ -213,7 +217,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
         </AppProvider>
       );
 
-      const searchOnlineBtn = screen.getByRole("button", { name: /Search academic literature online/i });
+      const searchOnlineBtn = screen.getByRole("button", {
+        name: /Search academic literature online/i,
+      });
       await user.click(searchOnlineBtn);
 
       expect(screen.getByTestId("current-section")).toHaveTextContent("discover");
@@ -228,7 +234,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
         </AppProvider>
       );
 
-      const openLibBtn = screen.getByRole("button", { name: /Open personal paper library/i });
+      const openLibBtn = screen.getByRole("button", {
+        name: /Open personal paper library/i,
+      });
       await user.click(openLibBtn);
 
       expect(screen.getByTestId("current-section")).toHaveTextContent("library");
@@ -321,10 +329,14 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
         </AppProvider>
       );
 
-      const queryPill = screen.getByRole("button", { name: /deep learning transformer/i });
+      const queryPill = screen.getByRole("button", {
+        name: /deep learning transformer/i,
+      });
       await user.click(queryPill);
 
-      expect(screen.getByTestId("global-search-query")).toHaveTextContent("deep learning transformer");
+      expect(screen.getByTestId("global-search-query")).toHaveTextContent(
+        "deep learning transformer"
+      );
       expect(screen.getByTestId("current-section")).toHaveTextContent("discover");
     });
 
@@ -368,7 +380,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
         </AppProvider>
       );
 
-      const readBtn = screen.getByRole("button", { name: /Read PDF for Attention Is All You Need/i });
+      const readBtn = screen.getByRole("button", {
+        name: /Read PDF for Attention Is All You Need/i,
+      });
       await user.click(readBtn);
 
       expect(screen.getByTestId("reading-paper-id")).toHaveTextContent("p1");
@@ -383,7 +397,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
         </AppProvider>
       );
 
-      const detailsBtn = screen.getByRole("button", { name: /View details for Attention Is All You Need/i });
+      const detailsBtn = screen.getByRole("button", {
+        name: /View details for Attention Is All You Need/i,
+      });
       await user.click(detailsBtn);
 
       expect(screen.getByTestId("selected-paper-id")).toHaveTextContent("p1");
@@ -397,7 +413,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
       );
 
       expect(screen.getByText("No papers in your library yet")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Search Academic Sources" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Search Academic Sources" })
+      ).toBeInTheDocument();
     });
   });
 
@@ -413,7 +431,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
       expect(screen.getByText("Downloading PDF binary...")).toBeInTheDocument();
       expect(screen.getByText("65%")).toBeInTheDocument();
 
-      const cancelBtn = screen.getByRole("button", { name: /Cancel job Attention Is All You Need/i });
+      const cancelBtn = screen.getByRole("button", {
+        name: /Cancel job Attention Is All You Need/i,
+      });
       expect(cancelBtn).toBeInTheDocument();
     });
 
@@ -425,7 +445,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
         </AppProvider>
       );
 
-      const cancelBtn = screen.getByRole("button", { name: /Cancel job Attention Is All You Need/i });
+      const cancelBtn = screen.getByRole("button", {
+        name: /Cancel job Attention Is All You Need/i,
+      });
       await user.click(cancelBtn);
 
       // Job should no longer be listed in active tasks
@@ -454,7 +476,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
       );
 
       expect(screen.getByText(/Queue is currently idle/i)).toBeInTheDocument();
-      expect(screen.getByText("Highly Accurate Protein Structure Prediction")).toBeInTheDocument();
+      expect(
+        screen.getByText("Highly Accurate Protein Structure Prediction")
+      ).toBeInTheDocument();
     });
 
     it("displays compact EmptyState when jobs list is completely empty", () => {
@@ -508,7 +532,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
       );
 
       expect(screen.getByText("No collections created yet")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Create Collection" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Create Collection" })
+      ).toBeInTheDocument();
     });
   });
 
@@ -525,7 +551,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
       const toolBtn = screen.getByRole("button", { name: /Open Literature Workspace/i });
       await user.click(toolBtn);
 
-      expect(screen.getByTestId("current-section")).toHaveTextContent("literature_workspace");
+      expect(screen.getByTestId("current-section")).toHaveTextContent(
+        "literature_workspace"
+      );
     });
 
     it("navigates to AI research assistant when clicked", async () => {
@@ -540,7 +568,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
       const toolBtn = screen.getByRole("button", { name: /AI Copilot Assistant/i });
       await user.click(toolBtn);
 
-      expect(screen.getByTestId("current-section")).toHaveTextContent("research_assistant");
+      expect(screen.getByTestId("current-section")).toHaveTextContent(
+        "research_assistant"
+      );
     });
 
     it("navigates to citation checker when clicked", async () => {
@@ -582,7 +612,9 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
         </AppProvider>
       );
 
-      const toolBtn = screen.getByRole("button", { name: /Compare Papers Side-by-Side/i });
+      const toolBtn = screen.getByRole("button", {
+        name: /Compare Papers Side-by-Side/i,
+      });
       await user.click(toolBtn);
 
       expect(screen.getByTestId("current-section")).toHaveTextContent("paper_comparison");
@@ -625,11 +657,21 @@ describe("Phase 9 — Dashboard Modernization Suite", () => {
         </AppProvider>
       );
 
-      expect(screen.getByRole("heading", { level: 1, name: "Scholarly Workspace" })).toBeInTheDocument();
-      expect(screen.getByRole("heading", { level: 2, name: "Recent Scholarly Papers" })).toBeInTheDocument();
-      expect(screen.getByRole("heading", { level: 2, name: "Active Tasks & Retrieval Queue" })).toBeInTheDocument();
-      expect(screen.getByRole("heading", { level: 2, name: "Research Collections" })).toBeInTheDocument();
-      expect(screen.getByRole("heading", { level: 2, name: "Recent Activity" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 1, name: "Scholarly Workspace" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 2, name: "Recent Scholarly Papers" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 2, name: "Active Tasks & Retrieval Queue" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 2, name: "Research Collections" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 2, name: "Recent Activity" })
+      ).toBeInTheDocument();
     });
 
     it("has accessible button roles and labels on all metric cards", () => {

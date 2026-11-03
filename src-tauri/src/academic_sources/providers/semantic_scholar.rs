@@ -7,7 +7,8 @@ use crate::academic_sources::adapter::{AcademicSourceAdapter, AdapterSearchResul
 use crate::academic_sources::errors::AcademicError;
 use crate::academic_sources::types::{
     AcademicSearchQuery, MetadataCompleteness, NormalizedAuthor, NormalizedWork,
-    ProviderCapabilities, ProviderHealthCheck, ProviderHealthStatus, ProviderId, ProviderProvenance,
+    ProviderCapabilities, ProviderHealthCheck, ProviderHealthStatus, ProviderId,
+    ProviderProvenance,
 };
 use crate::domain::paper::{compute_clean_title_key, normalize_doi};
 
@@ -131,7 +132,9 @@ impl AcademicSourceAdapter for SemanticScholarAdapter {
                 provider_id: ProviderId::SemanticScholar,
                 status: ProviderHealthStatus::RateLimited,
                 latency_ms,
-                message: Some("Semantic Scholar rate limit reached (1 request/sec limit).".to_string()),
+                message: Some(
+                    "Semantic Scholar rate limit reached (1 request/sec limit).".to_string(),
+                ),
                 checked_at,
             },
             Ok(resp) => ProviderHealthCheck {
@@ -309,8 +312,16 @@ impl AcademicSourceAdapter for SemanticScholarAdapter {
                 }],
                 metadata_score: 0,
                 completeness: MetadataCompleteness::default(),
-                version_type: Some(if is_open_access { "repository_version".to_string() } else { "published_version".to_string() }),
-                pdf_status: if is_open_access { Some("open_access_available".to_string()) } else { None },
+                version_type: Some(if is_open_access {
+                    "repository_version".to_string()
+                } else {
+                    "published_version".to_string()
+                }),
+                pdf_status: if is_open_access {
+                    Some("open_access_available".to_string())
+                } else {
+                    None
+                },
             };
             work.compute_completeness();
             works.push(work);

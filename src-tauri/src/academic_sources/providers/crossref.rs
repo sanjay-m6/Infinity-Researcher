@@ -7,7 +7,8 @@ use crate::academic_sources::adapter::{AcademicSourceAdapter, AdapterSearchResul
 use crate::academic_sources::errors::AcademicError;
 use crate::academic_sources::types::{
     AcademicSearchQuery, MetadataCompleteness, NormalizedAuthor, NormalizedWork,
-    ProviderCapabilities, ProviderHealthCheck, ProviderHealthStatus, ProviderId, ProviderProvenance,
+    ProviderCapabilities, ProviderHealthCheck, ProviderHealthStatus, ProviderId,
+    ProviderProvenance,
 };
 use crate::domain::paper::{compute_clean_title_key, normalize_doi};
 

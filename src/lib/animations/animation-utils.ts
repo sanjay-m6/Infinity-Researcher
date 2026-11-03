@@ -42,4 +42,3 @@ export function safeVariants(
   }
   return variants;
 }
-

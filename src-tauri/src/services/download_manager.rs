@@ -435,7 +435,9 @@ impl DownloadManager {
                 let lower_name = file_name.to_lowercase();
                 // Strictly target ONLY temporary part files
                 if lower_name.ends_with(".part") || lower_name.starts_with(".tmp_") {
-                    let is_active = active_senders.keys().any(|job_id| file_name.contains(job_id));
+                    let is_active = active_senders
+                        .keys()
+                        .any(|job_id| file_name.contains(job_id));
                     if !is_active {
                         if let Ok(meta) = entry.metadata() {
                             let size = meta.len();
@@ -541,7 +543,10 @@ impl DownloadManager {
                     break;
                 }
                 let _ = fs::remove_file(&temp_path);
-                job.stage_message = format!("Primary source failed. Falling back to alternative mirror ({})", alt_provider);
+                job.stage_message = format!(
+                    "Primary source failed. Falling back to alternative mirror ({})",
+                    alt_provider
+                );
                 job.url = alt_url;
                 job.updated_at = Utc::now().to_rfc3339();
                 Self::persist_job_update(&db_opt, job);
@@ -617,13 +622,15 @@ impl DownloadManager {
                 Self::emit_event(&app_handle, "paper:download_progress", job);
 
                 // Fetch expected paper attributes for identity reconciliation
-                let (expected_title, expected_doi, expected_authors) = if let Some(ref db) = db_opt {
+                let (expected_title, expected_doi, expected_authors) = if let Some(ref db) = db_opt
+                {
                     if let Ok(conn) = db.lock() {
-                        let info: std::result::Result<(String, Option<String>), _> = conn.query_row(
-                            "SELECT title, canonical_doi FROM papers WHERE id = ?1",
-                            [&job.paper_id],
-                            |r| Ok((r.get(0)?, r.get(1)?)),
-                        );
+                        let info: std::result::Result<(String, Option<String>), _> = conn
+                            .query_row(
+                                "SELECT title, canonical_doi FROM papers WHERE id = ?1",
+                                [&job.paper_id],
+                                |r| Ok((r.get(0)?, r.get(1)?)),
+                            );
                         let (t, d) = info.unwrap_or_else(|_| (job.paper_title.clone(), None));
                         let mut authors = Vec::new();
                         if let Ok(mut stmt) = conn.prepare(
@@ -650,7 +657,10 @@ impl DownloadManager {
                     expected_doi.as_deref(),
                 );
 
-                job.version_type = meta.version_type.clone().or_else(|| job.version_type.clone());
+                job.version_type = meta
+                    .version_type
+                    .clone()
+                    .or_else(|| job.version_type.clone());
                 job.identity_status = Some(meta.identity_status.clone());
                 job.identity_score = Some(meta.identity_score);
                 job.identity_notes = meta.reconciliation_notes.clone();
@@ -663,7 +673,9 @@ impl DownloadManager {
                         "Wrong document: extracted PDF content does not match requested publication".to_string();
                     job.error_message = Some(format!(
                         "Identity mismatch: {}",
-                        meta.reconciliation_notes.as_deref().unwrap_or("wrong document")
+                        meta.reconciliation_notes
+                            .as_deref()
+                            .unwrap_or("wrong document")
                     ));
                     job.error_category = Some("wrong_document".to_string());
                     job.completed_at = Some(Utc::now().to_rfc3339());
@@ -674,10 +686,12 @@ impl DownloadManager {
                     return;
                 }
 
-                if meta.identity_status == "invalid_pdf" || meta.identity_status == "encrypted_pdf" {
+                if meta.identity_status == "invalid_pdf" || meta.identity_status == "encrypted_pdf"
+                {
                     let _ = fs::remove_file(&temp_path);
                     job.status = "failed".to_string();
-                    job.stage_message = format!("Document verification rejected: {}", meta.identity_status);
+                    job.stage_message =
+                        format!("Document verification rejected: {}", meta.identity_status);
                     job.error_message = meta.reconciliation_notes.clone();
                     job.error_category = Some(meta.identity_status.clone());
                     job.completed_at = Some(Utc::now().to_rfc3339());
@@ -762,19 +776,24 @@ impl DownloadManager {
                     job.error_category = Some("cancelled".to_string());
                     Self::emit_event(&app_handle, "paper:download_cancelled", job);
                 } else {
-                    let category = if err_str.contains("anti-SSRF") || err_str.contains("private host") {
-                        "anti_ssrf"
-                    } else if err_str.contains("HTML paywall") || err_str.contains("non-PDF content") {
-                        "html_paywall"
-                    } else if err_str.contains("exceeded maximum size") || err_str.contains("exceeds maximum allowed") {
-                        "size_limit"
-                    } else if err_str.contains("corrupt") || err_str.contains("header") {
-                        "corrupt_pdf"
-                    } else if err_str.contains("Storage error") {
-                        "storage"
-                    } else {
-                        "network"
-                    };
+                    let category =
+                        if err_str.contains("anti-SSRF") || err_str.contains("private host") {
+                            "anti_ssrf"
+                        } else if err_str.contains("HTML paywall")
+                            || err_str.contains("non-PDF content")
+                        {
+                            "html_paywall"
+                        } else if err_str.contains("exceeded maximum size")
+                            || err_str.contains("exceeds maximum allowed")
+                        {
+                            "size_limit"
+                        } else if err_str.contains("corrupt") || err_str.contains("header") {
+                            "corrupt_pdf"
+                        } else if err_str.contains("Storage error") {
+                            "storage"
+                        } else {
+                            "network"
+                        };
                     job.status = "failed".to_string();
                     job.stage_message = format!("Download failed: {}", e);
                     job.error_message = Some(err_str);

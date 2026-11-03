@@ -45,7 +45,9 @@ impl AppState {
         let storage_dir = config.default_library_dir.clone();
         let download_manager = Arc::new(DownloadManager::new(database.clone(), storage_dir));
         let _ = download_manager.recover_interrupted_jobs();
-        let auth_service = database.as_ref().map(|db| Arc::new(crate::services::AuthService::new(db.clone())));
+        let auth_service = database
+            .as_ref()
+            .map(|db| Arc::new(crate::services::AuthService::new(db.clone())));
 
         Self {
             config: Arc::new(RwLock::new(config)),

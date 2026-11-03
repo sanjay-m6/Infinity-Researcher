@@ -13,10 +13,7 @@ import {
   ChevronUp,
   Save,
 } from "lucide-react";
-import {
-  UnifiedIntegrityReport,
-  IntegrityDimension,
-} from "./types";
+import { UnifiedIntegrityReport, IntegrityDimension } from "./types";
 import {
   generateIntegrityReport,
   RESEARCH_INTEGRITY_DEMO_MANUSCRIPT,
@@ -43,10 +40,10 @@ import { Button } from "../../components/ui/Button";
 export const ResearchIntegrityView: React.FC = () => {
   const { showToast } = useApp();
 
-  const [rawText, setRawText] = useState<string>(
-    RESEARCH_INTEGRITY_DEMO_MANUSCRIPT
+  const [rawText, setRawText] = useState<string>(RESEARCH_INTEGRITY_DEMO_MANUSCRIPT);
+  const [docTitle, setDocTitle] = useState<string>(
+    "Neural Document Retrieval Benchmarks"
   );
-  const [docTitle, setDocTitle] = useState<string>("Neural Document Retrieval Benchmarks");
   const [fileName, setFileName] = useState<string>("manuscript-sample.txt");
   const [report, setReport] = useState<UnifiedIntegrityReport | null>(() => {
     try {
@@ -61,9 +58,9 @@ export const ResearchIntegrityView: React.FC = () => {
     }
   });
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [selectedDimension, setSelectedDimension] = useState<
-    IntegrityDimension | "all"
-  >("all");
+  const [selectedDimension, setSelectedDimension] = useState<IntegrityDimension | "all">(
+    "all"
+  );
   const [isEditorExpanded, setIsEditorExpanded] = useState<boolean>(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [isHistoryDrawerOpen, setIsHistoryDrawerOpen] = useState<boolean>(false);
@@ -251,7 +248,11 @@ export const ResearchIntegrityView: React.FC = () => {
             return {
               ...f,
               isReviewed,
-              status: isReviewed ? ("reviewed" as const) : f.status === "reviewed" ? ("concern" as const) : f.status,
+              status: isReviewed
+                ? ("reviewed" as const)
+                : f.status === "reviewed"
+                  ? ("concern" as const)
+                  : f.status,
               reviewedAt: isReviewed ? new Date().toISOString() : null,
               reviewerNotes: notes !== undefined ? notes : f.reviewerNotes,
             };
@@ -299,7 +300,8 @@ export const ResearchIntegrityView: React.FC = () => {
                 Research Integrity Auditor
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Multi-dimensional academic manuscript audit: similarity, AI signals, citations, metadata, and structural rigor.
+                Multi-dimensional academic manuscript audit: similarity, AI signals,
+                citations, metadata, and structural rigor.
               </p>
             </div>
           </div>
@@ -411,7 +413,8 @@ export const ResearchIntegrityView: React.FC = () => {
                 Document:
               </span>
               <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                {fileName} ({report ? `${report.wordCount.toLocaleString()} words` : "Unprocessed"})
+                {fileName} (
+                {report ? `${report.wordCount.toLocaleString()} words` : "Unprocessed"})
               </span>
             </div>
           </div>
@@ -560,9 +563,7 @@ export const ResearchIntegrityView: React.FC = () => {
         onClose={() => setIsHistoryDrawerOpen(false)}
         onSelectReport={(r) => {
           setReport(r);
-          setRawText(
-            r.findings.length > 0 ? RESEARCH_INTEGRITY_DEMO_MANUSCRIPT : ""
-          );
+          setRawText(r.findings.length > 0 ? RESEARCH_INTEGRITY_DEMO_MANUSCRIPT : "");
           setDocTitle(r.title);
           setFileName(r.fileName);
         }}

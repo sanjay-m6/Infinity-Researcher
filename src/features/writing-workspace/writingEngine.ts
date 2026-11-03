@@ -16,76 +16,88 @@ export const HUMANIZER_MODES: ToolModeOption[] = [
   {
     id: "natural_flow",
     label: "Natural Academic Flow",
-    description: "Rebalances rhythmic sentence cadences, replacing rigid machine templates with authentic scholarly rhetoric.",
+    description:
+      "Rebalances rhythmic sentence cadences, replacing rigid machine templates with authentic scholarly rhetoric.",
     badge: "Popular",
     iconName: "Sparkles",
   },
   {
     id: "clarity_concision",
     label: "Clarity and Concision",
-    description: "Eliminates excessive nominalizations and padding while preserving rigorous technical nuance.",
+    description:
+      "Eliminates excessive nominalizations and padding while preserving rigorous technical nuance.",
     iconName: "Scissors",
   },
   {
     id: "formal_tone",
     label: "Formal Academic Tone",
-    description: "Elevates informal phrasing into third-person scholarly prose aligned with IEEE/ACM style guides.",
+    description:
+      "Elevates informal phrasing into third-person scholarly prose aligned with IEEE/ACM style guides.",
     iconName: "GraduationCap",
   },
   {
     id: "sentence_variety",
     label: "Sentence Variety",
-    description: "Alternates compound-complex clauses with punchy declarative statements to eliminate monotonous cadence.",
+    description:
+      "Alternates compound-complex clauses with punchy declarative statements to eliminate monotonous cadence.",
     badge: "Anti-Monotony",
     iconName: "BarChart",
   },
   {
     id: "remove_redundancy",
     label: "Remove Redundancy",
-    description: "Prunes tautological qualifiers and filler phrases (e.g., 'in order to achieve', 'due to the fact that').",
+    description:
+      "Prunes tautological qualifiers and filler phrases (e.g., 'in order to achieve', 'due to the fact that').",
     iconName: "Minimize2",
   },
   {
     id: "improve_transitions",
     label: "Improve Transitions",
-    description: "Embeds logical discourse connectors (e.g. 'consequently', 'conversely', 'notably') between propositions.",
+    description:
+      "Embeds logical discourse connectors (e.g. 'consequently', 'conversely', 'notably') between propositions.",
     iconName: "Shuffle",
   },
   {
     id: "simplify_complex",
     label: "Simplify Complex Sentences",
-    description: "Disentangles convoluted multi-clause sentences into lucid, digestible scholarly sequences.",
+    description:
+      "Disentangles convoluted multi-clause sentences into lucid, digestible scholarly sequences.",
     iconName: "GitMerge",
   },
   {
     id: "paragraph_cohesion",
     label: "Improve Paragraph Cohesion",
-    description: "Strengthens topic sentence grounding and ensures unified thematic progression throughout each paragraph.",
+    description:
+      "Strengthens topic sentence grounding and ensures unified thematic progression throughout each paragraph.",
     iconName: "Layers",
   },
   {
     id: "grammar_language",
     label: "Grammar & Language Correction",
-    description: "Resolves subject-verb discord, prepositional slips, tense shifts, and non-native English idioms.",
+    description:
+      "Resolves subject-verb discord, prepositional slips, tense shifts, and non-native English idioms.",
     badge: "Essential",
     iconName: "CheckCircle",
   },
   {
     id: "improve_readability",
     label: "Improve Readability",
-    description: "Calibrates Flesch Reading Ease and Gunning Fog index for optimal peer-reviewer comprehension.",
+    description:
+      "Calibrates Flesch Reading Ease and Gunning Fog index for optimal peer-reviewer comprehension.",
     iconName: "Eye",
   },
   {
     id: "technical_refinement",
     label: "Technical Writing Refinement",
-    description: "Tightens methodological descriptions, parameter definitions, and disciplinary accuracy.",
+    description:
+      "Tightens methodological descriptions, parameter definitions, and disciplinary accuracy.",
     iconName: "Cpu",
   },
   {
     id: "abstract_refinement",
     label: "Abstract Refinement",
-    description: "Balances Context -> Problem -> Method -> Findings -> Implications within tight word constraints.",
+    description:
+      "Balances Context -> Problem -> Method -> Findings -> Implications within tight word constraints.",
     badge: "Publication",
     iconName: "FileText",
   },
@@ -95,57 +107,66 @@ export const ACADEMIC_WRITING_MODES: ToolModeOption[] = [
   {
     id: "abstract_drafting",
     label: "Abstract Drafting",
-    description: "Structures background, objective, methodology, key findings, and implications into a concise scholarly abstract.",
+    description:
+      "Structures background, objective, methodology, key findings, and implications into a concise scholarly abstract.",
     badge: "Manuscript",
     iconName: "FileText",
   },
   {
     id: "intro_improvement",
     label: "Introduction Improvement",
-    description: "Elevates the research gap, problem formulation, and explicit contributions of the work.",
+    description:
+      "Elevates the research gap, problem formulation, and explicit contributions of the work.",
     iconName: "BookOpen",
   },
   {
     id: "lit_review_org",
     label: "Literature Review Organization",
-    description: "Synthesizes citations thematically, contrasts competing methodologies, and exposes research lacunae.",
+    description:
+      "Synthesizes citations thematically, contrasts competing methodologies, and exposes research lacunae.",
     iconName: "Library",
   },
   {
     id: "methodology_clarity",
     label: "Methodology Clarity",
-    description: "Ensures experimental steps, parameter settings, and mathematical notations are reproducible.",
+    description:
+      "Ensures experimental steps, parameter settings, and mathematical notations are reproducible.",
     badge: "Reproducibility",
     iconName: "Settings",
   },
   {
     id: "results_editing",
     label: "Results-Section Editing",
-    description: "Formulates objective empirical descriptions, referencing figures, statistical significance, and effect sizes.",
+    description:
+      "Formulates objective empirical descriptions, referencing figures, statistical significance, and effect sizes.",
     iconName: "TrendingUp",
   },
   {
     id: "discussion_refinement",
     label: "Discussion Refinement",
-    description: "Contextualizes empirical findings against theoretical benchmarks and explains observed discrepancies.",
+    description:
+      "Contextualizes empirical findings against theoretical benchmarks and explains observed discrepancies.",
     iconName: "MessageSquare",
   },
   {
     id: "conclusion_improvement",
     label: "Conclusion Improvement",
-    description: "Summarizes takeaways, practical relevance, system limitations, and prospective research trajectories.",
+    description:
+      "Summarizes takeaways, practical relevance, system limitations, and prospective research trajectories.",
     iconName: "Flag",
   },
   {
     id: "grammar_correction",
     label: "Grammar Correction",
-    description: "Eliminates academic stylistic slips, subject-verb discord, and awkward terminology collocations.",
+    description:
+      "Eliminates academic stylistic slips, subject-verb discord, and awkward terminology collocations.",
     iconName: "CheckCircle",
   },
   {
     id: "academic_tone",
     label: "Academic Tone Improvement",
-    description: "Replaces colloquial or subjective prose with evidence-grounded, objective scholarly discourse.",
+    description:
+      "Replaces colloquial or subjective prose with evidence-grounded, objective scholarly discourse.",
     badge: "Peer Review",
     iconName: "Award",
   },
@@ -155,38 +176,44 @@ export const PARAPHRASING_MODES: ToolModeOption[] = [
   {
     id: "sentence_level",
     label: "Sentence-level Paraphrasing",
-    description: "Rewrites individual propositions with distinct grammatical structures while retaining exact citations.",
+    description:
+      "Rewrites individual propositions with distinct grammatical structures while retaining exact citations.",
     iconName: "RefreshCw",
   },
   {
     id: "paragraph_level",
     label: "Paragraph-level Paraphrasing",
-    description: "Re-synthesizes multi-sentence concepts into fresh academic narrative flow with citation anchors intact.",
+    description:
+      "Re-synthesizes multi-sentence concepts into fresh academic narrative flow with citation anchors intact.",
     badge: "Synthesis",
     iconName: "AlignLeft",
   },
   {
     id: "technical_paraphrase",
     label: "Technical Paraphrasing",
-    description: "Restates complex technical mechanisms and algorithmic workflows without diluting precision.",
+    description:
+      "Restates complex technical mechanisms and algorithmic workflows without diluting precision.",
     iconName: "Cpu",
   },
   {
     id: "simplification",
     label: "Simplification",
-    description: "Translates dense mathematical or theoretical formulations into accessible scholarly prose.",
+    description:
+      "Translates dense mathematical or theoretical formulations into accessible scholarly prose.",
     iconName: "Minimize",
   },
   {
     id: "concision",
     label: "Concision",
-    description: "Expresses identical conceptual arguments using 25-40% fewer words for compact proceedings.",
+    description:
+      "Expresses identical conceptual arguments using 25-40% fewer words for compact proceedings.",
     iconName: "Compress",
   },
   {
     id: "academic_restatement",
     label: "Academic Restatement",
-    description: "Recasts literature findings into secondary synthesis phrasing suitable for background sections.",
+    description:
+      "Recasts literature findings into secondary synthesis phrasing suitable for background sections.",
     badge: "Literature",
     iconName: "Repeat",
   },
@@ -200,7 +227,8 @@ export const WRITING_PROVIDERS: WritingProviderConfig[] = [
   {
     id: "local_heuristics",
     name: "Local Heuristic Engine",
-    description: "100% On-Device, offline rule-based transformation. Zero network transmission. Guarantees token invariance.",
+    description:
+      "100% On-Device, offline rule-based transformation. Zero network transmission. Guarantees token invariance.",
     isLocal: true,
     requiresDataWarning: false,
     model: "Heuristics-v2 (Offline)",
@@ -208,7 +236,8 @@ export const WRITING_PROVIDERS: WritingProviderConfig[] = [
   {
     id: "ollama_local",
     name: "Local Ollama LLM",
-    description: "Private local LLM running on your GPU/CPU via Ollama. Text stays strictly on this workstation.",
+    description:
+      "Private local LLM running on your GPU/CPU via Ollama. Text stays strictly on this workstation.",
     isLocal: true,
     requiresDataWarning: false,
     model: "llama3.2:latest",
@@ -216,7 +245,8 @@ export const WRITING_PROVIDERS: WritingProviderConfig[] = [
   {
     id: "remote_cloud",
     name: "Remote Academic Cloud LLM",
-    description: "Cloud-hosted high-capacity foundation model for deep stylistic rephrasing. Text leaves your computer.",
+    description:
+      "Cloud-hosted high-capacity foundation model for deep stylistic rephrasing. Text leaves your computer.",
     isLocal: false,
     requiresDataWarning: true,
     model: "Academic-GPT-4o / Claude-3.5",
@@ -261,7 +291,9 @@ export function computeTextStatistics(text: string): TextStatistics {
   }
 
   const words = trimmed.match(/\b\S+\b/g) || [];
-  const sentences = trimmed.split(/(?<=[.!?])\s+(?=[A-Z0-9[(])/).filter((s) => s.trim().length > 0);
+  const sentences = trimmed
+    .split(/(?<=[.!?])\s+(?=[A-Z0-9[(])/)
+    .filter((s) => s.trim().length > 0);
   const paragraphs = trimmed.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
 
   const wordCount = words.length;
@@ -301,7 +333,10 @@ export function applyLocalHeuristicRewriting(
   const clicheReplacements: [RegExp, string][] = [
     [/\bIn recent years,\s*/gi, "Over the past decade, "],
     [/\bthe rapid advancement of\b/gi, "rapid developments in"],
-    [/\bhas revolutionized various domains including\b/gi, "have fundamentally reshaped disciplines such as"],
+    [
+      /\bhas revolutionized various domains including\b/gi,
+      "have fundamentally reshaped disciplines such as",
+    ],
     [/\bIt is important to note that\b/gi, "Crucially,"],
     [/\bA testament to this progress is\b/gi, "Evidencing this trajectory,"],
     [/\bIn order to achieve\b/gi, "To attain"],
@@ -361,8 +396,14 @@ export function applyLocalHeuristicRewriting(
 
     case "simplify_complex":
     case "simplification":
-      transformed = transformed.replace(/\bcorroborate our theoretical presuppositions concerning\b/gi, "support our hypotheses regarding");
-      transformed = transformed.replace(/\bprior to tokenization\b/gi, "before tokenization");
+      transformed = transformed.replace(
+        /\bcorroborate our theoretical presuppositions concerning\b/gi,
+        "support our hypotheses regarding"
+      );
+      transformed = transformed.replace(
+        /\bprior to tokenization\b/gi,
+        "before tokenization"
+      );
       transformed = transformed.replace(/\bdisentangle\b/gi, "separate");
       break;
 
@@ -385,9 +426,18 @@ export function applyLocalHeuristicRewriting(
     case "paragraph_level":
     case "academic_restatement":
       // Paraphrasing restatements
-      transformed = transformed.replace(/\bcomputes a weighted sum of\b/gi, "determines a parameterized aggregation across");
-      transformed = transformed.replace(/\bcompatibility between\b/gi, "semantic alignment between");
-      transformed = transformed.replace(/\ballowing the model to attend to\b/gi, "enabling the architecture to incorporate contextual cues from");
+      transformed = transformed.replace(
+        /\bcomputes a weighted sum of\b/gi,
+        "determines a parameterized aggregation across"
+      );
+      transformed = transformed.replace(
+        /\bcompatibility between\b/gi,
+        "semantic alignment between"
+      );
+      transformed = transformed.replace(
+        /\ballowing the model to attend to\b/gi,
+        "enabling the architecture to incorporate contextual cues from"
+      );
       transformed = transformed.replace(/\breplacing\b/gi, "superseding");
       break;
 
@@ -485,12 +535,16 @@ REVISED ACADEMIC TEXT:`;
       throw new Error("Empty response received from AI provider.");
     }
     // Clean any prefix like "REVISED ACADEMIC TEXT:"
-    const cleaned = resp.text.replace(/^(\[.*?\]|Revised Text:|Revision:)\s*/i, "").trim();
+    const cleaned = resp.text
+      .replace(/^(\[.*?\]|Revised Text:|Revision:)\s*/i, "")
+      .trim();
     onProgress?.("Verifying Invariant Preservation...");
     return cleaned;
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-    console.warn(`Provider ${provider.name} failed (${errorMsg}), falling back to Local Heuristic Engine.`);
+    console.warn(
+      `Provider ${provider.name} failed (${errorMsg}), falling back to Local Heuristic Engine.`
+    );
     onProgress?.("Provider unavailable. Falling back to Local Heuristic Engine...");
     await new Promise((r) => setTimeout(r, 300));
     return applyLocalHeuristicRewriting(text, toolType, modeId);

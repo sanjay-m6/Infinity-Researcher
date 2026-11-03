@@ -176,7 +176,7 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
             content_type: "journal_article",
             is_open_access: false,
             subject_tags: ["AI"],
-            relevance_score: 0.60,
+            relevance_score: 0.6,
           } as DiscoveredSearchResult,
           {
             id: "p2",
@@ -204,7 +204,7 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
             content_type: "preprint",
             is_open_access: true,
             subject_tags: ["Machine Learning"],
-            relevance_score: 0.90,
+            relevance_score: 0.9,
           } as DiscoveredSearchResult,
         ],
       });
@@ -228,8 +228,12 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
       // Only 2 open-access papers should be listed (p2, p3)
       await waitFor(() => {
         expect(screen.getByText(/Results \(2\)/i)).toBeInTheDocument();
-        expect(screen.queryByText("Early Foundations of Neural Networks")).not.toBeInTheDocument();
-        expect(screen.getAllByText("Deep Residual Learning for Image Recognition").length).toBeGreaterThanOrEqual(1);
+        expect(
+          screen.queryByText("Early Foundations of Neural Networks")
+        ).not.toBeInTheDocument();
+        expect(
+          screen.getAllByText("Deep Residual Learning for Image Recognition").length
+        ).toBeGreaterThanOrEqual(1);
       });
     });
 
@@ -253,7 +257,9 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
       // Only p2 (2016) should remain
       await waitFor(() => {
         expect(screen.getByText(/Results \(1\)/i)).toBeInTheDocument();
-        expect(screen.getAllByText("Deep Residual Learning for Image Recognition").length).toBeGreaterThanOrEqual(1);
+        expect(
+          screen.getAllByText("Deep Residual Learning for Image Recognition").length
+        ).toBeGreaterThanOrEqual(1);
         expect(screen.queryByText("Generative Adversarial Nets")).not.toBeInTheDocument();
       });
 
@@ -298,20 +304,23 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
       const streamSpy = vi.spyOn(desktopApi, "startWebsiteSearchStream");
 
       // Generate 60 mock papers
-      const manyPapers: DiscoveredSearchResult[] = Array.from({ length: 60 }, (_, idx) => ({
-        id: `paper_${idx + 1}`,
-        title: `Research Discovery Paper ${idx + 1}`,
-        authors: [`Author ${idx + 1}`],
-        publication_year: 2020 + (idx % 5),
-        landing_url: `https://example.com/paper_${idx + 1}`,
-        pdf_url: `https://example.com/paper_${idx + 1}.pdf`,
-        source_id: "arxiv",
-        source_name: "arXiv",
-        content_type: "preprint",
-        is_open_access: true,
-        subject_tags: ["Computer Science"],
-        relevance_score: 0.85,
-      }));
+      const manyPapers: DiscoveredSearchResult[] = Array.from(
+        { length: 60 },
+        (_, idx) => ({
+          id: `paper_${idx + 1}`,
+          title: `Research Discovery Paper ${idx + 1}`,
+          authors: [`Author ${idx + 1}`],
+          publication_year: 2020 + (idx % 5),
+          landing_url: `https://example.com/paper_${idx + 1}`,
+          pdf_url: `https://example.com/paper_${idx + 1}.pdf`,
+          source_id: "arxiv",
+          source_name: "arXiv",
+          content_type: "preprint",
+          is_open_access: true,
+          subject_tags: ["Computer Science"],
+          relevance_score: 0.85,
+        })
+      );
 
       discoverSessionStore.setState({
         submittedQuery: "distributed systems",
@@ -328,7 +337,9 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
 
       // Total results 60, but visibleCount starts at 50
       expect(screen.getByText(/Results \(60\)/i)).toBeInTheDocument();
-      expect(screen.getByText(/Load More Papers \(Showing 50 of 60\)/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Load More Papers \(Showing 50 of 60\)/i)
+      ).toBeInTheDocument();
 
       // Click Load More
       const loadMoreBtn = screen.getByRole("button", { name: /Load More Papers/i });
@@ -394,7 +405,7 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
             content_type: "journal_article",
             is_open_access: false,
             subject_tags: ["Hardware"],
-            relevance_score: 0.70,
+            relevance_score: 0.7,
           } as DiscoveredSearchResult,
         ],
         selectedPaperId: "websearch_pdf_paper",
@@ -464,7 +475,9 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
       );
 
       expect(screen.getByDisplayValue("neural radiance fields")).toBeInTheDocument();
-      expect(screen.getAllByText(/NeRF: Representing Scenes/i).length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText(/NeRF: Representing Scenes/i).length
+      ).toBeGreaterThanOrEqual(1);
 
       // Unmount component (simulating user navigating to Library, Dashboard, etc.)
       unmount();
@@ -478,7 +491,9 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
 
       // All state should be completely intact
       expect(screen.getByDisplayValue("neural radiance fields")).toBeInTheDocument();
-      expect(screen.getAllByText(/NeRF: Representing Scenes/i).length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText(/NeRF: Representing Scenes/i).length
+      ).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -517,10 +532,14 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
       );
 
       // Search input has accessible label
-      expect(screen.getByRole("textbox", { name: "Search research papers" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("textbox", { name: "Search research papers" })
+      ).toBeInTheDocument();
 
       // Live region polite announcement
-      expect(screen.getByRole("status")).toHaveTextContent(/Found 1 results for "climate change"/i);
+      expect(screen.getByRole("status")).toHaveTextContent(
+        /Found 1 results for "climate change"/i
+      );
 
       // Result card has role="article", tabIndex=0, accessible label, and Enter key selection
       const card = screen.getByRole("article", {
@@ -534,7 +553,9 @@ describe("Phase 11: Discover Papers Modernization Test Suite", () => {
 
       // Press Enter to select
       await user.keyboard("{Enter}");
-      expect(discoverSessionStore.getState().selectedPaperId).toBe("websearch_paper_acc_1");
+      expect(discoverSessionStore.getState().selectedPaperId).toBe(
+        "websearch_paper_acc_1"
+      );
     });
   });
 });

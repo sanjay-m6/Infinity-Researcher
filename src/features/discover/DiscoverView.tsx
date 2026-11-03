@@ -5,7 +5,12 @@ import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { SourceBadge } from "../../components/ui/SourceBadge";
-import { Skeleton, PaperCardSkeleton, TextSkeleton, CardSkeleton } from "../../components/ui/Skeleton";
+import {
+  Skeleton,
+  PaperCardSkeleton,
+  TextSkeleton,
+  CardSkeleton,
+} from "../../components/ui/Skeleton";
 import { EmbeddedPdfViewer } from "../../components/pdf-viewer/EmbeddedPdfViewer";
 import {
   listCrawlProfiles,
@@ -161,7 +166,8 @@ const DEFAULT_WEBSITE_SOURCES: WebsiteSourceDescriptor[] = [
     domain: "biorxiv.org",
     status: "enabled",
     policy_url: "https://www.biorxiv.org/about/faq",
-    policy_notes: "Cold Spring Harbor Laboratory preprint repository. Permitted HTML search.",
+    policy_notes:
+      "Cold Spring Harbor Laboratory preprint repository. Permitted HTML search.",
     supports_native_years: true,
     request_delay_ms: 2000,
     content_types: ["preprint"],
@@ -216,7 +222,8 @@ const DEFAULT_WEBSITE_SOURCES: WebsiteSourceDescriptor[] = [
     domain: "ieeexplore.ieee.org",
     status: "enabled",
     policy_url: "https://ieeexplore.ieee.org/XploreHelp/legal-terms",
-    policy_notes: "IEEE conference and journal research publications via official REST and Crossref prefix index.",
+    policy_notes:
+      "IEEE conference and journal research publications via official REST and Crossref prefix index.",
     supports_native_years: true,
     request_delay_ms: 1000,
     content_types: ["conference_paper", "journal_article"],
@@ -238,7 +245,8 @@ const DEFAULT_WEBSITE_SOURCES: WebsiteSourceDescriptor[] = [
     domain: "api.openalex.org",
     status: "enabled",
     policy_url: "https://openalex.org/",
-    policy_notes: "Global open scholarly catalog with institutional repository location discovery.",
+    policy_notes:
+      "Global open scholarly catalog with institutional repository location discovery.",
     supports_native_years: true,
     request_delay_ms: 500,
     content_types: ["journal_article", "preprint", "conference_paper"],
@@ -249,7 +257,8 @@ const DEFAULT_WEBSITE_SOURCES: WebsiteSourceDescriptor[] = [
     domain: "api.core.ac.uk",
     status: "enabled",
     policy_url: "https://core.ac.uk/services/api",
-    policy_notes: "Aggregator of institutional repositories and university preprints worldwide.",
+    policy_notes:
+      "Aggregator of institutional repositories and university preprints worldwide.",
     supports_native_years: true,
     request_delay_ms: 1000,
     content_types: ["journal_article", "preprint"],
@@ -260,7 +269,8 @@ const DEFAULT_WEBSITE_SOURCES: WebsiteSourceDescriptor[] = [
     domain: "dl.acm.org",
     status: "manual_only",
     policy_url: "https://www.acm.org/about-acm/terms-of-use",
-    policy_notes: "ACM Digital Library terms restrict automated querying. Manual import workflow available.",
+    policy_notes:
+      "ACM Digital Library terms restrict automated querying. Manual import workflow available.",
     supports_native_years: false,
     request_delay_ms: 0,
     content_types: ["conference_paper", "journal_article"],
@@ -271,7 +281,8 @@ const DEFAULT_WEBSITE_SOURCES: WebsiteSourceDescriptor[] = [
     domain: "scholar.google.com",
     status: "disabled",
     policy_url: "https://policies.google.com/terms",
-    policy_notes: "Automated search is strictly prohibited by Google Terms of Service and protected by CAPTCHAs.",
+    policy_notes:
+      "Automated search is strictly prohibited by Google Terms of Service and protected by CAPTCHAs.",
     supports_native_years: false,
     request_delay_ms: 0,
     content_types: ["all"],
@@ -297,8 +308,12 @@ export const DiscoverView: React.FC = () => {
 
   // Primary mode tabs
   const [activeTab, setActiveTab] = useState<"website" | "academic">("website");
-  const [scrapingEngine, setScrapingEngine] = useState<"rust" | "python">(session.activeEngine);
-  const [pythonEngineStatus, setPythonEngineStatus] = useState<PythonEngineStatus | null>(null);
+  const [scrapingEngine, setScrapingEngine] = useState<"rust" | "python">(
+    session.activeEngine
+  );
+  const [pythonEngineStatus, setPythonEngineStatus] = useState<PythonEngineStatus | null>(
+    null
+  );
 
   // Check Python engine health on mount
   useEffect(() => {
@@ -306,15 +321,21 @@ export const DiscoverView: React.FC = () => {
       .then((status) => {
         setPythonEngineStatus(status);
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   // Engine diagnostics state (Phase L & Phase 17)
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
-  const [engineDiagnostics, setEngineDiagnostics] = useState<EngineDiagnostics | null>(null);
+  const [engineDiagnostics, setEngineDiagnostics] = useState<EngineDiagnostics | null>(
+    null
+  );
   const [isLoadingDiagnostics, setIsLoadingDiagnostics] = useState(false);
-  const [academicCapabilities, setAcademicCapabilities] = useState<ProviderCapabilities[]>([]);
-  const [academicHealthChecks, setAcademicHealthChecks] = useState<ProviderHealthCheck[]>([]);
+  const [academicCapabilities, setAcademicCapabilities] = useState<
+    ProviderCapabilities[]
+  >([]);
+  const [academicHealthChecks, setAcademicHealthChecks] = useState<ProviderHealthCheck[]>(
+    []
+  );
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const [isEnrichingMetadata, setIsEnrichingMetadata] = useState(false);
 
@@ -357,7 +378,14 @@ export const DiscoverView: React.FC = () => {
       if (updated) {
         setDiscoveredResults((prev) =>
           prev.map((p) => {
-            if (p.id === selectedPaper.id || p.landing_url === selectedPaper.url || (p.canonical_doi && selectedPaper.canonical_doi && p.canonical_doi.toLowerCase() === selectedPaper.canonical_doi.toLowerCase())) {
+            if (
+              p.id === selectedPaper.id ||
+              p.landing_url === selectedPaper.url ||
+              (p.canonical_doi &&
+                selectedPaper.canonical_doi &&
+                p.canonical_doi.toLowerCase() ===
+                  selectedPaper.canonical_doi.toLowerCase())
+            ) {
               return {
                 ...p,
                 abstract_text: updated.abstract_text || p.abstract_text,
@@ -383,14 +411,26 @@ export const DiscoverView: React.FC = () => {
   // ---------------------------------------------------------------------------
   // Part B: Query-First Search Experience State
   // ---------------------------------------------------------------------------
-  const [searchQuery, setSearchQuery] = useState<string>(globalSearchQuery || session.searchQuery || "");
-  const [submittedQuery, setSubmittedQuery] = useState<string>(session.submittedQuery || session.searchQuery || "");
+  const [searchQuery, setSearchQuery] = useState<string>(
+    globalSearchQuery || session.searchQuery || ""
+  );
+  const [submittedQuery, setSubmittedQuery] = useState<string>(
+    session.submittedQuery || session.searchQuery || ""
+  );
   const parsedQuery = useMemo(() => parseStructuredQuery(searchQuery), [searchQuery]);
-  const [activeJobId, setActiveJobId] = useState<string | null>(session.activeJobId || null);
+  const [activeJobId, setActiveJobId] = useState<string | null>(
+    session.activeJobId || null
+  );
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [discoveredResults, setDiscoveredResults] = useState<DiscoveredSearchResult[]>(session.discoveredResults);
-  const [sourceStatuses, setSourceStatuses] = useState<SourceSearchStatus[]>(session.sourceStatuses);
-  const [availableSources, setAvailableSources] = useState<WebsiteSourceDescriptor[]>(DEFAULT_WEBSITE_SOURCES);
+  const [discoveredResults, setDiscoveredResults] = useState<DiscoveredSearchResult[]>(
+    session.discoveredResults
+  );
+  const [sourceStatuses, setSourceStatuses] = useState<SourceSearchStatus[]>(
+    session.sourceStatuses
+  );
+  const [availableSources, setAvailableSources] = useState<WebsiteSourceDescriptor[]>(
+    DEFAULT_WEBSITE_SOURCES
+  );
   const [selectedSources, setSelectedSources] = useState<string[]>(
     session.selectedSources.length > 0
       ? session.selectedSources
@@ -406,10 +446,10 @@ export const DiscoverView: React.FC = () => {
       return stored
         ? JSON.parse(stored)
         : [
-          "machine learning for medical image segmentation",
-          "renewable energy forecasting using neural networks",
-          "large language models in software engineering",
-        ];
+            "machine learning for medical image segmentation",
+            "renewable energy forecasting using neural networks",
+            "large language models in software engineering",
+          ];
     } catch {
       return [];
     }
@@ -419,15 +459,29 @@ export const DiscoverView: React.FC = () => {
   // Part C: Advanced Filters State
   // ---------------------------------------------------------------------------
   const [isFiltersOpen, setIsFiltersOpen] = useState<boolean>(false);
-  const [filterYearStart, setFilterYearStart] = useState<number | null>(session.filterYearStart);
-  const [filterYearEnd, setFilterYearEnd] = useState<number | null>(session.filterYearEnd);
-  const [filterContentType, setFilterContentType] = useState<string>(session.filterContentType);
-  const [filterAccessStatus, setFilterAccessStatus] = useState<string>(session.filterAccessStatus);
+  const [filterYearStart, setFilterYearStart] = useState<number | null>(
+    session.filterYearStart
+  );
+  const [filterYearEnd, setFilterYearEnd] = useState<number | null>(
+    session.filterYearEnd
+  );
+  const [filterContentType, setFilterContentType] = useState<string>(
+    session.filterContentType
+  );
+  const [filterAccessStatus, setFilterAccessStatus] = useState<string>(
+    session.filterAccessStatus
+  );
   const [filterAuthor, setFilterAuthor] = useState<string>(session.filterAuthor);
   const [filterVenue, setFilterVenue] = useState<string>(session.filterVenue);
-  const [filterPeerReviewedOnly, setFilterPeerReviewedOnly] = useState<boolean>(session.filterPeerReviewedOnly);
-  const [sortBy, setSortBy] = useState<"best_match" | "newest" | "oldest" | "title_az" | "author_az" | "citations">(session.sortBy);
-  const [limitPerSource, setLimitPerSource] = useState<number>(session.limitPerSource || 50);
+  const [filterPeerReviewedOnly, setFilterPeerReviewedOnly] = useState<boolean>(
+    session.filterPeerReviewedOnly
+  );
+  const [sortBy, setSortBy] = useState<
+    "best_match" | "newest" | "oldest" | "title_az" | "author_az" | "citations"
+  >(session.sortBy);
+  const [limitPerSource, setLimitPerSource] = useState<number>(
+    session.limitPerSource || 50
+  );
   const [visibleCount, setVisibleCount] = useState<number>(50);
 
   // Network online / offline state
@@ -455,7 +509,9 @@ export const DiscoverView: React.FC = () => {
   const [crawlProfiles, setCrawlProfiles] = useState<CrawlProfile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<string>("");
   const [isInspecting, setIsInspecting] = useState<boolean>(false);
-  const [previewResult, setPreviewResult] = useState<ExtractionPreviewResult | null>(null);
+  const [previewResult, setPreviewResult] = useState<ExtractionPreviewResult | null>(
+    null
+  );
   const [crawlJobs, setCrawlJobs] = useState<CrawlJob[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [jobPapers, setJobPapers] = useState<CrawlJobPaper[]>([]);
@@ -469,40 +525,52 @@ export const DiscoverView: React.FC = () => {
   const cancelStreamFnRef = React.useRef<(() => void) | null>(null);
 
   // Source diagnostics dialog state
-  const [selectedDiagnosticsSource, setSelectedDiagnosticsSource] = useState<SourceSearchStatus | null>(null);
+  const [selectedDiagnosticsSource, setSelectedDiagnosticsSource] =
+    useState<SourceSearchStatus | null>(null);
 
   // Collapsible Advanced Website Inspection drawer
   const [isInspectOpen, setIsInspectOpen] = useState<boolean>(false);
 
-// Three-Pane Workspace Layout Persistence
-const WORKSPACE_LAYOUT_KEY = "infinity_discover_workspace_layout_v2";
+  // Three-Pane Workspace Layout Persistence
+  const WORKSPACE_LAYOUT_KEY = "infinity_discover_workspace_layout_v2";
 
-interface StoredWorkspaceLayout {
-  isLeftPaneCollapsed?: boolean;
-  isRightPaneCollapsed?: boolean;
-  leftPaneWidth?: number;
-  rightPaneWidth?: number;
-  isDistractionFree?: boolean;
-}
-
-function getStoredDiscoverLayout(): StoredWorkspaceLayout {
-  try {
-    const raw = typeof window !== "undefined" ? localStorage.getItem(WORKSPACE_LAYOUT_KEY) : null;
-    if (raw) return JSON.parse(raw) as StoredWorkspaceLayout;
-  } catch {
-    // ignore
+  interface StoredWorkspaceLayout {
+    isLeftPaneCollapsed?: boolean;
+    isRightPaneCollapsed?: boolean;
+    leftPaneWidth?: number;
+    rightPaneWidth?: number;
+    isDistractionFree?: boolean;
   }
-  return {};
-}
 
-  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(session.selectedPaperId);
-  const [quickFilter, setQuickFilter] = useState<"all" | "oa" | "downloaded">(session.quickFilter);
+  function getStoredDiscoverLayout(): StoredWorkspaceLayout {
+    try {
+      const raw =
+        typeof window !== "undefined" ? localStorage.getItem(WORKSPACE_LAYOUT_KEY) : null;
+      if (raw) return JSON.parse(raw) as StoredWorkspaceLayout;
+    } catch {
+      // ignore
+    }
+    return {};
+  }
+
+  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(
+    session.selectedPaperId
+  );
+  const [quickFilter, setQuickFilter] = useState<"all" | "oa" | "downloaded">(
+    session.quickFilter
+  );
   const [textFilter, setTextFilter] = useState<string>(session.textFilter);
   const [isLeftPaneCollapsed, setIsLeftPaneCollapsed] = useState<boolean>(
-    () => getStoredDiscoverLayout().isLeftPaneCollapsed ?? session.isLeftPaneCollapsed ?? false
+    () =>
+      getStoredDiscoverLayout().isLeftPaneCollapsed ??
+      session.isLeftPaneCollapsed ??
+      false
   );
   const [isRightPaneCollapsed, setIsRightPaneCollapsed] = useState<boolean>(
-    () => getStoredDiscoverLayout().isRightPaneCollapsed ?? session.isRightPaneCollapsed ?? false
+    () =>
+      getStoredDiscoverLayout().isRightPaneCollapsed ??
+      session.isRightPaneCollapsed ??
+      false
   );
   const [leftPaneWidth, setLeftPaneWidth] = useState<number>(
     () => getStoredDiscoverLayout().leftPaneWidth || session.leftPaneWidth || 360
@@ -533,7 +601,13 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     } catch {
       // non-blocking
     }
-  }, [leftPaneWidth, rightPaneWidth, isLeftPaneCollapsed, isRightPaneCollapsed, isDistractionFree]);
+  }, [
+    leftPaneWidth,
+    rightPaneWidth,
+    isLeftPaneCollapsed,
+    isRightPaneCollapsed,
+    isDistractionFree,
+  ]);
 
   const handleResetLayout = useCallback(() => {
     setLeftPaneWidth(360);
@@ -547,9 +621,13 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
   const effectiveRightCollapsed = isDistractionFree || isRightPaneCollapsed;
 
   // Active Right Pane Tab: 'details' | 'chat' | 'insights' | 'notes'
-  const [activeRightTab, setActiveRightTab] = useState<"details" | "chat" | "insights" | "notes">(session.activeRightTab);
+  const [activeRightTab, setActiveRightTab] = useState<
+    "details" | "chat" | "insights" | "notes"
+  >(session.activeRightTab);
   // Target PDF page for instant grounded citation jumps
-  const [targetPdfPage, setTargetPdfPage] = useState<number | undefined>(session.targetPdfPage);
+  const [targetPdfPage, setTargetPdfPage] = useState<number | undefined>(
+    session.targetPdfPage
+  );
 
   // Notes state for selected paper
   const [notes, setNotes] = useState<DbNote[]>([]);
@@ -559,16 +637,23 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
 
   // Paper Import & Metadata Edit Modal state
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
-  const [importModalMode, setImportModalMode] = useState<"ieee" | "local" | "edit">("ieee");
-  const [importModalPaper, setImportModalPaper] = useState<UnifiedDiscoverPaper | null>(null);
+  const [importModalMode, setImportModalMode] = useState<"ieee" | "local" | "edit">(
+    "ieee"
+  );
+  const [importModalPaper, setImportModalPaper] = useState<UnifiedDiscoverPaper | null>(
+    null
+  );
 
-  const handleOpenIeeeXplore = useCallback((query?: string) => {
-    const q = query || searchQuery || "";
-    const url = q
-      ? `https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=${encodeURIComponent(q)}&openAccess=true`
-      : "https://ieeexplore.ieee.org/search/searchresult.jsp?openAccess=true";
-    window.open(url, "_blank", "noopener,noreferrer");
-  }, [searchQuery]);
+  const handleOpenIeeeXplore = useCallback(
+    (query?: string) => {
+      const q = query || searchQuery || "";
+      const url = q
+        ? `https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=${encodeURIComponent(q)}&openAccess=true`
+        : "https://ieeexplore.ieee.org/search/searchresult.jsp?openAccess=true";
+      window.open(url, "_blank", "noopener,noreferrer");
+    },
+    [searchQuery]
+  );
 
   const handleOpenImportModal = useCallback(
     (modalMode: "ieee" | "local" | "edit", paper?: UnifiedDiscoverPaper | null) => {
@@ -580,65 +665,71 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
   );
 
   // Drag-to-resize handlers with full PointerEvent and MouseEvent support
-  const handleLeftResizeStart = useCallback((e: React.PointerEvent | React.MouseEvent) => {
-    e.preventDefault();
-    setIsDraggingLeft(true);
-    const startX = e.clientX;
-    const startWidth = leftPaneWidth;
+  const handleLeftResizeStart = useCallback(
+    (e: React.PointerEvent | React.MouseEvent) => {
+      e.preventDefault();
+      setIsDraggingLeft(true);
+      const startX = e.clientX;
+      const startWidth = leftPaneWidth;
 
-    const onPointerMove = (moveEvent: PointerEvent | MouseEvent) => {
-      const delta = moveEvent.clientX - startX;
-      const newWidth = Math.min(Math.max(startWidth + delta, 260), 550);
-      setLeftPaneWidth(newWidth);
-    };
+      const onPointerMove = (moveEvent: PointerEvent | MouseEvent) => {
+        const delta = moveEvent.clientX - startX;
+        const newWidth = Math.min(Math.max(startWidth + delta, 260), 550);
+        setLeftPaneWidth(newWidth);
+      };
 
-    const onPointerUp = () => {
-      setIsDraggingLeft(false);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("mousemove", onPointerMove);
-      window.removeEventListener("mouseup", onPointerUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
+      const onPointerUp = () => {
+        setIsDraggingLeft(false);
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+        window.removeEventListener("mousemove", onPointerMove);
+        window.removeEventListener("mouseup", onPointerUp);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
 
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("mousemove", onPointerMove);
-    window.addEventListener("mouseup", onPointerUp);
-  }, [leftPaneWidth]);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+      window.addEventListener("mousemove", onPointerMove);
+      window.addEventListener("mouseup", onPointerUp);
+    },
+    [leftPaneWidth]
+  );
 
-  const handleRightResizeStart = useCallback((e: React.PointerEvent | React.MouseEvent) => {
-    e.preventDefault();
-    setIsDraggingRight(true);
-    const startX = e.clientX;
-    const startWidth = rightPaneWidth;
+  const handleRightResizeStart = useCallback(
+    (e: React.PointerEvent | React.MouseEvent) => {
+      e.preventDefault();
+      setIsDraggingRight(true);
+      const startX = e.clientX;
+      const startWidth = rightPaneWidth;
 
-    const onPointerMove = (moveEvent: PointerEvent | MouseEvent) => {
-      const delta = startX - moveEvent.clientX;
-      const newWidth = Math.min(Math.max(startWidth + delta, 300), 620);
-      setRightPaneWidth(newWidth);
-    };
+      const onPointerMove = (moveEvent: PointerEvent | MouseEvent) => {
+        const delta = startX - moveEvent.clientX;
+        const newWidth = Math.min(Math.max(startWidth + delta, 300), 620);
+        setRightPaneWidth(newWidth);
+      };
 
-    const onPointerUp = () => {
-      setIsDraggingRight(false);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("mousemove", onPointerMove);
-      window.removeEventListener("mouseup", onPointerUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
+      const onPointerUp = () => {
+        setIsDraggingRight(false);
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+        window.removeEventListener("mousemove", onPointerMove);
+        window.removeEventListener("mouseup", onPointerUp);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
 
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("mousemove", onPointerMove);
-    window.addEventListener("mouseup", onPointerUp);
-  }, [rightPaneWidth]);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+      window.addEventListener("mousemove", onPointerMove);
+      window.addEventListener("mouseup", onPointerUp);
+    },
+    [rightPaneWidth]
+  );
 
   // Drag & drop handlers for dragging PDF files into the Discover workspace
   const handleContainerDragOver = useCallback((e: React.DragEvent) => {
@@ -654,29 +745,32 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     setIsGlobalDraggingFile(false);
   }, []);
 
-  const handleContainerDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsGlobalDraggingFile(false);
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
-        const path = (file as unknown as { path?: string }).path || "";
-        handleOpenImportModal("local", {
-          id: `local-drop-${Date.now()}`,
-          title: file.name.replace(/\.[^/.]+$/, ""),
-          authors: ["Local Author"],
-          url: "",
-          is_imported: false,
-          is_downloaded: true,
-          local_pdf_path: path || undefined,
-          is_open_access: true,
-          source_name: "Local PDF Import",
-        } as UnifiedDiscoverPaper);
+  const handleContainerDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsGlobalDraggingFile(false);
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
+          const path = (file as unknown as { path?: string }).path || "";
+          handleOpenImportModal("local", {
+            id: `local-drop-${Date.now()}`,
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            authors: ["Local Author"],
+            url: "",
+            is_imported: false,
+            is_downloaded: true,
+            local_pdf_path: path || undefined,
+            is_open_access: true,
+            source_name: "Local PDF Import",
+          } as UnifiedDiscoverPaper);
+        }
       }
-    }
-  }, [handleOpenImportModal]);
+    },
+    [handleOpenImportModal]
+  );
 
   // Synchronize state changes to discoverSessionStore for persistent retention
   useEffect(() => {
@@ -885,14 +979,19 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
       // Cross-reference with AppContext papers to reflect local import/download state
       const libMatch = papers.find(
         (p) =>
-          (p.doi && r.canonical_doi && p.doi.toLowerCase() === r.canonical_doi.toLowerCase()) ||
+          (p.doi &&
+            r.canonical_doi &&
+            p.doi.toLowerCase() === r.canonical_doi.toLowerCase()) ||
           p.title.toLowerCase().trim() === r.title.toLowerCase().trim()
       );
       const parsedYear =
         r.publication_year ??
-        (r.publication_date ? parseInt(r.publication_date.slice(0, 4), 10) || null : null);
+        (r.publication_date
+          ? parseInt(r.publication_date.slice(0, 4), 10) || null
+          : null);
       const citationCount =
-        typeof (libMatch as unknown as Record<string, unknown>)?.citationCount === "number"
+        typeof (libMatch as unknown as Record<string, unknown>)?.citationCount ===
+        "number"
           ? ((libMatch as unknown as Record<string, unknown>).citationCount as number)
           : null;
       map.set(key, {
@@ -922,14 +1021,27 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
         metadata_confidence: r.metadata_confidence,
         collection_ids: libMatch?.collectionIds,
         citation_count: citationCount,
-        version_type: (r as unknown as Record<string, unknown>).version_type as string | undefined || (r.source_name.toLowerCase().includes("arxiv") || r.source_name.toLowerCase().includes("biorxiv") || r.source_name.toLowerCase().includes("medrxiv") ? "preprint" : r.is_open_access ? "published_version" : "unknown_version"),
-        identity_status: (r as unknown as Record<string, unknown>).identity_status as string | undefined,
-        identity_score: (r as unknown as Record<string, unknown>).identity_score as number | undefined,
+        version_type:
+          ((r as unknown as Record<string, unknown>).version_type as
+            string | undefined) ||
+          (r.source_name.toLowerCase().includes("arxiv") ||
+          r.source_name.toLowerCase().includes("biorxiv") ||
+          r.source_name.toLowerCase().includes("medrxiv")
+            ? "preprint"
+            : r.is_open_access
+              ? "published_version"
+              : "unknown_version"),
+        identity_status: (r as unknown as Record<string, unknown>).identity_status as
+          string | undefined,
+        identity_score: (r as unknown as Record<string, unknown>).identity_score as
+          number | undefined,
       });
     }
 
     // 2. Initial Library Papers (displayed only before any search query is submitted/active)
-    const isSearchActive = Boolean(submittedQuery || isSearching || discoveredResults.length > 0);
+    const isSearchActive = Boolean(
+      submittedQuery || isSearching || discoveredResults.length > 0
+    );
     if (!isSearchActive) {
       for (const p of papers) {
         map.set(p.id, {
@@ -969,7 +1081,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
             title: jp.title,
             authors: jp.authors || [],
             publication_date: jp.publication_date,
-            publication_year: jp.publication_date ? parseInt(jp.publication_date, 10) || null : null,
+            publication_year: jp.publication_date
+              ? parseInt(jp.publication_date, 10) || null
+              : null,
             venue: jp.venue,
             canonical_doi: jp.canonical_doi,
             abstract_text: jp.abstract_text,
@@ -1008,26 +1122,30 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     }
 
     return Array.from(map.values());
-  }, [discoveredResults, papers, submittedQuery, isSearching, isInspectOpen, jobPapers, previewResult]);
+  }, [
+    discoveredResults,
+    papers,
+    submittedQuery,
+    isSearching,
+    isInspectOpen,
+    jobPapers,
+    previewResult,
+  ]);
 
   // ---------------------------------------------------------------------------
   // Filter & Sort Logic
   // ---------------------------------------------------------------------------
   const filteredPapers = useMemo(() => {
     const activeQuery = submittedQuery || searchQuery;
-    const plan = createSearchPlan(
-      activeQuery,
-      selectedSources,
-      {
-        yearStart: filterYearStart,
-        yearEnd: filterYearEnd,
-        contentType: filterContentType,
-        accessStatus: filterAccessStatus,
-        author: filterAuthor,
-        venue: filterVenue,
-        peerReviewedOnly: filterPeerReviewedOnly,
-      }
-    );
+    const plan = createSearchPlan(activeQuery, selectedSources, {
+      yearStart: filterYearStart,
+      yearEnd: filterYearEnd,
+      contentType: filterContentType,
+      accessStatus: filterAccessStatus,
+      author: filterAuthor,
+      venue: filterVenue,
+      peerReviewedOnly: filterPeerReviewedOnly,
+    });
 
     const list = unifiedPapers.filter((p) => {
       // Quick filter tabs
@@ -1035,7 +1153,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
       if (quickFilter === "downloaded" && !p.is_downloaded) return false;
 
       // Advanced Access Status: PDF available
-      if (filterAccessStatus === "pdf_available" && !p.pdf_url && !p.local_pdf_path) return false;
+      if (filterAccessStatus === "pdf_available" && !p.pdf_url && !p.local_pdf_path)
+        return false;
 
       // In-page text search (compact search bar)
       if (textFilter.trim()) {
@@ -1104,7 +1223,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
       if (selectedPaperId) {
         return (
           filteredPapers.find(
-            (p) => p.id === selectedPaperId || (p.paper_id && p.paper_id === selectedPaperId)
+            (p) =>
+              p.id === selectedPaperId || (p.paper_id && p.paper_id === selectedPaperId)
           ) || null
         );
       }
@@ -1123,7 +1243,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
   // Load notes for selected paper
   useEffect(() => {
     const targetId = selectedPaper?.paper_id || selectedPaper?.id;
-    if (!targetId || targetId.startsWith("preview_") || targetId.startsWith("websearch_")) {
+    if (
+      !targetId ||
+      targetId.startsWith("preview_") ||
+      targetId.startsWith("websearch_")
+    ) {
       setNotes([]);
       return;
     }
@@ -1160,7 +1284,10 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
 
     // Persist recent search
     setRecentSearches((prev) => {
-      const next = [q, ...prev.filter((item) => item.toLowerCase() !== q.toLowerCase())].slice(0, 8);
+      const next = [
+        q,
+        ...prev.filter((item) => item.toLowerCase() !== q.toLowerCase()),
+      ].slice(0, 8);
       try {
         localStorage.setItem("research_recent_searches", JSON.stringify(next));
       } catch (e) {
@@ -1177,9 +1304,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     if (currentSearchSessionRef.current) {
       const prevSession = currentSearchSessionRef.current;
       if (scrapingEngine === "python") {
-        cancelPythonSearch(prevSession).catch(() => { });
+        cancelPythonSearch(prevSession).catch(() => {});
       } else {
-        cancelWebsiteSearch(prevSession).catch(() => { });
+        cancelWebsiteSearch(prevSession).catch(() => {});
       }
     }
 
@@ -1195,21 +1322,18 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
           ? selectedSources
           : ["arxiv", "biorxiv", "medrxiv", "plos", "nature_srep", "pmc", "ieee_xplore"];
 
-    const searchPlan = createSearchPlan(
-      q,
-      initialSources,
-      {
-        yearStart: filterYearStart,
-        yearEnd: filterYearEnd,
-        contentType: filterContentType,
-        accessStatus: filterAccessStatus,
-        author: filterAuthor,
-        venue: filterVenue,
-        peerReviewedOnly: filterPeerReviewedOnly,
-      }
-    );
+    const searchPlan = createSearchPlan(q, initialSources, {
+      yearStart: filterYearStart,
+      yearEnd: filterYearEnd,
+      contentType: filterContentType,
+      accessStatus: filterAccessStatus,
+      author: filterAuthor,
+      venue: filterVenue,
+      peerReviewedOnly: filterPeerReviewedOnly,
+    });
 
-    const targetSources = searchPlan.targetSources.length > 0 ? searchPlan.targetSources : initialSources;
+    const targetSources =
+      searchPlan.targetSources.length > 0 ? searchPlan.targetSources : initialSources;
 
     setIsSearching(true);
 
@@ -1229,7 +1353,7 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     // Initialize source statuses
     setSourceStatuses((prev) => {
       const nextMap = new Map<string, SourceSearchStatus>(
-        (retrySourcesOnly || isLoadMore) ? prev.map((s) => [s.source_id, s]) : []
+        retrySourcesOnly || isLoadMore ? prev.map((s) => [s.source_id, s]) : []
       );
       for (const srcId of targetSources) {
         const desc = availableSources.find((s) => s.id === srcId);
@@ -1238,7 +1362,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
           source_name: desc?.name || srcId,
           status: "searching",
           message: isLoadMore ? "Fetching more papers..." : "Searching source...",
-          results_count: (retrySourcesOnly || isLoadMore) ? nextMap.get(srcId)?.results_count || 0 : 0,
+          results_count:
+            retrySourcesOnly || isLoadMore ? nextMap.get(srcId)?.results_count || 0 : 0,
           elapsed_ms: 0,
         });
       }
@@ -1247,16 +1372,23 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
 
     try {
       const effectiveLimit = customLimit || limitPerSource;
-      const searchFn = scrapingEngine === "python" ? startPythonSearchStream : startWebsiteSearchStream;
+      const searchFn =
+        scrapingEngine === "python" ? startPythonSearchStream : startWebsiteSearchStream;
       const unlisten = await searchFn(
         {
           query: searchPlan.sourceQuery || q,
           sources: targetSources,
           year_start: searchPlan.sourceFilters.year_start ?? filterYearStart,
           year_end: searchPlan.sourceFilters.year_end ?? filterYearEnd,
-          content_type: searchPlan.sourceFilters.content_type || (filterContentType !== "all" ? filterContentType : null),
-          open_access_only: forceOpenAccess || searchPlan.sourceFilters.open_access_only || filterAccessStatus === "open_access" || quickFilter === "oa",
-          author: searchPlan.sourceFilters.author || (filterAuthor.trim() || null),
+          content_type:
+            searchPlan.sourceFilters.content_type ||
+            (filterContentType !== "all" ? filterContentType : null),
+          open_access_only:
+            forceOpenAccess ||
+            searchPlan.sourceFilters.open_access_only ||
+            filterAccessStatus === "open_access" ||
+            quickFilter === "oa",
+          author: searchPlan.sourceFilters.author || filterAuthor.trim() || null,
           limit_per_source: effectiveLimit,
         },
         (event: SearchStreamEvent) => {
@@ -1281,10 +1413,10 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 prev.map((s) =>
                   s.source_id === event.source_id
                     ? {
-                      ...s,
-                      results_count: event.papers_found,
-                      message: `Crawled ${event.pages_crawled} pages...`,
-                    }
+                        ...s,
+                        results_count: event.papers_found,
+                        message: `Crawled ${event.pages_crawled} pages...`,
+                      }
                     : s
                 )
               );
@@ -1301,8 +1433,13 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                   results_count: event.results_count,
                   elapsed_ms: event.elapsed_ms,
                 };
-                const nextList = idx >= 0 ? prev.map((s, i) => (i === idx ? updated : s)) : [...prev, updated];
-                const anyStillSearching = nextList.some((s) => s.status === "searching" || s.status === "queued");
+                const nextList =
+                  idx >= 0
+                    ? prev.map((s, i) => (i === idx ? updated : s))
+                    : [...prev, updated];
+                const anyStillSearching = nextList.some(
+                  (s) => s.status === "searching" || s.status === "queued"
+                );
                 if (!anyStillSearching && nextList.length > 0) {
                   setIsSearching(false);
                 }
@@ -1312,11 +1449,16 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
             }
             case "paper_found": {
               setDiscoveredResults((prev) => {
-                const duplicateIndex = prev.findIndex((p) => isDuplicatePaper(p, event.paper));
+                const duplicateIndex = prev.findIndex((p) =>
+                  isDuplicatePaper(p, event.paper)
+                );
 
                 if (duplicateIndex >= 0) {
                   const copy = [...prev];
-                  copy[duplicateIndex] = mergeDuplicateRecords(copy[duplicateIndex], event.paper);
+                  copy[duplicateIndex] = mergeDuplicateRecords(
+                    copy[duplicateIndex],
+                    event.paper
+                  );
                   return copy;
                 }
 
@@ -1338,14 +1480,19 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 const nextList = prev.map((s) =>
                   s.source_id === event.source_id
                     ? {
-                      ...s,
-                      status: event.count > 0 ? ("completed" as const) : ("no_results" as const),
-                      results_count: event.count,
-                      elapsed_ms: event.elapsed_ms,
-                    }
+                        ...s,
+                        status:
+                          event.count > 0
+                            ? ("completed" as const)
+                            : ("no_results" as const),
+                        results_count: event.count,
+                        elapsed_ms: event.elapsed_ms,
+                      }
                     : s
                 );
-                const anyStillSearching = nextList.some((s) => s.status === "searching" || s.status === "queued");
+                const anyStillSearching = nextList.some(
+                  (s) => s.status === "searching" || s.status === "queued"
+                );
                 if (!anyStillSearching && nextList.length > 0) {
                   setIsSearching(false);
                 }
@@ -1358,14 +1505,16 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 const nextList = prev.map((s) =>
                   s.source_id === event.source_id
                     ? {
-                      ...s,
-                      status: "failed" as const,
-                      message: event.error || event.message || "Source failed",
-                      elapsed_ms: event.elapsed_ms,
-                    }
+                        ...s,
+                        status: "failed" as const,
+                        message: event.error || event.message || "Source failed",
+                        elapsed_ms: event.elapsed_ms,
+                      }
                     : s
                 );
-                const anyStillSearching = nextList.some((s) => s.status === "searching" || s.status === "queued");
+                const anyStillSearching = nextList.some(
+                  (s) => s.status === "searching" || s.status === "queued"
+                );
                 if (!anyStillSearching && nextList.length > 0) {
                   setIsSearching(false);
                 }
@@ -1425,9 +1574,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     }
     if (currentSearchSessionRef.current) {
       if (scrapingEngine === "python") {
-        cancelPythonSearch(currentSearchSessionRef.current).catch(() => { });
+        cancelPythonSearch(currentSearchSessionRef.current).catch(() => {});
       } else {
-        cancelWebsiteSearch(currentSearchSessionRef.current).catch(() => { });
+        cancelWebsiteSearch(currentSearchSessionRef.current).catch(() => {});
       }
       currentSearchSessionRef.current = null;
     }
@@ -1444,7 +1593,13 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
 
   const handleRetryFailedSources = () => {
     const failedSources = sourceStatuses
-      .filter((s) => s.status === "failed" || s.status === "rate_limited" || s.status === "cancelled" || s.status === "timeout")
+      .filter(
+        (s) =>
+          s.status === "failed" ||
+          s.status === "rate_limited" ||
+          s.status === "cancelled" ||
+          s.status === "timeout"
+      )
       .map((s) => s.source_id);
     if (failedSources.length === 0) {
       showToast("No failed sources to retry.", "info");
@@ -1491,7 +1646,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
 
   // Synchronize incoming global search queries (from Command Palette, Dashboard, etc.)
   useEffect(() => {
-    if (globalSearchQuery && globalSearchQuery.trim() !== "" && globalSearchQuery !== submittedQuery) {
+    if (
+      globalSearchQuery &&
+      globalSearchQuery.trim() !== "" &&
+      globalSearchQuery !== submittedQuery
+    ) {
       setSearchQuery(globalSearchQuery);
       void handleExecuteSearch(globalSearchQuery);
     }
@@ -1577,7 +1736,10 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     }
   };
 
-  const handleJobAction = async (jobId: string, action: "pause" | "resume" | "cancel") => {
+  const handleJobAction = async (
+    jobId: string,
+    action: "pause" | "resume" | "cancel"
+  ) => {
     try {
       if (action === "pause") await pauseCrawlJob(jobId);
       if (action === "resume") await resumeCrawlJob(jobId);
@@ -1628,20 +1790,31 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     const pdfUrl = paper.pdf_url;
 
     if (!pdfUrl) {
-      showToast("No direct PDF URL detected upfront. Resolving Open Access candidates...", "info");
+      showToast(
+        "No direct PDF URL detected upfront. Resolving Open Access candidates...",
+        "info"
+      );
       await handleResolvePdf(paper);
       return;
     }
 
     try {
       let validPaperId = targetId;
-      if (targetId.startsWith("preview_") || targetId.startsWith("websearch_") || !paper.is_imported) {
+      if (
+        targetId.startsWith("preview_") ||
+        targetId.startsWith("websearch_") ||
+        !paper.is_imported
+      ) {
         const raw = discoveredResults.find((r) => `websearch_${r.id}` === paper.id);
         if (raw) {
           const imported = await importDiscoveredSearchResult(raw);
           validPaperId = imported.id;
         } else {
-          const imported = await importSinglePage(paper.url, selectedProfileId || null, null);
+          const imported = await importSinglePage(
+            paper.url,
+            selectedProfileId || null,
+            null
+          );
           validPaperId = imported.id;
         }
         await refreshDatabase();
@@ -1664,13 +1837,21 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
   const handleResolvePdf = async (paper: UnifiedDiscoverPaper) => {
     try {
       let validPaperId = paper.paper_id || paper.id;
-      if (validPaperId.startsWith("preview_") || validPaperId.startsWith("websearch_") || !paper.is_imported) {
+      if (
+        validPaperId.startsWith("preview_") ||
+        validPaperId.startsWith("websearch_") ||
+        !paper.is_imported
+      ) {
         const raw = discoveredResults.find((r) => `websearch_${r.id}` === paper.id);
         if (raw) {
           const imported = await importDiscoveredSearchResult(raw);
           validPaperId = imported.id;
         } else if (paper.url) {
-          const imported = await importSinglePage(paper.url, selectedProfileId || null, null);
+          const imported = await importSinglePage(
+            paper.url,
+            selectedProfileId || null,
+            null
+          );
           validPaperId = imported.id;
         }
         await refreshDatabase();
@@ -1694,7 +1875,10 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
           pdf_url: res.best_url,
         });
       } else {
-        showToast("No alternative Open Access PDF candidate resolved for this DOI/URL.", "info");
+        showToast(
+          "No alternative Open Access PDF candidate resolved for this DOI/URL.",
+          "info"
+        );
       }
     } catch (e: unknown) {
       const msg = getErrorMessage(e, "Could not resolve Open Access PDF.");
@@ -1723,8 +1907,15 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     if (!selectedPaper || !newNoteText.trim()) return;
     const targetId = selectedPaper.paper_id || selectedPaper.id;
 
-    if (targetId.startsWith("preview_") || targetId.startsWith("websearch_") || !selectedPaper.is_imported) {
-      showToast("Please save this paper to library first before adding persistent notes.", "info");
+    if (
+      targetId.startsWith("preview_") ||
+      targetId.startsWith("websearch_") ||
+      !selectedPaper.is_imported
+    ) {
+      showToast(
+        "Please save this paper to library first before adding persistent notes.",
+        "info"
+      );
       return;
     }
 
@@ -1760,7 +1951,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     if (!selectedPaper || !collectionId) return;
     const targetId = selectedPaper.paper_id || selectedPaper.id;
 
-    if (targetId.startsWith("preview_") || targetId.startsWith("websearch_") || !selectedPaper.is_imported) {
+    if (
+      targetId.startsWith("preview_") ||
+      targetId.startsWith("websearch_") ||
+      !selectedPaper.is_imported
+    ) {
       showToast("Saving paper to library first...", "info");
       let validId: string;
       const raw = discoveredResults.find((r) => `websearch_${r.id}` === targetId);
@@ -1768,7 +1963,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
         const imported = await importDiscoveredSearchResult(raw, collectionId);
         validId = imported.id;
       } else {
-        const imported = await importSinglePage(selectedPaper.url, selectedProfileId || null, collectionId);
+        const imported = await importSinglePage(
+          selectedPaper.url,
+          selectedProfileId || null,
+          collectionId
+        );
         validId = imported.id;
       }
       await refreshDatabase();
@@ -1811,7 +2010,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
     if (!selectedPaper) return null;
     const targetId = selectedPaper.paper_id || selectedPaper.id;
     return downloadJobs.find(
-      (j) => j.paper_id === targetId && (j.status === "downloading" || j.status === "queued")
+      (j) =>
+        j.paper_id === targetId && (j.status === "downloading" || j.status === "queued")
     );
   }, [selectedPaper, downloadJobs]);
 
@@ -1835,27 +2035,33 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
             <button
               type="button"
               onClick={() => setActiveTab("website")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${activeTab === "website"
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                activeTab === "website"
                   ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
+              }`}
             >
               <Globe className="w-3.5 h-3.5" />
               <span>Website-Driven Discovery (No-API)</span>
-              <Badge variant="success" size="sm">Active</Badge>
+              <Badge variant="success" size="sm">
+                Active
+              </Badge>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("academic")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${activeTab === "academic"
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                activeTab === "academic"
                   ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
+              }`}
             >
               <Key className="w-3.5 h-3.5" />
               <span>Academic API Connectors</span>
-              <Badge variant="outline" size="sm">Disabled in No-API Mode</Badge>
+              <Badge variant="outline" size="sm">
+                Disabled in No-API Mode
+              </Badge>
             </button>
 
             {/* Desktop Pane Collapse Toggles & Layout Controls */}
@@ -1864,35 +2070,54 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 <button
                   type="button"
                   onClick={() => setIsLeftPaneCollapsed(!effectiveLeftCollapsed)}
-                  title={effectiveLeftCollapsed ? "Expand search list pane" : "Collapse search list pane"}
-                  className={`p-1.5 rounded-md border text-xs transition-colors cursor-pointer ${effectiveLeftCollapsed
+                  title={
+                    effectiveLeftCollapsed
+                      ? "Expand search list pane"
+                      : "Collapse search list pane"
+                  }
+                  className={`p-1.5 rounded-md border text-xs transition-colors cursor-pointer ${
+                    effectiveLeftCollapsed
                       ? "bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-950 dark:border-indigo-800 dark:text-indigo-300"
                       : "border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                    }`}
+                  }`}
                 >
                   <Sidebar className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsRightPaneCollapsed(!effectiveRightCollapsed)}
-                  title={effectiveRightCollapsed ? "Expand details pane" : "Collapse details pane"}
-                  className={`p-1.5 rounded-md border text-xs transition-colors cursor-pointer ${effectiveRightCollapsed
+                  title={
+                    effectiveRightCollapsed
+                      ? "Expand details pane"
+                      : "Collapse details pane"
+                  }
+                  className={`p-1.5 rounded-md border text-xs transition-colors cursor-pointer ${
+                    effectiveRightCollapsed
                       ? "bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-950 dark:border-indigo-800 dark:text-indigo-300"
                       : "border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                    }`}
+                  }`}
                 >
                   <Info className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsDistractionFree(!isDistractionFree)}
-                  title={isDistractionFree ? "Exit Focus Reading Mode" : "Distraction-Free Focus Reading Mode (Maximize Center PDF)"}
-                  className={`p-1.5 rounded-md border text-xs transition-colors cursor-pointer ${isDistractionFree
+                  title={
+                    isDistractionFree
+                      ? "Exit Focus Reading Mode"
+                      : "Distraction-Free Focus Reading Mode (Maximize Center PDF)"
+                  }
+                  className={`p-1.5 rounded-md border text-xs transition-colors cursor-pointer ${
+                    isDistractionFree
                       ? "bg-indigo-600 border-indigo-600 text-white"
                       : "border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                    }`}
+                  }`}
                 >
-                  {isDistractionFree ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                  {isDistractionFree ? (
+                    <Minimize2 className="w-3.5 h-3.5" />
+                  ) : (
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  )}
                 </button>
                 <button
                   type="button"
@@ -1919,7 +2144,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
               <div className="flex items-center gap-2">
                 <WifiOff className="w-4 h-4 shrink-0" />
                 <span>
-                  <strong>Offline Mode:</strong> External academic source queries require an internet connection. You can still inspect locally saved papers and read downloaded PDFs.
+                  <strong>Offline Mode:</strong> External academic source queries require
+                  an internet connection. You can still inspect locally saved papers and
+                  read downloaded PDFs.
                 </span>
               </div>
             </div>
@@ -2011,7 +2238,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                           type="button"
                           onClick={() =>
                             setSelectedSources(
-                              availableSources.filter((s) => s.status === "enabled").map((s) => s.id)
+                              availableSources
+                                .filter((s) => s.status === "enabled")
+                                .map((s) => s.id)
                             )
                           }
                           className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline"
@@ -2040,8 +2269,12 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                       {availableSources
                         .filter(
                           (s) =>
-                            s.name.toLowerCase().includes(sourceSearchText.toLowerCase()) ||
-                            s.domain.toLowerCase().includes(sourceSearchText.toLowerCase())
+                            s.name
+                              .toLowerCase()
+                              .includes(sourceSearchText.toLowerCase()) ||
+                            s.domain
+                              .toLowerCase()
+                              .includes(sourceSearchText.toLowerCase())
                         )
                         .map((source) => {
                           const isEnabled = source.status === "enabled";
@@ -2049,10 +2282,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                           return (
                             <label
                               key={source.id}
-                              className={`flex items-start gap-2 p-1.5 rounded-lg text-xs cursor-pointer transition-colors ${!isEnabled
+                              className={`flex items-start gap-2 p-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                                !isEnabled
                                   ? "opacity-60 bg-slate-50 dark:bg-slate-800/40 cursor-not-allowed"
                                   : "hover:bg-slate-50 dark:hover:bg-slate-800/80"
-                                }`}
+                              }`}
                             >
                               <input
                                 type="checkbox"
@@ -2062,7 +2296,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                   if (e.target.checked) {
                                     setSelectedSources((prev) => [...prev, source.id]);
                                   } else {
-                                    setSelectedSources((prev) => prev.filter((id) => id !== source.id));
+                                    setSelectedSources((prev) =>
+                                      prev.filter((id) => id !== source.id)
+                                    );
                                   }
                                 }}
                                 className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500"
@@ -2073,12 +2309,13 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                     {source.name}
                                   </span>
                                   <span
-                                    className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${source.status === "enabled"
+                                    className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
+                                      source.status === "enabled"
                                         ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                                         : source.status === "manual_only"
                                           ? "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
                                           : "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
-                                      }`}
+                                    }`}
                                   >
                                     {source.status === "enabled"
                                       ? "Policy Checked"
@@ -2104,10 +2341,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 type="button"
                 aria-expanded={isFiltersOpen}
                 onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                className={`h-9 px-3 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors ${isFiltersOpen || activeFiltersCount > 0
+                className={`h-9 px-3 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                  isFiltersOpen || activeFiltersCount > 0
                     ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:border-indigo-800 dark:text-indigo-300"
                     : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60"
-                  }`}
+                }`}
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 <span>Filters</span>
@@ -2125,7 +2363,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
 
               {/* Papers Per Source Limit Selector */}
               <div className="flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 shrink-0">
-                <span className="text-slate-400 text-[11px] whitespace-nowrap">Fetch:</span>
+                <span className="text-slate-400 text-[11px] whitespace-nowrap">
+                  Fetch:
+                </span>
                 <select
                   value={limitPerSource}
                   onChange={(e) => {
@@ -2136,10 +2376,18 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                   className="bg-transparent text-slate-800 dark:text-slate-200 font-semibold text-xs border-none outline-none cursor-pointer pr-1"
                   title="Target papers to fetch per academic source (Default: 50)"
                 >
-                  <option value={15} className="dark:bg-slate-800">15 / source</option>
-                  <option value={25} className="dark:bg-slate-800">25 / source</option>
-                  <option value={50} className="dark:bg-slate-800">50 / source (Default)</option>
-                  <option value={100} className="dark:bg-slate-800">100 / source</option>
+                  <option value={15} className="dark:bg-slate-800">
+                    15 / source
+                  </option>
+                  <option value={25} className="dark:bg-slate-800">
+                    25 / source
+                  </option>
+                  <option value={50} className="dark:bg-slate-800">
+                    50 / source (Default)
+                  </option>
+                  <option value={100} className="dark:bg-slate-800">
+                    100 / source
+                  </option>
                 </select>
               </div>
 
@@ -2148,22 +2396,26 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 <button
                   type="button"
                   onClick={() => setScrapingEngine("python")}
-                  className={`h-7 px-2.5 rounded-md font-medium text-[11px] transition-all flex items-center gap-1.5 ${scrapingEngine === "python"
+                  className={`h-7 px-2.5 rounded-md font-medium text-[11px] transition-all flex items-center gap-1.5 ${
+                    scrapingEngine === "python"
                       ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs font-semibold"
                       : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                    }`}
+                  }`}
                   title={`Python Scraping Engine: ${pythonEngineStatus?.available ? "Online (v1.0.0)" : "Initializing"} with Anti-SSRF & JavaScript support`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${pythonEngineStatus?.available ? "bg-emerald-500" : "bg-amber-400"}`} />
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${pythonEngineStatus?.available ? "bg-emerald-500" : "bg-amber-400"}`}
+                  />
                   <span>Python Engine</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setScrapingEngine("rust")}
-                  className={`h-7 px-2.5 rounded-md font-medium text-[11px] transition-all flex items-center gap-1.5 ${scrapingEngine === "rust"
+                  className={`h-7 px-2.5 rounded-md font-medium text-[11px] transition-all flex items-center gap-1.5 ${
+                    scrapingEngine === "rust"
                       ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs font-semibold"
                       : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                    }`}
+                  }`}
                   title="Rust Native Engine: Fast static HTML parsing with Spider-hardened architecture"
                 >
                   <span>Rust Native</span>
@@ -2188,7 +2440,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 data-testid="structured-query-preview"
                 className="flex flex-wrap items-center gap-1.5 pt-1 text-xs"
               >
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Query Plan:</span>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  Query Plan:
+                </span>
                 {parsedQuery.fields.title && (
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-medium text-[11px] border border-indigo-200 dark:border-indigo-800">
                     Title: "{parsedQuery.fields.title}"
@@ -2201,7 +2455,10 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 )}
                 {(parsedQuery.fields.yearStart || parsedQuery.fields.yearEnd) && (
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-medium text-[11px] border border-amber-200 dark:border-amber-800">
-                    Year: {parsedQuery.fields.yearStart === parsedQuery.fields.yearEnd ? parsedQuery.fields.yearStart : `${parsedQuery.fields.yearStart || "Any"}..${parsedQuery.fields.yearEnd || "Now"}`}
+                    Year:{" "}
+                    {parsedQuery.fields.yearStart === parsedQuery.fields.yearEnd
+                      ? parsedQuery.fields.yearStart
+                      : `${parsedQuery.fields.yearStart || "Any"}..${parsedQuery.fields.yearEnd || "Now"}`}
                   </span>
                 )}
                 {parsedQuery.fields.doi && (
@@ -2230,7 +2487,10 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                   </span>
                 )}
                 {parsedQuery.syntaxErrors.map((err, i) => (
-                  <span key={i} className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-medium text-[11px] border border-rose-200 dark:border-rose-800">
+                  <span
+                    key={i}
+                    className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-medium text-[11px] border border-rose-200 dark:border-rose-800"
+                  >
                     {err}
                   </span>
                 ))}
@@ -2281,7 +2541,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         placeholder="From"
                         value={filterYearStart || ""}
                         onChange={(e) =>
-                          setFilterYearStart(e.target.value ? parseInt(e.target.value, 10) : null)
+                          setFilterYearStart(
+                            e.target.value ? parseInt(e.target.value, 10) : null
+                          )
                         }
                         className="w-full px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs"
                       />
@@ -2291,7 +2553,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         placeholder="To"
                         value={filterYearEnd || ""}
                         onChange={(e) =>
-                          setFilterYearEnd(e.target.value ? parseInt(e.target.value, 10) : null)
+                          setFilterYearEnd(
+                            e.target.value ? parseInt(e.target.value, 10) : null
+                          )
                         }
                         className="w-full px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs"
                       />
@@ -2312,10 +2576,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                             setFilterYearStart(yr.start);
                             setFilterYearEnd(null);
                           }}
-                          className={`px-1.5 py-0.5 rounded text-[10px] border ${filterYearStart === yr.start
+                          className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                            filterYearStart === yr.start
                               ? "bg-indigo-600 text-white border-indigo-600 font-bold"
                               : "border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
-                            }`}
+                          }`}
                         >
                           {yr.label}
                         </button>
@@ -2384,7 +2649,13 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         aria-label="Sort search results"
                         onChange={(e) =>
                           setSortBy(
-                            e.target.value as "best_match" | "newest" | "oldest" | "title_az" | "author_az" | "citations"
+                            e.target.value as
+                              | "best_match"
+                              | "newest"
+                              | "oldest"
+                              | "title_az"
+                              | "author_az"
+                              | "citations"
                           )
                         }
                         className="px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs"
@@ -2508,30 +2779,33 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         <button
                           type="button"
                           onClick={() => setQuickFilter("all")}
-                          className={`px-2 py-0.5 rounded font-semibold transition-colors ${quickFilter === "all"
+                          className={`px-2 py-0.5 rounded font-semibold transition-colors ${
+                            quickFilter === "all"
                               ? "bg-indigo-600 text-white"
                               : "text-slate-500 hover:bg-slate-200/60 dark:hover:bg-slate-800"
-                            }`}
+                          }`}
                         >
                           All
                         </button>
                         <button
                           type="button"
                           onClick={() => setQuickFilter("oa")}
-                          className={`px-2 py-0.5 rounded font-semibold transition-colors ${quickFilter === "oa"
+                          className={`px-2 py-0.5 rounded font-semibold transition-colors ${
+                            quickFilter === "oa"
                               ? "bg-indigo-600 text-white"
                               : "text-slate-500 hover:bg-slate-200/60 dark:hover:bg-slate-800"
-                            }`}
+                          }`}
                         >
                           OA
                         </button>
                         <button
                           type="button"
                           onClick={() => setQuickFilter("downloaded")}
-                          className={`px-2 py-0.5 rounded font-semibold transition-colors ${quickFilter === "downloaded"
+                          className={`px-2 py-0.5 rounded font-semibold transition-colors ${
+                            quickFilter === "downloaded"
                               ? "bg-indigo-600 text-white"
                               : "text-slate-500 hover:bg-slate-200/60 dark:hover:bg-slate-800"
-                            }`}
+                          }`}
                         >
                           PDF
                         </button>
@@ -2576,7 +2850,14 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                       <div className="flex items-center gap-1.5 min-w-0">
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600 shrink-0" />
                         <span className="truncate">
-                          Searching {sourceStatuses.filter(s => s.status === "searching" || s.status === "queued").length} of {sourceStatuses.length || selectedSources.length} sources… ({discoveredResults.length} found)
+                          Searching{" "}
+                          {
+                            sourceStatuses.filter(
+                              (s) => s.status === "searching" || s.status === "queued"
+                            ).length
+                          }{" "}
+                          of {sourceStatuses.length || selectedSources.length} sources… (
+                          {discoveredResults.length} found)
                         </span>
                       </div>
                       <button
@@ -2592,9 +2873,23 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                   {!isSearching && sourceStatuses.length > 0 && (
                     <div className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300">
                       <span className="truncate">
-                        {discoveredResults.length} paper{discoveredResults.length === 1 ? "" : "s"} found across {sourceStatuses.filter(s => s.status === "completed").length} source{sourceStatuses.filter(s => s.status === "completed").length === 1 ? "" : "s"}.
+                        {discoveredResults.length} paper
+                        {discoveredResults.length === 1 ? "" : "s"} found across{" "}
+                        {sourceStatuses.filter((s) => s.status === "completed").length}{" "}
+                        source
+                        {sourceStatuses.filter((s) => s.status === "completed").length ===
+                        1
+                          ? ""
+                          : "s"}
+                        .
                       </span>
-                      {sourceStatuses.some(s => s.status === "failed" || s.status === "rate_limited" || s.status === "cancelled" || s.status === "timeout") && (
+                      {sourceStatuses.some(
+                        (s) =>
+                          s.status === "failed" ||
+                          s.status === "rate_limited" ||
+                          s.status === "cancelled" ||
+                          s.status === "timeout"
+                      ) && (
                         <button
                           type="button"
                           onClick={handleRetryFailedSources}
@@ -2612,43 +2907,55 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                     <div className="flex flex-wrap gap-1 pt-1 border-t border-slate-100 dark:border-slate-800/80">
                       {sourceStatuses.map((st) => {
                         const shortName = st.source_name.split(" ")[0];
-                        let chipStyle = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700";
+                        let chipStyle =
+                          "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700";
                         let statusLabel = `${st.results_count} found`;
                         let icon: React.ReactNode = null;
 
                         if (st.status === "searching" || st.status === "queued") {
-                          chipStyle = "bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800";
+                          chipStyle =
+                            "bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800";
                           statusLabel = "searching";
-                          icon = <Loader2 className="w-2.5 h-2.5 animate-spin text-sky-600" />;
+                          icon = (
+                            <Loader2 className="w-2.5 h-2.5 animate-spin text-sky-600" />
+                          );
                         } else if (st.status === "completed") {
-                          chipStyle = "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800";
+                          chipStyle =
+                            "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800";
                           statusLabel = `${st.results_count} found`;
                           icon = <Check className="w-2.5 h-2.5 text-emerald-600" />;
                         } else if (st.status === "no_results") {
-                          chipStyle = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700";
+                          chipStyle =
+                            "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700";
                           statusLabel = "0 found";
                         } else if (st.status === "blocked") {
-                          chipStyle = "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800";
+                          chipStyle =
+                            "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800";
                           statusLabel = "blocked";
                           icon = <ShieldAlert className="w-2.5 h-2.5 text-amber-600" />;
                         } else if (st.status === "unsupported") {
-                          chipStyle = "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800";
+                          chipStyle =
+                            "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800";
                           statusLabel = "unsupported";
                           icon = <AlertCircle className="w-2.5 h-2.5 text-amber-600" />;
                         } else if (st.status === "rate_limited") {
-                          chipStyle = "bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300 border border-orange-200 dark:border-orange-800";
+                          chipStyle =
+                            "bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300 border border-orange-200 dark:border-orange-800";
                           statusLabel = "rate limited";
                           icon = <AlertCircle className="w-2.5 h-2.5 text-orange-600" />;
                         } else if (st.status === "failed") {
-                          chipStyle = "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800";
+                          chipStyle =
+                            "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800";
                           statusLabel = "failed";
                           icon = <X className="w-2.5 h-2.5 text-rose-600" />;
                         } else if (st.status === "timeout") {
-                          chipStyle = "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800";
+                          chipStyle =
+                            "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800";
                           statusLabel = "timed out";
                           icon = <Clock className="w-2.5 h-2.5 text-amber-600" />;
                         } else if (st.status === "cancelled") {
-                          chipStyle = "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700";
+                          chipStyle =
+                            "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700";
                           statusLabel = "cancelled";
                         }
 
@@ -2680,7 +2987,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         <Code2 className="w-3.5 h-3.5 text-indigo-500" />
                         <span>Advanced: Inspect Permitted Website</span>
                       </span>
-                      {isInspectOpen ? <ChevronUp className="w-3 h-3 text-slate-400" /> : <ChevronDown className="w-3 h-3 text-slate-400" />}
+                      {isInspectOpen ? (
+                        <ChevronUp className="w-3 h-3 text-slate-400" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3 text-slate-400" />
+                      )}
                     </button>
 
                     {isInspectOpen && (
@@ -2700,10 +3011,22 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         <div className="flex flex-wrap gap-1 text-[10px]">
                           <span className="text-slate-400">Presets:</span>
                           {[
-                            { name: "bioRxiv Recent", url: "https://www.biorxiv.org/content/early/recent" },
-                            { name: "PLOS ONE", url: "https://journals.plos.org/plosone/" },
-                            { name: "Nature Scientific Reports", url: "https://www.nature.com/srep/" },
-                            { name: "arXiv CS List", url: "https://arxiv.org/list/cs/recent" },
+                            {
+                              name: "bioRxiv Recent",
+                              url: "https://www.biorxiv.org/content/early/recent",
+                            },
+                            {
+                              name: "PLOS ONE",
+                              url: "https://journals.plos.org/plosone/",
+                            },
+                            {
+                              name: "Nature Scientific Reports",
+                              url: "https://www.nature.com/srep/",
+                            },
+                            {
+                              name: "arXiv CS List",
+                              url: "https://arxiv.org/list/cs/recent",
+                            },
                           ].map((q) => (
                             <button
                               key={q.name}
@@ -2771,10 +3094,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                 <div
                                   key={j.id}
                                   onClick={() => setSelectedJobId(j.id)}
-                                  className={`p-1.5 rounded border text-xs cursor-pointer flex items-center justify-between ${selectedJobId === j.id
+                                  className={`p-1.5 rounded border text-xs cursor-pointer flex items-center justify-between ${
+                                    selectedJobId === j.id
                                       ? "bg-indigo-50/60 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-800"
                                       : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"
-                                    }`}
+                                  }`}
                                 >
                                   <span className="font-mono text-[10px] text-slate-700 dark:text-slate-300">
                                     Job {j.id.slice(0, 8)}
@@ -2842,10 +3166,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                             setSelectedPaperId(paper.id);
                           }
                         }}
-                        className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${isSelected
+                        className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                          isSelected
                             ? "bg-indigo-50/60 dark:bg-white/10 border-indigo-400 dark:border-white/20 shadow-xs"
                             : "bg-white dark:bg-[#0e1524] border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/20"
-                          }`}
+                        }`}
                       >
                         <div className="flex items-start justify-between gap-1.5 mb-1">
                           <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 line-clamp-2 leading-snug">
@@ -2856,7 +3181,7 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mb-1.5">
                           {paper.authors.length > 0
                             ? paper.authors.slice(0, 3).join(", ") +
-                            (paper.authors.length > 3 ? " et al." : "")
+                              (paper.authors.length > 3 ? " et al." : "")
                             : "Unknown Author"}{" "}
                           {paper.publication_year ? `(${paper.publication_year})` : ""}
                         </div>
@@ -2911,7 +3236,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                           ) : paper.is_open_access || paper.pdf_url ? (
                             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
                               <Unlock className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
-                              <span>{paper.version_type === "accepted_manuscript" ? "Alternative Manuscript Available" : "Open Access Available"}</span>
+                              <span>
+                                {paper.version_type === "accepted_manuscript"
+                                  ? "Alternative Manuscript Available"
+                                  : "Open Access Available"}
+                              </span>
                             </span>
                           ) : paper.canonical_doi ? (
                             <span className="px-1.5 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
@@ -2924,14 +3253,15 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                           )}
 
                           {/* Citation Count Badge */}
-                          {typeof paper.citation_count === "number" && paper.citation_count > 0 && (
-                            <span
-                              className="px-1.5 py-0.5 rounded font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
-                              title={`${paper.citation_count} academic citations`}
-                            >
-                              {paper.citation_count} citations
-                            </span>
-                          )}
+                          {typeof paper.citation_count === "number" &&
+                            paper.citation_count > 0 && (
+                              <span
+                                className="px-1.5 py-0.5 rounded font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                                title={`${paper.citation_count} academic citations`}
+                              >
+                                {paper.citation_count} citations
+                              </span>
+                            )}
 
                           {/* Genuine Relevance Match (Only when strictly between 0 and 1) */}
                           {typeof paper.relevance_score === "number" &&
@@ -2975,7 +3305,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>
-                            Load More Papers (Showing {visiblePapers.length} of {filteredPapers.length})
+                            Load More Papers (Showing {visiblePapers.length} of{" "}
+                            {filteredPapers.length})
                           </span>
                         </button>
                       ) : (
@@ -3019,14 +3350,16 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 onPointerDown={handleLeftResizeStart}
                 onMouseDown={handleLeftResizeStart}
                 onDoubleClick={() => setLeftPaneWidth(360)}
-                className={`relative group w-2 -ml-1 cursor-col-resize z-20 flex items-center justify-center select-none transition-colors shrink-0 ${isDraggingLeft ? "bg-indigo-600/30" : "hover:bg-indigo-500/20"
-                  }`}
+                className={`relative group w-2 -ml-1 cursor-col-resize z-20 flex items-center justify-center select-none transition-colors shrink-0 ${
+                  isDraggingLeft ? "bg-indigo-600/30" : "hover:bg-indigo-500/20"
+                }`}
               >
                 <div
-                  className={`w-0.5 h-8 rounded-full transition-colors ${isDraggingLeft
+                  className={`w-0.5 h-8 rounded-full transition-colors ${
+                    isDraggingLeft
                       ? "bg-indigo-600 dark:bg-indigo-400 shadow-sm"
                       : "bg-slate-300 dark:bg-slate-700 group-hover:bg-indigo-500"
-                    }`}
+                  }`}
                 />
               </div>
             )}
@@ -3056,12 +3389,16 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         hideRightPanel={true}
                         onImportLocal={() =>
                           handleOpenImportModal(
-                            selectedPaper.source_name.toLowerCase().includes("ieee") ? "ieee" : "local",
+                            selectedPaper.source_name.toLowerCase().includes("ieee")
+                              ? "ieee"
+                              : "local",
                             selectedPaper
                           )
                         }
                       />
-                    ) : (selectedPaper.pdf_url || (selectedPaper.is_open_access && (selectedPaper.canonical_doi || selectedPaper.url))) ? (
+                    ) : selectedPaper.pdf_url ||
+                      (selectedPaper.is_open_access &&
+                        (selectedPaper.canonical_doi || selectedPaper.url)) ? (
                       <EmbeddedPdfViewer
                         paperId={selectedPaper.paper_id || selectedPaper.id}
                         remotePdfUrl={selectedPaper.pdf_url || selectedPaper.url}
@@ -3081,7 +3418,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         onResolveAgain={() => handleResolvePdf(selectedPaper)}
                         onImportLocal={() =>
                           handleOpenImportModal(
-                            selectedPaper.source_name.toLowerCase().includes("ieee") ? "ieee" : "local",
+                            selectedPaper.source_name.toLowerCase().includes("ieee")
+                              ? "ieee"
+                              : "local",
                             selectedPaper
                           )
                         }
@@ -3101,7 +3440,10 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                             </h2>
                             <div className="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
                               {selectedPaper.source_name && (
-                                <SourceBadge sourceName={selectedPaper.source_name} size="sm" />
+                                <SourceBadge
+                                  sourceName={selectedPaper.source_name}
+                                  size="sm"
+                                />
                               )}
                               <span>{selectedPaper.venue || "Academic Article"}</span>
                               {selectedPaper.publication_year && (
@@ -3114,7 +3456,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                             {selectedPaper.canonical_doi && (
                               <button
                                 type="button"
-                                onClick={() => handleCopyDoi(selectedPaper.canonical_doi!)}
+                                onClick={() =>
+                                  handleCopyDoi(selectedPaper.canonical_doi!)
+                                }
                                 title="Copy DOI"
                                 className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1 cursor-pointer font-mono"
                               >
@@ -3170,13 +3514,20 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                   className="w-full justify-center text-xs"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                                  Open {selectedPaper.source_name.toLowerCase().includes("ieee") ? "IEEE Xplore Page" : "Source Article Page"}
+                                  Open{" "}
+                                  {selectedPaper.source_name
+                                    .toLowerCase()
+                                    .includes("ieee")
+                                    ? "IEEE Xplore Page"
+                                    : "Source Article Page"}
                                 </Button>
                               ) : (
                                 <Button
                                   variant="primary"
                                   size="sm"
-                                  onClick={() => handleOpenIeeeXplore(selectedPaper.title)}
+                                  onClick={() =>
+                                    handleOpenIeeeXplore(selectedPaper.title)
+                                  }
                                   className="w-full justify-center text-xs"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
@@ -3189,7 +3540,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                 size="sm"
                                 onClick={() =>
                                   handleOpenImportModal(
-                                    selectedPaper.source_name.toLowerCase().includes("ieee") ? "ieee" : "local",
+                                    selectedPaper.source_name
+                                      .toLowerCase()
+                                      .includes("ieee")
+                                      ? "ieee"
+                                      : "local",
                                     selectedPaper
                                   )
                                 }
@@ -3230,7 +3585,6 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                 <Unlock className="w-3.5 h-3.5 mr-1.5 text-emerald-600 dark:text-emerald-400" />
                                 Fetch Open Access Papers Only for this Topic
                               </Button>
-
                             </div>
                           </div>
                         </div>
@@ -3251,7 +3605,15 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                           Searching Academic Sources
                         </h3>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                          Querying {sourceStatuses.filter(s => s.status === "searching" || s.status === "queued").length || selectedSources.length} sources for &ldquo;{submittedQuery || searchQuery}&rdquo; using {scrapingEngine === "python" ? "Python Engine" : "Rust Native Engine"}&hellip;
+                          Querying{" "}
+                          {sourceStatuses.filter(
+                            (s) => s.status === "searching" || s.status === "queued"
+                          ).length || selectedSources.length}{" "}
+                          sources for &ldquo;{submittedQuery || searchQuery}&rdquo; using{" "}
+                          {scrapingEngine === "python"
+                            ? "Python Engine"
+                            : "Rust Native Engine"}
+                          &hellip;
                         </p>
                       </div>
                     </div>
@@ -3309,7 +3671,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                       No papers were returned for &ldquo;{submittedQuery}&rdquo;.
-                      {sourceStatuses.some(s => s.status === "failed" || s.status === "blocked")
+                      {sourceStatuses.some(
+                        (s) => s.status === "failed" || s.status === "blocked"
+                      )
                         ? " Some sources encountered access restrictions (e.g., bot protection) or network errors."
                         : " Try broadening your search query or selecting additional sources."}
                     </p>
@@ -3324,7 +3688,12 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                       <Activity className="w-3.5 h-3.5" />
                       <span>View Diagnostics</span>
                     </Button>
-                    {sourceStatuses.some(s => s.status === "failed" || s.status === "rate_limited" || s.status === "blocked") && (
+                    {sourceStatuses.some(
+                      (s) =>
+                        s.status === "failed" ||
+                        s.status === "rate_limited" ||
+                        s.status === "blocked"
+                    ) && (
                       <Button
                         variant="primary"
                         size="sm"
@@ -3358,14 +3727,16 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                 onPointerDown={handleRightResizeStart}
                 onMouseDown={handleRightResizeStart}
                 onDoubleClick={() => setRightPaneWidth(380)}
-                className={`relative group w-2 -mr-1 cursor-col-resize z-20 flex items-center justify-center select-none transition-colors shrink-0 ${isDraggingRight ? "bg-indigo-600/30" : "hover:bg-indigo-500/20"
-                  }`}
+                className={`relative group w-2 -mr-1 cursor-col-resize z-20 flex items-center justify-center select-none transition-colors shrink-0 ${
+                  isDraggingRight ? "bg-indigo-600/30" : "hover:bg-indigo-500/20"
+                }`}
               >
                 <div
-                  className={`w-0.5 h-8 rounded-full transition-colors ${isDraggingRight
+                  className={`w-0.5 h-8 rounded-full transition-colors ${
+                    isDraggingRight
                       ? "bg-indigo-600 dark:bg-indigo-400 shadow-sm"
                       : "bg-slate-300 dark:bg-slate-700 group-hover:bg-indigo-500"
-                    }`}
+                  }`}
                 />
               </div>
             )}
@@ -3393,8 +3764,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
             {/* =============================================================== */}
             {/* RIGHT PANE: Details, Context-Aware Paper Chat, 8 AI Insights, Notes */}
             {/* =============================================================== */}
-            {!effectiveRightCollapsed && (
-              selectedPaper ? (
+            {!effectiveRightCollapsed &&
+              (selectedPaper ? (
                 <aside
                   style={{ width: `${rightPaneWidth}px` }}
                   className="shrink-0 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col min-h-0 h-full overflow-hidden"
@@ -3404,10 +3775,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                     <button
                       type="button"
                       onClick={() => setActiveRightTab("details")}
-                      className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${activeRightTab === "details"
+                      className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                        activeRightTab === "details"
                           ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-slate-700"
                           : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                        }`}
+                      }`}
                     >
                       <Info className="w-3.5 h-3.5" />
                       <span>Details</span>
@@ -3416,10 +3788,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                     <button
                       type="button"
                       onClick={() => setActiveRightTab("chat")}
-                      className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${activeRightTab === "chat"
+                      className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                        activeRightTab === "chat"
                           ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-slate-700"
                           : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                        }`}
+                      }`}
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
                       <span>Chat</span>
@@ -3428,10 +3801,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                     <button
                       type="button"
                       onClick={() => setActiveRightTab("insights")}
-                      className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${activeRightTab === "insights"
+                      className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                        activeRightTab === "insights"
                           ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-slate-700"
                           : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                        }`}
+                      }`}
                     >
                       <BarChart2 className="w-3.5 h-3.5" />
                       <span>Insights</span>
@@ -3440,10 +3814,11 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                     <button
                       type="button"
                       onClick={() => setActiveRightTab("notes")}
-                      className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${activeRightTab === "notes"
+                      className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                        activeRightTab === "notes"
                           ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-slate-700"
                           : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                        }`}
+                      }`}
                     >
                       <BookOpen className="w-3.5 h-3.5" />
                       <span>Notes</span>
@@ -3502,7 +3877,10 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                 setReadingPaper({
                                   id: selectedPaper.paper_id || selectedPaper.id,
                                   title: selectedPaper.title,
-                                  sourceUrl: selectedPaper.local_pdf_path || selectedPaper.pdf_url || selectedPaper.url,
+                                  sourceUrl:
+                                    selectedPaper.local_pdf_path ||
+                                    selectedPaper.pdf_url ||
+                                    selectedPaper.url,
                                 });
                               }
                               setActiveSection("literature_workspace");
@@ -3557,9 +3935,15 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                               try {
                                 const pid = selectedPaper.paper_id || selectedPaper.id;
                                 await addPaperToMatrix("default_matrix", pid);
-                                showToast("Added to Review Matrix & extracted dimensions!", "success");
+                                showToast(
+                                  "Added to Review Matrix & extracted dimensions!",
+                                  "success"
+                                );
                               } catch (err) {
-                                showToast("Could not add to matrix: " + String(err), "error");
+                                showToast(
+                                  "Could not add to matrix: " + String(err),
+                                  "error"
+                                );
                               }
                             }}
                             className="text-xs text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-800 hover:bg-cyan-50 dark:hover:bg-cyan-950/40"
@@ -3605,7 +3989,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
-                            Ask questions with page-level citations, or trigger instant structured insights.
+                            Ask questions with page-level citations, or trigger instant
+                            structured insights.
                           </p>
                           <div className="grid grid-cols-2 gap-1.5">
                             <button
@@ -3628,7 +4013,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                           <button
                             type="button"
                             onClick={() => {
-                              setGlobalSelectedPaperId(selectedPaper.paper_id || selectedPaper.id);
+                              setGlobalSelectedPaperId(
+                                selectedPaper.paper_id || selectedPaper.id
+                              );
                               setActiveSection("ai_hub");
                             }}
                             className="w-full flex items-center justify-center gap-1 py-1 text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
@@ -3673,24 +4060,30 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                             <div className="flex justify-between py-1 border-b border-slate-50 dark:border-slate-800/40">
                               <span className="text-slate-400">Access Status</span>
                               <span
-                                className={`font-semibold ${selectedPaper.is_open_access
+                                className={`font-semibold ${
+                                  selectedPaper.is_open_access
                                     ? "text-emerald-600 dark:text-emerald-400"
                                     : "text-slate-500"
-                                  }`}
+                                }`}
                               >
-                                {selectedPaper.is_open_access ? "Open Access Verified" : "Access not verified"}
+                                {selectedPaper.is_open_access
+                                  ? "Open Access Verified"
+                                  : "Access not verified"}
                               </span>
                             </div>
 
                             <div className="flex justify-between py-1 border-b border-slate-50 dark:border-slate-800/40">
                               <span className="text-slate-400">PDF Document</span>
                               <span
-                                className={`font-semibold ${selectedPaper.is_downloaded
+                                className={`font-semibold ${
+                                  selectedPaper.is_downloaded
                                     ? "text-indigo-600 dark:text-indigo-400"
                                     : "text-slate-500"
-                                  }`}
+                                }`}
                               >
-                                {selectedPaper.is_downloaded ? "Locally Available" : "Not Downloaded"}
+                                {selectedPaper.is_downloaded
+                                  ? "Locally Available"
+                                  : "Not Downloaded"}
                               </span>
                             </div>
 
@@ -3706,23 +4099,28 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         </div>
 
                         {/* Abstract Section */}
-                        {selectedPaper.paper_id && (!selectedPaper.abstract_text || !selectedPaper.pdf_url) && (
-                          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                            <button
-                              type="button"
-                              onClick={handleEnrichSelectedPaper}
-                              disabled={isEnrichingMetadata}
-                              className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs font-medium rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 transition-colors cursor-pointer disabled:opacity-50"
-                            >
-                              {isEnrichingMetadata ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Compass className="w-3.5 h-3.5" />
-                              )}
-                              <span>{isEnrichingMetadata ? "Enriching Metadata..." : "Enrich Metadata via Scholarly APIs"}</span>
-                            </button>
-                          </div>
-                        )}
+                        {selectedPaper.paper_id &&
+                          (!selectedPaper.abstract_text || !selectedPaper.pdf_url) && (
+                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                              <button
+                                type="button"
+                                onClick={handleEnrichSelectedPaper}
+                                disabled={isEnrichingMetadata}
+                                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs font-medium rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                {isEnrichingMetadata ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Compass className="w-3.5 h-3.5" />
+                                )}
+                                <span>
+                                  {isEnrichingMetadata
+                                    ? "Enriching Metadata..."
+                                    : "Enrich Metadata via Scholarly APIs"}
+                                </span>
+                              </button>
+                            </div>
+                          )}
 
                         {selectedPaper.abstract_text && (
                           <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -3740,7 +4138,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                           <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
                             Collections
                           </span>
-                          {selectedPaper.collection_ids && selectedPaper.collection_ids.length > 0 ? (
+                          {selectedPaper.collection_ids &&
+                          selectedPaper.collection_ids.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {selectedPaper.collection_ids.map((cid) => {
                                 const col = collections.find((c) => c.id === cid);
@@ -3762,7 +4161,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                               })}
                             </div>
                           ) : (
-                            <p className="text-xs text-slate-400">Not assigned to any collections.</p>
+                            <p className="text-xs text-slate-400">
+                              Not assigned to any collections.
+                            </p>
                           )}
                         </div>
 
@@ -3830,7 +4231,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         onRefreshPaperNotes={() => {
                           const targetId = selectedPaper.paper_id || selectedPaper.id;
                           if (targetId) {
-                            getNotesForPaper(targetId).then(setNotes).catch(() => { });
+                            getNotesForPaper(targetId)
+                              .then(setNotes)
+                              .catch(() => {});
                           }
                         }}
                         onPaperSaved={(_newId) => {
@@ -3849,7 +4252,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                             Research Notes
                           </span>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                            Notes are saved to your local SQLite database and tied to this paper.
+                            Notes are saved to your local SQLite database and tied to this
+                            paper.
                           </p>
                         </div>
 
@@ -3923,8 +4327,7 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                       : "Select a paper from the results list to view its full metadata, abstract, PDF stream, and AI research insights."}
                   </p>
                 </aside>
-              )
-            )}
+              ))}
           </div>
         </div>
       )}
@@ -3942,10 +4345,13 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
               Academic Provider APIs Inactive
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              Under the strict No-API Website-Driven scraper specification, external provider APIs (such as Crossref, OpenAlex, Semantic Scholar, and arXiv APIs) are disabled.
+              Under the strict No-API Website-Driven scraper specification, external
+              provider APIs (such as Crossref, OpenAlex, Semantic Scholar, and arXiv APIs)
+              are disabled.
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Please use the <strong>Website-Driven Discovery</strong> tab above to search public academic websites without API keys.
+              Please use the <strong>Website-Driven Discovery</strong> tab above to search
+              public academic websites without API keys.
             </p>
             <Button
               variant="primary"
@@ -3990,20 +4396,34 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
 
               <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                  <span className="text-slate-500 dark:text-slate-400">Operational Status</span>
-                  <span className="font-mono font-semibold uppercase">{selectedDiagnosticsSource.status}</span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Operational Status
+                  </span>
+                  <span className="font-mono font-semibold uppercase">
+                    {selectedDiagnosticsSource.status}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                  <span className="text-slate-500 dark:text-slate-400">Results Returned</span>
-                  <span className="font-mono font-semibold">{selectedDiagnosticsSource.results_count} paper(s)</span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Results Returned
+                  </span>
+                  <span className="font-mono font-semibold">
+                    {selectedDiagnosticsSource.results_count} paper(s)
+                  </span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                  <span className="text-slate-500 dark:text-slate-400">Response Latency</span>
-                  <span className="font-mono">{selectedDiagnosticsSource.elapsed_ms} ms</span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Response Latency
+                  </span>
+                  <span className="font-mono">
+                    {selectedDiagnosticsSource.elapsed_ms} ms
+                  </span>
                 </div>
                 {selectedDiagnosticsSource.message && (
                   <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-1">
-                    <span className="font-semibold text-amber-800 dark:text-amber-200 block">Diagnostic Note</span>
+                    <span className="font-semibold text-amber-800 dark:text-amber-200 block">
+                      Diagnostic Note
+                    </span>
                     <p className="text-amber-700 dark:text-amber-300 leading-relaxed font-mono text-[11px]">
                       {selectedDiagnosticsSource.message}
                     </p>
@@ -4048,7 +4468,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                       Scraping Engine Diagnostics & Observability
                     </h3>
                     <p className="text-xs text-slate-500">
-                      Real-time crawler telemetry, adapter health, and session lifecycle stats
+                      Real-time crawler telemetry, adapter health, and session lifecycle
+                      stats
                     </p>
                   </div>
                 </div>
@@ -4090,7 +4511,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                       <div>
                         <span className="text-slate-400">Engine: </span>
                         <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-                          {scrapingEngine === "python" ? "Python Engine" : "Rust Native Engine"}
+                          {scrapingEngine === "python"
+                            ? "Python Engine"
+                            : "Rust Native Engine"}
                         </span>
                         {pythonEngineStatus && (
                           <span className="text-slate-400 ml-1">
@@ -4102,7 +4525,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                     {submittedQuery && (
                       <div className="text-[11px] truncate">
                         <span className="text-slate-400">Submitted Query: </span>
-                        <span className="italic text-slate-700 dark:text-slate-300">&ldquo;{submittedQuery}&rdquo;</span>
+                        <span className="italic text-slate-700 dark:text-slate-300">
+                          &ldquo;{submittedQuery}&rdquo;
+                        </span>
                       </div>
                     )}
                   </div>
@@ -4110,15 +4535,25 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                   {/* Status overview cards */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">Engine Version</span>
-                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{engineDiagnostics.engine_version}</span>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        Engine Version
+                      </span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        {engineDiagnostics.engine_version}
+                      </span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">Total Searches</span>
-                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{engineDiagnostics.total_searches}</span>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        Total Searches
+                      </span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        {engineDiagnostics.total_searches}
+                      </span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">Success / Failed</span>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        Success / Failed
+                      </span>
                       <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                         {engineDiagnostics.successful_searches}
                       </span>
@@ -4128,8 +4563,12 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                       </span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">Uptime</span>
-                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{engineDiagnostics.uptime_seconds}s</span>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        Uptime
+                      </span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        {engineDiagnostics.uptime_seconds}s
+                      </span>
                     </div>
                   </div>
 
@@ -4139,7 +4578,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                       <span className="font-bold text-slate-700 dark:text-slate-300 block">
                         Configured Source Adapters ({engineDiagnostics.sources.length})
                       </span>
-                      {sourceStatuses.some((s) => s.status === "failed" || s.status === "blocked") && (
+                      {sourceStatuses.some(
+                        (s) => s.status === "failed" || s.status === "blocked"
+                      ) && (
                         <button
                           type="button"
                           onClick={() => {
@@ -4167,12 +4608,20 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                           {engineDiagnostics.sources.map((src) => {
-                            const isFailed = src.last_error && src.last_error !== "Nominal" && !src.last_error.startsWith("Success");
+                            const isFailed =
+                              src.last_error &&
+                              src.last_error !== "Nominal" &&
+                              !src.last_error.startsWith("Success");
                             return (
-                              <tr key={src.source_id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                              <tr
+                                key={src.source_id}
+                                className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40"
+                              >
                                 <td className="py-2 px-3 font-medium text-slate-900 dark:text-slate-100">
                                   <div>{src.source_name}</div>
-                                  <div className="text-[9px] text-slate-400 font-mono">{src.source_id}</div>
+                                  <div className="text-[9px] text-slate-400 font-mono">
+                                    {src.source_id}
+                                  </div>
                                 </td>
                                 <td className="py-2 px-2">
                                   <Badge
@@ -4197,7 +4646,13 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                   {src.last_elapsed_ms}ms
                                 </td>
                                 <td className="py-2 px-3 text-[10px] text-slate-500 max-w-[200px]">
-                                  <div className={isFailed ? "text-rose-600 dark:text-rose-400 font-medium truncate" : "truncate"}>
+                                  <div
+                                    className={
+                                      isFailed
+                                        ? "text-rose-600 dark:text-rose-400 font-medium truncate"
+                                        : "truncate"
+                                    }
+                                  >
                                     {src.last_error || "Nominal"}
                                   </div>
                                   {isFailed && (
@@ -4205,7 +4660,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                       type="button"
                                       onClick={() => {
                                         setIsDiagnosticsOpen(false);
-                                        void handleExecuteSearch(searchQuery, [src.source_id]);
+                                        void handleExecuteSearch(searchQuery, [
+                                          src.source_id,
+                                        ]);
                                       }}
                                       className="text-[9px] text-indigo-600 dark:text-indigo-400 hover:underline mt-0.5 block"
                                     >
@@ -4225,7 +4682,8 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                   <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-700 dark:text-slate-300 block">
-                        Scholarly API Source Connectors ({academicCapabilities.length || 5})
+                        Scholarly API Source Connectors (
+                        {academicCapabilities.length || 5})
                       </span>
                       <button
                         type="button"
@@ -4238,14 +4696,18 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         ) : (
                           <RefreshCw className="w-3 h-3" />
                         )}
-                        <span>{isCheckingHealth ? "Testing Health..." : "Probe Source Health"}</span>
+                        <span>
+                          {isCheckingHealth ? "Testing Health..." : "Probe Source Health"}
+                        </span>
                       </button>
                     </div>
                     <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                       <table className="w-full text-left text-[11px]">
                         <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 border-b border-slate-200 dark:border-slate-700">
                           <tr>
-                            <th className="py-2 px-3 font-semibold">Scholarly Provider</th>
+                            <th className="py-2 px-3 font-semibold">
+                              Scholarly Provider
+                            </th>
                             <th className="py-2 px-2 font-semibold">Category</th>
                             <th className="py-2 px-2 font-semibold">Capabilities</th>
                             <th className="py-2 px-2 font-semibold">Health Status</th>
@@ -4256,14 +4718,21 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                           {academicCapabilities.map((cap) => {
                             const health = academicHealthChecks.find(
-                              (h) => h.provider_id.toLowerCase() === cap.provider_id.toLowerCase()
+                              (h) =>
+                                h.provider_id.toLowerCase() ===
+                                cap.provider_id.toLowerCase()
                             );
                             const status = health ? health.status : "healthy";
                             return (
-                              <tr key={cap.provider_id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                              <tr
+                                key={cap.provider_id}
+                                className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40"
+                              >
                                 <td className="py-2 px-3 font-medium text-slate-900 dark:text-slate-100">
                                   <div>{cap.display_name}</div>
-                                  <div className="text-[9px] text-slate-400 font-mono">{cap.provider_id}</div>
+                                  <div className="text-[9px] text-slate-400 font-mono">
+                                    {cap.provider_id}
+                                  </div>
                                 </td>
                                 <td className="py-2 px-2">
                                   <span className="text-[10px] text-slate-600 dark:text-slate-400">
@@ -4299,9 +4768,10 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                     variant={
                                       status === "healthy"
                                         ? "success"
-                                        : status === "degraded" || status === "rate_limited"
-                                        ? "warning"
-                                        : "destructive"
+                                        : status === "degraded" ||
+                                            status === "rate_limited"
+                                          ? "warning"
+                                          : "destructive"
                                     }
                                   >
                                     {status}
@@ -4311,7 +4781,9 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                                   {health ? `${health.latency_ms}ms` : "—"}
                                 </td>
                                 <td className="py-2 px-3 font-mono text-slate-600 dark:text-slate-300">
-                                  {cap.rate_limit_rps ? `${cap.rate_limit_rps} RPS` : "Standard"}
+                                  {cap.rate_limit_rps
+                                    ? `${cap.rate_limit_rps} RPS`
+                                    : "Standard"}
                                 </td>
                               </tr>
                             );
@@ -4337,13 +4809,18 @@ function getStoredDiscoverLayout(): StoredWorkspaceLayout {
                         job_id: activeJobId || "none",
                         query: submittedQuery || searchQuery || "none",
                         engine: scrapingEngine,
-                        python_status: pythonEngineStatus?.available ? (pythonEngineStatus.version || "Ready") : (pythonEngineStatus?.error || "Unavailable"),
+                        python_status: pythonEngineStatus?.available
+                          ? pythonEngineStatus.version || "Ready"
+                          : pythonEngineStatus?.error || "Unavailable",
                         diagnostics: engineDiagnostics,
                         sources: sourceStatuses,
                         generated_at: new Date().toISOString(),
                       };
                       navigator.clipboard.writeText(JSON.stringify(report, null, 2));
-                      showToast("Redacted diagnostics report copied to clipboard", "success");
+                      showToast(
+                        "Redacted diagnostics report copied to clipboard",
+                        "success"
+                      );
                     }
                   }}
                   disabled={!engineDiagnostics}

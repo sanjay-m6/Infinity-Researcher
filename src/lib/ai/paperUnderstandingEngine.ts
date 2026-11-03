@@ -58,7 +58,8 @@ function setCache<T>(key: string, data: T): void {
  */
 function extractJsonFromResponse<T>(text: string, fallback: T): T {
   try {
-    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
+    const jsonMatch =
+      text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
     const rawJson = jsonMatch ? jsonMatch[1].trim() : text.trim();
     return JSON.parse(rawJson) as T;
   } catch {
@@ -69,7 +70,10 @@ function extractJsonFromResponse<T>(text: string, fallback: T): T {
 /**
  * Bounds chunk context to maximum token count.
  */
-function boundContextChunks(chunks: CandidateChunk[], maxChars = 12000): CandidateChunk[] {
+function boundContextChunks(
+  chunks: CandidateChunk[],
+  maxChars = 12000
+): CandidateChunk[] {
   let count = 0;
   const bounded: CandidateChunk[] = [];
   for (const c of chunks) {
@@ -128,13 +132,22 @@ ${contextSnippet}`;
   });
 
   const parsed = extractJsonFromResponse(response.text, {
-    core_problem: "Exploration of methodologies and empirical validation within the domain.",
-    primary_objectives: ["Evaluate system performance", "Propose novel algorithmic components"],
+    core_problem:
+      "Exploration of methodologies and empirical validation within the domain.",
+    primary_objectives: [
+      "Evaluate system performance",
+      "Propose novel algorithmic components",
+    ],
     key_contributions: ["Demonstration of measurable performance gains on benchmarks"],
-    proposed_method: "A multi-stage pipeline leveraging domain-specific feature representations.",
-    empirical_findings: ["Consistent improvements observed across primary target metrics."],
+    proposed_method:
+      "A multi-stage pipeline leveraging domain-specific feature representations.",
+    empirical_findings: [
+      "Consistent improvements observed across primary target metrics.",
+    ],
     limitations_author: ["Evaluation conducted on a bounded set of domain datasets."],
-    limitations_inferred: ["Generalizability to unstructured real-world distributions remains untested."],
+    limitations_inferred: [
+      "Generalizability to unstructured real-world distributions remains untested.",
+    ],
     future_directions: ["Cross-domain generalization and runtime latency optimization."],
     citations: [] as RawCitationInput[],
   });
@@ -143,12 +156,12 @@ ${contextSnippet}`;
   const rawCitations: RawCitationInput[] = Array.isArray(parsed.citations)
     ? parsed.citations
     : response.citations.map((c) => ({
-      chunk_id: c.chunk_id,
-      paper_id: c.paper_id,
-      page_number: c.page_number,
-      snippet: c.snippet,
-      section_heading: c.section_heading,
-    }));
+        chunk_id: c.chunk_id,
+        paper_id: c.paper_id,
+        page_number: c.page_number,
+        snippet: c.snippet,
+        section_heading: c.section_heading,
+      }));
 
   const verifiedEvidence = validateCitationsList(bounded, rawCitations);
 
@@ -208,7 +221,8 @@ ${contextSnippet}`;
 
   const response = await generateAiResponse({
     prompt,
-    system_instruction: "You are an expert research methodologist. Output ONLY valid JSON.",
+    system_instruction:
+      "You are an expert research methodologist. Output ONLY valid JSON.",
     paper_id: paperId,
     model_override: options?.modelId,
   });
@@ -218,21 +232,23 @@ ${contextSnippet}`;
     theoretical_framework: "Standard empirical formulation in the respective domain.",
     datasets_or_materials: ["Primary academic benchmark corpus"],
     baseline_comparisons: ["Canonical state-of-the-art baselines"],
-    experimental_protocol: "Training with standard cross-validation and hyperparameter optimization.",
+    experimental_protocol:
+      "Training with standard cross-validation and hyperparameter optimization.",
     evaluation_metrics: ["Accuracy", "F1-Score", "Latency"],
-    reproducibility_assessment: "Key parameters specified; verification requires dataset access.",
+    reproducibility_assessment:
+      "Key parameters specified; verification requires dataset access.",
     citations: [] as RawCitationInput[],
   });
 
   const rawCitations: RawCitationInput[] = Array.isArray(parsed.citations)
     ? parsed.citations
     : response.citations.map((c) => ({
-      chunk_id: c.chunk_id,
-      paper_id: c.paper_id,
-      page_number: c.page_number,
-      snippet: c.snippet,
-      section_heading: c.section_heading,
-    }));
+        chunk_id: c.chunk_id,
+        paper_id: c.paper_id,
+        page_number: c.page_number,
+        snippet: c.snippet,
+        section_heading: c.section_heading,
+      }));
 
   const verifiedEvidence = validateCitationsList(bounded, rawCitations);
 
@@ -291,7 +307,8 @@ ${contextSnippet}`;
 
   const response = await generateAiResponse({
     prompt,
-    system_instruction: "Extract exact numerical results and findings faithfully. Output ONLY valid JSON.",
+    system_instruction:
+      "Extract exact numerical results and findings faithfully. Output ONLY valid JSON.",
     paper_id: paperId,
     model_override: options?.modelId,
   });
@@ -299,8 +316,11 @@ ${contextSnippet}`;
   const parsed = extractJsonFromResponse(response.text, {
     key_metrics: [],
     quantitative_claims: ["Improved performance observed over standard baselines."],
-    statistical_significance: "No explicit p-values or significance tests reported in excerpts.",
-    ablation_insights: ["Component isolation indicates each architectural layer contributes positively."],
+    statistical_significance:
+      "No explicit p-values or significance tests reported in excerpts.",
+    ablation_insights: [
+      "Component isolation indicates each architectural layer contributes positively.",
+    ],
     unexpected_outcomes: ["Minor latency overhead under peak batch sizes."],
     citations: [] as RawCitationInput[],
   });
@@ -308,12 +328,12 @@ ${contextSnippet}`;
   const rawCitations: RawCitationInput[] = Array.isArray(parsed.citations)
     ? parsed.citations
     : response.citations.map((c) => ({
-      chunk_id: c.chunk_id,
-      paper_id: c.paper_id,
-      page_number: c.page_number,
-      snippet: c.snippet,
-      section_heading: c.section_heading,
-    }));
+        chunk_id: c.chunk_id,
+        paper_id: c.paper_id,
+        page_number: c.page_number,
+        snippet: c.snippet,
+        section_heading: c.section_heading,
+      }));
 
   const verifiedEvidence = validateCitationsList(bounded, rawCitations);
 
@@ -376,23 +396,33 @@ ${contextSnippet}`;
   });
 
   const parsed = extractJsonFromResponse(response.text, {
-    author_acknowledged: ["Authors note testing was restricted to curated laboratory benchmarks."],
-    inferred_methodological: ["Sensitivity to hyperparameter tuning and random seed initialization."],
-    inferred_scope_boundaries: ["Performance on noisy, out-of-distribution inputs remains unproven."],
-    computational_or_data_constraints: ["High computational footprint during initialization and indexing."],
-    threats_to_validity: ["Potential leakage or overlap between training artifacts and test benchmarks."],
+    author_acknowledged: [
+      "Authors note testing was restricted to curated laboratory benchmarks.",
+    ],
+    inferred_methodological: [
+      "Sensitivity to hyperparameter tuning and random seed initialization.",
+    ],
+    inferred_scope_boundaries: [
+      "Performance on noisy, out-of-distribution inputs remains unproven.",
+    ],
+    computational_or_data_constraints: [
+      "High computational footprint during initialization and indexing.",
+    ],
+    threats_to_validity: [
+      "Potential leakage or overlap between training artifacts and test benchmarks.",
+    ],
     citations: [] as RawCitationInput[],
   });
 
   const rawCitations: RawCitationInput[] = Array.isArray(parsed.citations)
     ? parsed.citations
     : response.citations.map((c) => ({
-      chunk_id: c.chunk_id,
-      paper_id: c.paper_id,
-      page_number: c.page_number,
-      snippet: c.snippet,
-      section_heading: c.section_heading,
-    }));
+        chunk_id: c.chunk_id,
+        paper_id: c.paper_id,
+        page_number: c.page_number,
+        snippet: c.snippet,
+        section_heading: c.section_heading,
+      }));
 
   const verifiedEvidence = validateCitationsList(bounded, rawCitations);
 
@@ -466,7 +496,8 @@ ${contextSnippet}`;
 
   const response = await generateAiResponse({
     prompt,
-    system_instruction: "Provide clear, accurate conceptual definitions grounded in the text. Output ONLY valid JSON.",
+    system_instruction:
+      "Provide clear, accurate conceptual definitions grounded in the text. Output ONLY valid JSON.",
     paper_id: paperId,
     model_override: options?.modelId,
   });
@@ -483,12 +514,12 @@ ${contextSnippet}`;
   const rawCitations: RawCitationInput[] = Array.isArray(parsed.citations)
     ? parsed.citations
     : response.citations.map((c) => ({
-      chunk_id: c.chunk_id,
-      paper_id: c.paper_id,
-      page_number: c.page_number,
-      snippet: c.snippet,
-      section_heading: c.section_heading,
-    }));
+        chunk_id: c.chunk_id,
+        paper_id: c.paper_id,
+        page_number: c.page_number,
+        snippet: c.snippet,
+        section_heading: c.section_heading,
+      }));
 
   const verifiedEvidence = validateCitationsList(bounded, rawCitations);
 
@@ -582,10 +613,12 @@ ${paperSummariesForPrompt.join("\n\n====================\n\n")}`;
             },
           ])
         ),
-        consensus_or_divergence: "Both papers address complementary facets of the domain.",
+        consensus_or_divergence:
+          "Both papers address complementary facets of the domain.",
       },
     ],
-    synthesized_takeaway: "The compared papers demonstrate differing trade-offs between computational complexity and empirical performance.",
+    synthesized_takeaway:
+      "The compared papers demonstrate differing trade-offs between computational complexity and empirical performance.",
   });
 
   // Verify and isolate evidence per paper
@@ -666,26 +699,33 @@ ${papersDigest.join("\n\n---\n\n")}`;
     model_override: options?.modelId,
   });
 
-  const parsed = extractJsonFromResponse<{ identified_gaps: ResearchGap[] }>(response.text, {
-    identified_gaps: [
-      {
-        title: "Cross-Distribution Robustness and Domain Shift",
-        description: "The evaluated approaches predominantly benchmark on curated datasets, leaving behavior under severe covariate shift uncharacterized.",
-        gap_type: "untested_assumption",
-        scope_caveat: `Within the scope of the ${papers.length} examined papers, evaluations did not incorporate real-world distribution perturbations.`,
-        potential_investigation: "Formulate synthetic and real-world corruption benchmarks to measure degradation bounds.",
-        grounded_papers: paperIds.slice(0, 2),
-      },
-      {
-        title: "Latency-Accuracy Tradeoffs Under Resource Constraints",
-        description: "Current models achieve empirical gains at the expense of memory and inference throughput, without bounded edge-device benchmarks.",
-        gap_type: "scalability_gap",
-        scope_caveat: `None of the ${papers.length} selected manuscripts report profiling on edge or low-compute hardware architectures.`,
-        potential_investigation: "Conduct systematic quantization and pruning benchmarks across standard mobile hardware targets.",
-        grounded_papers: paperIds.slice(0, 1),
-      },
-    ],
-  });
+  const parsed = extractJsonFromResponse<{ identified_gaps: ResearchGap[] }>(
+    response.text,
+    {
+      identified_gaps: [
+        {
+          title: "Cross-Distribution Robustness and Domain Shift",
+          description:
+            "The evaluated approaches predominantly benchmark on curated datasets, leaving behavior under severe covariate shift uncharacterized.",
+          gap_type: "untested_assumption",
+          scope_caveat: `Within the scope of the ${papers.length} examined papers, evaluations did not incorporate real-world distribution perturbations.`,
+          potential_investigation:
+            "Formulate synthetic and real-world corruption benchmarks to measure degradation bounds.",
+          grounded_papers: paperIds.slice(0, 2),
+        },
+        {
+          title: "Latency-Accuracy Tradeoffs Under Resource Constraints",
+          description:
+            "Current models achieve empirical gains at the expense of memory and inference throughput, without bounded edge-device benchmarks.",
+          gap_type: "scalability_gap",
+          scope_caveat: `None of the ${papers.length} selected manuscripts report profiling on edge or low-compute hardware architectures.`,
+          potential_investigation:
+            "Conduct systematic quantization and pruning benchmarks across standard mobile hardware targets.",
+          grounded_papers: paperIds.slice(0, 1),
+        },
+      ],
+    }
+  );
 
   // Collect evidence from the referenced papers
   const allEvidence: VerifiedEvidence[] = [];

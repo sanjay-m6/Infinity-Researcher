@@ -8,10 +8,7 @@ import {
   FileText,
   Sparkles,
 } from "lucide-react";
-import {
-  CitationAuditReport,
-  ParsedReference,
-} from "./types";
+import { CitationAuditReport, ParsedReference } from "./types";
 import { performCitationAudit } from "./consistencyEngine";
 import { CITATION_CHECKER_DEMO_MANUSCRIPT } from "./styleFormatters";
 import {
@@ -33,47 +30,56 @@ export const CitationCheckerWorkspaceView: React.FC = () => {
   const [report, setReport] = useState<CitationAuditReport | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string>("all");
-  const [selectedReference, setSelectedReference] = useState<ParsedReference | null>(null);
+  const [selectedReference, setSelectedReference] = useState<ParsedReference | null>(
+    null
+  );
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [fileName, setFileName] = useState<string>("manuscript-sample.txt");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const runAudit = useCallback((text: string, title = "Manuscript") => {
-    if (!text.trim()) {
-      setReport(null);
-      return;
-    }
-
-    setIsProcessing(true);
-    setTimeout(async () => {
-      const res = performCitationAudit(text, title);
-      setReport(res);
-      setIsProcessing(false);
-
-      if (isTauriEnvironment()) {
-        try {
-          const meta = await ingestDocumentContent(fileName || "manuscript.txt", "txt", text);
-          await saveCitationAuditDb({
-            id: res.id,
-            document_hash: meta.document_hash,
-            document_title: res.documentTitle,
-            file_name: fileName || "manuscript.txt",
-            total_in_text: res.summary.totalInTextCitations,
-            total_references: res.summary.totalUniqueReferences,
-            matched_citations: res.summary.matchedCitationsCount,
-            health_score: res.summary.overallHealthScore,
-            summary_json: JSON.stringify(res.summary),
-            issues_json: JSON.stringify(res.issues),
-            references_json: JSON.stringify(res.references),
-            created_at: res.analyzedAt,
-          });
-        } catch (e) {
-          console.warn("Could not persist citation audit to DB:", e);
-        }
+  const runAudit = useCallback(
+    (text: string, title = "Manuscript") => {
+      if (!text.trim()) {
+        setReport(null);
+        return;
       }
-    }, 150);
-  }, [fileName]);
+
+      setIsProcessing(true);
+      setTimeout(async () => {
+        const res = performCitationAudit(text, title);
+        setReport(res);
+        setIsProcessing(false);
+
+        if (isTauriEnvironment()) {
+          try {
+            const meta = await ingestDocumentContent(
+              fileName || "manuscript.txt",
+              "txt",
+              text
+            );
+            await saveCitationAuditDb({
+              id: res.id,
+              document_hash: meta.document_hash,
+              document_title: res.documentTitle,
+              file_name: fileName || "manuscript.txt",
+              total_in_text: res.summary.totalInTextCitations,
+              total_references: res.summary.totalUniqueReferences,
+              matched_citations: res.summary.matchedCitationsCount,
+              health_score: res.summary.overallHealthScore,
+              summary_json: JSON.stringify(res.summary),
+              issues_json: JSON.stringify(res.issues),
+              references_json: JSON.stringify(res.references),
+              created_at: res.analyzedAt,
+            });
+          } catch (e) {
+            console.warn("Could not persist citation audit to DB:", e);
+          }
+        }
+      }, 150);
+    },
+    [fileName]
+  );
 
   // Automatically perform initial audit on mount
   useEffect(() => {
@@ -82,7 +88,10 @@ export const CitationCheckerWorkspaceView: React.FC = () => {
 
   const handleManualRun = () => {
     if (!inputText.trim()) {
-      showToast("Please enter or import manuscript text before running audit.", "warning");
+      showToast(
+        "Please enter or import manuscript text before running audit.",
+        "warning"
+      );
       return;
     }
     runAudit(inputText, fileName || "Manuscript");
@@ -148,24 +157,38 @@ export const CitationCheckerWorkspaceView: React.FC = () => {
     }
     if (activeFilter === "doi") {
       return report.issues.filter(
-        (i) => i.category === "malformed_doi" || i.category === "doi_resolution_failed" || i.category === "metadata_discrepancy"
+        (i) =>
+          i.category === "malformed_doi" ||
+          i.category === "doi_resolution_failed" ||
+          i.category === "metadata_discrepancy"
       );
     }
     if (activeFilter === "duplicates") {
       return report.issues.filter((i) => i.category === "duplicate_reference");
     }
     if (activeFilter === "incomplete") {
-      return report.issues.filter((i) => i.category === "incomplete_metadata" || i.category === "mixed_citation_styles");
+      return report.issues.filter(
+        (i) =>
+          i.category === "incomplete_metadata" || i.category === "mixed_citation_styles"
+      );
     }
     return report.issues;
   }, [report, activeFilter]);
 
-  const orphanCount = report ? report.issues.filter((i) => i.category === "missing_reference").length : 0;
-  const uncitedCount = report ? report.issues.filter((i) => i.category === "uncited_reference").length : 0;
-  const doiDiscrepCount = report
-    ? report.issues.filter((i) => i.category === "malformed_doi" || i.category === "metadata_discrepancy").length
+  const orphanCount = report
+    ? report.issues.filter((i) => i.category === "missing_reference").length
     : 0;
-  const duplicateCount = report ? report.issues.filter((i) => i.category === "duplicate_reference").length : 0;
+  const uncitedCount = report
+    ? report.issues.filter((i) => i.category === "uncited_reference").length
+    : 0;
+  const doiDiscrepCount = report
+    ? report.issues.filter(
+        (i) => i.category === "malformed_doi" || i.category === "metadata_discrepancy"
+      ).length
+    : 0;
+  const duplicateCount = report
+    ? report.issues.filter((i) => i.category === "duplicate_reference").length
+    : 0;
 
   return (
     <div className="space-y-5 pb-16">
@@ -187,7 +210,9 @@ export const CitationCheckerWorkspaceView: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
-                Automatically cross-checks in-text citations against your bibliography, flags orphan markers and uncited references, validates DOI syntax against Crossref/IDF standards, and detects bibliographic metadata discrepancies.
+                Automatically cross-checks in-text citations against your bibliography,
+                flags orphan markers and uncited references, validates DOI syntax against
+                Crossref/IDF standards, and detects bibliographic metadata discrepancies.
               </p>
             </div>
           </div>
@@ -321,7 +346,9 @@ export const CitationCheckerWorkspaceView: React.FC = () => {
           />
 
           <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
-            <span>Supports IEEE [1], APA (Smith, 2020), and LaTeX \cite&#123;...&#125;</span>
+            <span>
+              Supports IEEE [1], APA (Smith, 2020), and LaTeX \cite&#123;...&#125;
+            </span>
             <Button
               variant="outline"
               size="sm"
@@ -425,8 +452,8 @@ export const CitationCheckerWorkspaceView: React.FC = () => {
                       issue.severity === "critical"
                         ? "border-rose-200 dark:border-rose-900/60 bg-rose-50/20 dark:bg-rose-950/10"
                         : issue.severity === "warning"
-                        ? "border-amber-200 dark:border-amber-900/60 bg-amber-50/20 dark:bg-amber-950/10"
-                        : "border-slate-200 dark:border-slate-800"
+                          ? "border-amber-200 dark:border-amber-900/60 bg-amber-50/20 dark:bg-amber-950/10"
+                          : "border-slate-200 dark:border-slate-800"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -436,8 +463,8 @@ export const CitationCheckerWorkspaceView: React.FC = () => {
                             issue.severity === "critical"
                               ? "bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400"
                               : issue.severity === "warning"
-                              ? "bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400"
-                              : "bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
+                                ? "bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400"
+                                : "bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
                           }`}
                         >
                           {issue.severity === "critical" ? (
@@ -457,8 +484,8 @@ export const CitationCheckerWorkspaceView: React.FC = () => {
                                 issue.severity === "critical"
                                   ? "bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300"
                                   : issue.severity === "warning"
-                                  ? "bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300"
-                                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                                    ? "bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300"
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                               }`}
                             >
                               {issue.severity}
@@ -489,13 +516,17 @@ export const CitationCheckerWorkspaceView: React.FC = () => {
                         </span>
                         <div className="grid grid-cols-2 gap-2 text-[11px]">
                           <div className="p-2 rounded bg-white dark:bg-slate-900/70 border border-amber-200 dark:border-amber-800">
-                            <span className="text-slate-400 block text-[10px]">Reference Value:</span>
+                            <span className="text-slate-400 block text-[10px]">
+                              Reference Value:
+                            </span>
                             <span className="font-semibold text-rose-600 dark:text-rose-400 line-through">
                               {issue.comparison.referenceValue}
                             </span>
                           </div>
                           <div className="p-2 rounded bg-white dark:bg-slate-900/70 border border-emerald-300 dark:border-emerald-800">
-                            <span className="text-slate-400 block text-[10px]">Verified Registry Record:</span>
+                            <span className="text-slate-400 block text-[10px]">
+                              Verified Registry Record:
+                            </span>
                             <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                               {issue.comparison.registryValue}
                             </span>

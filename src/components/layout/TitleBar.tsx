@@ -51,7 +51,10 @@ export const TitleBar: React.FC = () => {
   };
 
   const handleTitleBarMouseDown = async (e: React.MouseEvent) => {
-    if (e.button === 0 && (e.target as HTMLElement).closest("button, a, input, select") === null) {
+    if (
+      e.button === 0 &&
+      (e.target as HTMLElement).closest("button, a, input, select") === null
+    ) {
       if (isTauri) {
         try {
           await startDraggingWindow();
@@ -75,7 +78,6 @@ export const TitleBar: React.FC = () => {
       onDoubleClick={handleToggleMaximize}
       className="h-9 w-full bg-slate-100 dark:bg-[#070b12] border-b border-slate-200 dark:border-white/[0.06] text-slate-700 dark:text-slate-200 flex items-center justify-between select-none z-40 shrink-0 text-xs px-2 transition-colors duration-200"
     >
-
       {/* Left: App Logo & Title (Draggable region + click for About dialog) */}
       <div data-tauri-drag-region className="flex items-center gap-2 px-1 py-1">
         <button
@@ -99,7 +101,11 @@ export const TitleBar: React.FC = () => {
           </span>
         </button>
         <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-200/60 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-300/60 dark:border-slate-700/50">
-          <AppIcon icon={ShieldCheck} size="xs" className="text-emerald-600 dark:text-emerald-400" />
+          <AppIcon
+            icon={ShieldCheck}
+            size="xs"
+            className="text-emerald-600 dark:text-emerald-400"
+          />
           <span>Local Core</span>
         </span>
       </div>
@@ -128,7 +134,6 @@ export const TitleBar: React.FC = () => {
 
       {/* Right: Window Control Buttons */}
       <div className="flex items-center h-full">
-
         {/* GitHub Repository Quick Link */}
         <button
           type="button"

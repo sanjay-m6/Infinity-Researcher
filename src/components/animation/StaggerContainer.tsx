@@ -7,7 +7,8 @@ import {
 import { useReducedMotionPreference } from "../../hooks/use-reduced-motion-preference";
 
 export interface StaggerContainerProps
-  extends Omit<HTMLMotionProps<"div">, "children">,
+  extends
+    Omit<HTMLMotionProps<"div">, "children">,
     Omit<HTMLAttributes<HTMLDivElement>, keyof HTMLMotionProps<"div">> {
   children?: ReactNode;
   /**
@@ -47,7 +48,7 @@ export const StaggerContainer = forwardRef<HTMLDivElement, StaggerContainerProps
             transition: {
               staggerChildren: staggerDelay,
               delayChildren,
-              ...((typeof customTransition === "object" && customTransition !== null)
+              ...(typeof customTransition === "object" && customTransition !== null
                 ? customTransition
                 : {}),
             },
@@ -72,7 +73,8 @@ export const StaggerContainer = forwardRef<HTMLDivElement, StaggerContainerProps
 StaggerContainer.displayName = "StaggerContainer";
 
 export interface StaggerItemProps
-  extends Omit<HTMLMotionProps<"div">, "children">,
+  extends
+    Omit<HTMLMotionProps<"div">, "children">,
     Omit<HTMLAttributes<HTMLDivElement>, keyof HTMLMotionProps<"div">> {
   children?: ReactNode;
   className?: string;
@@ -87,12 +89,7 @@ export const StaggerItem = forwardRef<HTMLDivElement, StaggerItemProps>(
     const variants = prefersReducedMotion ? reducedMotionVariants : staggerItemVariants;
 
     return (
-      <motion.div
-        ref={ref}
-        variants={variants}
-        className={className}
-        {...motionProps}
-      >
+      <motion.div ref={ref} variants={variants} className={className} {...motionProps}>
         {children}
       </motion.div>
     );

@@ -100,7 +100,9 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
   // Panel States
   const [isSidebarOpen, setIsSidebarOpen] = useState(initialLeftOpen);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(initialRightOpen);
-  const [activeRightTab, setActiveRightTab] = useState<"ai" | "metadata" | "notes">(initialRightTab);
+  const [activeRightTab, setActiveRightTab] = useState<"ai" | "metadata" | "notes">(
+    initialRightTab
+  );
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Document Outline (TOC) & Bookmarks
@@ -127,7 +129,10 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
 
   // Text selection state & floating toolbar
   const [selectedText, setSelectedText] = useState("");
-  const [selectionPosition, setSelectionPosition] = useState<{ x: number; y: number } | null>(null);
+  const [selectionPosition, setSelectionPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Cancellation controller for active fetch / render
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -203,7 +208,11 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
         const childItems: PdfOutlineItem[] = [];
         if (item.items && Array.isArray(item.items) && item.items.length > 0) {
           for (const rawChild of item.items) {
-            const child = rawChild as { title: string; dest?: unknown; items?: unknown[] };
+            const child = rawChild as {
+              title: string;
+              dest?: unknown;
+              items?: unknown[];
+            };
             childItems.push(await processItem(child));
           }
         }
@@ -281,12 +290,24 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
           let lastY: number | null = null;
 
           for (const rawItem of textContent.items) {
-            const item = rawItem as { str?: string; transform?: number[]; hasEOL?: boolean };
+            const item = rawItem as {
+              str?: string;
+              transform?: number[];
+              hasEOL?: boolean;
+            };
             if (!item.str) continue;
 
-            if (lastY !== null && item.transform && Math.abs(item.transform[5] - lastY) > 5) {
+            if (
+              lastY !== null &&
+              item.transform &&
+              Math.abs(item.transform[5] - lastY) > 5
+            ) {
               pageText += "\n";
-            } else if (pageText.length > 0 && !pageText.endsWith(" ") && !pageText.endsWith("\n")) {
+            } else if (
+              pageText.length > 0 &&
+              !pageText.endsWith(" ") &&
+              !pageText.endsWith("\n")
+            ) {
               pageText += " ";
             }
             pageText += item.str;
@@ -444,17 +465,21 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
 
       const uint8Bytes = new Uint8Array(rawBuffer);
       if (uint8Bytes.length < 5) {
-        throw new Error(
-          "INVALID_PAYLOAD: The received document is empty or corrupted."
-        );
+        throw new Error("INVALID_PAYLOAD: The received document is empty or corrupted.");
       }
 
       // Check %PDF- signature
       const headerStr = String.fromCharCode(...uint8Bytes.slice(0, 5));
       if (!headerStr.startsWith("%PDF-")) {
         // Inspect if it looks like an HTML error page
-        const sampleStr = new TextDecoder().decode(uint8Bytes.slice(0, 300)).toLowerCase();
-        if (sampleStr.includes("<!doctype html") || sampleStr.includes("<html") || sampleStr.includes("<body")) {
+        const sampleStr = new TextDecoder()
+          .decode(uint8Bytes.slice(0, 300))
+          .toLowerCase();
+        if (
+          sampleStr.includes("<!doctype html") ||
+          sampleStr.includes("<html") ||
+          sampleStr.includes("<body")
+        ) {
           throw new Error(
             "HTML_REDIRECT: The remote server returned an interactive HTML web page or login barrier instead of raw PDF bytes."
           );
@@ -538,7 +563,11 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
         setErrorMessage(
           "Invalid Document: The remote server returned an interactive web page or non-PDF binary rather than raw PDF document bytes."
         );
-      } else if (lower.includes("stream_timeout") || lower.includes("timeout") || lower.includes("network_error")) {
+      } else if (
+        lower.includes("stream_timeout") ||
+        lower.includes("timeout") ||
+        lower.includes("network_error")
+      ) {
         setViewerState("RETRYABLE_ERROR");
         setErrorMessage(
           "Retrieval Timed Out: Remote streaming exceeded the 10-second limit. The publisher network may be throttling or experiencing high latency."
@@ -657,7 +686,10 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
           textSpan.textContent = item.str + " ";
           textSpan.className =
             "absolute text-transparent cursor-text select-text pointer-events-auto leading-none";
-          const tx = pdfjsLib.Util.transform(viewport.transform, item.transform || [1, 0, 0, 1, 0, 0]);
+          const tx = pdfjsLib.Util.transform(
+            viewport.transform,
+            item.transform || [1, 0, 0, 1, 0, 0]
+          );
           textSpan.style.left = `${tx[4]}px`;
           textSpan.style.top = `${tx[5] - (item.height || 10) * effectiveScale}px`;
           textSpan.style.fontSize = `${(item.height || 12) * effectiveScale}px`;
@@ -812,8 +844,7 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
 
   const prevMatch = () => {
     if (searchMatches.length === 0) return;
-    const prevIdx =
-      (activeMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+    const prevIdx = (activeMatchIndex - 1 + searchMatches.length) % searchMatches.length;
     setActiveMatchIndex(prevIdx);
     goToPage(searchMatches[prevIdx].pageNumber);
   };
@@ -995,9 +1026,7 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
               className="flex-1 h-7 px-2.5 text-xs rounded-md border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
             />
             {isSearching ? (
-              <span className="text-xs text-slate-500">
-                Searching...
-              </span>
+              <span className="text-xs text-slate-500">Searching...</span>
             ) : searchMatches.length > 0 ? (
               <span className="text-xs font-mono font-medium text-slate-700 dark:text-slate-300 shrink-0">
                 {activeMatchIndex + 1} of {searchMatches.length}
@@ -1043,7 +1072,11 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
       {/* --------------------------------------------------------------------- */}
       {isLoadingState ? (
         /* Clean Academic Paper Skeleton Loader */
-        <div className="flex-1 w-full h-full flex flex-col relative" title={statusMessage} aria-busy="true">
+        <div
+          className="flex-1 w-full h-full flex flex-col relative"
+          title={statusMessage}
+          aria-busy="true"
+        >
           <PdfDocumentSkeleton />
         </div>
       ) : viewerState === "ACCESS_RESTRICTED" ? (
@@ -1091,7 +1124,12 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
             )}
 
             {onResolveAgain && (
-              <Button variant="outline" size="sm" onClick={onResolveAgain} className="text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onResolveAgain}
+                className="text-xs"
+              >
                 <Globe className="w-3.5 h-3.5 mr-1.5" />
                 <span>Resolve OA Mirrors</span>
               </Button>
@@ -1110,7 +1148,12 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
             )}
 
             {onRetry && (
-              <Button variant="ghost" size="sm" onClick={() => void loadPdf()} className="text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void loadPdf()}
+                className="text-xs"
+              >
                 <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
                 <span>Retry</span>
               </Button>
@@ -1162,7 +1205,12 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
             )}
 
             {onResolveAgain && (
-              <Button variant="outline" size="sm" onClick={onResolveAgain} className="text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onResolveAgain}
+                className="text-xs"
+              >
                 <Globe className="w-3.5 h-3.5 mr-1.5" />
                 <span>Re-resolve Candidates</span>
               </Button>
@@ -1183,7 +1231,12 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
               You cancelled the streaming download. Click below to restart retrieval.
             </p>
           </div>
-          <Button variant="primary" size="sm" onClick={() => void loadPdf()} className="text-xs">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => void loadPdf()}
+            className="text-xs"
+          >
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
             <span>Restart Retrieval</span>
           </Button>
@@ -1202,12 +1255,18 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
               Could Not Complete PDF Stream
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed text-left p-3 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20">
-              {errorMessage || "The connection timed out or was interrupted by the remote server."}
+              {errorMessage ||
+                "The connection timed out or was interrupted by the remote server."}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2 max-w-lg">
-            <Button variant="primary" size="sm" onClick={() => void loadPdf()} className="text-xs">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => void loadPdf()}
+              className="text-xs"
+            >
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
               <span>Retry Streaming</span>
             </Button>
@@ -1237,7 +1296,12 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
             )}
 
             {onResolveAgain && (
-              <Button variant="outline" size="sm" onClick={onResolveAgain} className="text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onResolveAgain}
+                className="text-xs"
+              >
                 <Globe className="w-3.5 h-3.5 mr-1.5" />
                 <span>Re-resolve Sources</span>
               </Button>

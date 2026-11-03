@@ -205,7 +205,8 @@ fn test_analysis_job_end_to_end_genuine_metrics_pipeline() {
     let db = Database::open_in_memory().expect("in-memory db open failed");
     let conn = db.lock().expect("db lock failed");
 
-    let doc_text = "Transformers utilize self-attention mechanisms to process sequential representations. \
+    let doc_text =
+        "Transformers utilize self-attention mechanisms to process sequential representations. \
                     Dense matrix multiplications dominate computational overhead during inference. \
                     Quantization strategies reduce memory bandwidth bottlenecks effectively.";
     let doc_id = "doc_trans_01";
@@ -230,13 +231,19 @@ fn test_analysis_job_end_to_end_genuine_metrics_pipeline() {
 
     // 2. Create job
     let job_id = "job_trans_01";
-    let job = AiToolsRepository::create_analysis_job(&conn, job_id, "ai_writing_detection", doc_hash)
-        .expect("create job failed");
+    let job =
+        AiToolsRepository::create_analysis_job(&conn, job_id, "ai_writing_detection", doc_hash)
+            .expect("create job failed");
     assert_eq!(job.status, "running");
 
     // 3. Simulate pipeline execution steps
-    AiToolsRepository::update_job_progress(&conn, job_id, 20, "Retrieving ingested document text and metadata")
-        .expect("progress 20");
+    AiToolsRepository::update_job_progress(
+        &conn,
+        job_id,
+        20,
+        "Retrieving ingested document text and metadata",
+    )
+    .expect("progress 20");
     let content = AiToolsRepository::get_document_content_by_hash(&conn, doc_hash)
         .expect("retrieve doc")
         .expect("doc must exist");
@@ -245,19 +252,32 @@ fn test_analysis_job_end_to_end_genuine_metrics_pipeline() {
     assert_eq!(content.1, doc_text);
     assert_eq!(content.2, word_count);
 
-    AiToolsRepository::update_job_progress(&conn, job_id, 45, "Parsing syntax & extracting statistical features")
-        .expect("progress 45");
+    AiToolsRepository::update_job_progress(
+        &conn,
+        job_id,
+        45,
+        "Parsing syntax & extracting statistical features",
+    )
+    .expect("progress 45");
 
     let metrics = compute_genuine_metrics_oracle(&content.1);
     assert_eq!(metrics["word_count"], 23);
     assert_eq!(metrics["sentence_count"], 3);
-    assert!(metrics["burstiness"].as_f64().unwrap() >= -1.0 && metrics["burstiness"].as_f64().unwrap() <= 1.0);
+    assert!(
+        metrics["burstiness"].as_f64().unwrap() >= -1.0
+            && metrics["burstiness"].as_f64().unwrap() <= 1.0
+    );
     // Non-NaN check for Flesch scores
     assert!(!metrics["flesch_reading_ease"].as_f64().unwrap().is_nan());
     assert!(!metrics["flesch_kincaid_grade"].as_f64().unwrap().is_nan());
 
-    AiToolsRepository::update_job_progress(&conn, job_id, 75, "Evaluating cross-dimensional consistency and stylometric signals")
-        .expect("progress 75");
+    AiToolsRepository::update_job_progress(
+        &conn,
+        job_id,
+        75,
+        "Evaluating cross-dimensional consistency and stylometric signals",
+    )
+    .expect("progress 75");
 
     let final_res = serde_json::json!({
         "document_hash": doc_hash,

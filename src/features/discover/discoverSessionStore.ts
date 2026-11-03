@@ -169,7 +169,11 @@ export const discoverSessionStore = {
     return memoryState;
   },
 
-  setState(updates: Partial<DiscoverSessionState> | ((prev: DiscoverSessionState) => Partial<DiscoverSessionState>)) {
+  setState(
+    updates:
+      | Partial<DiscoverSessionState>
+      | ((prev: DiscoverSessionState) => Partial<DiscoverSessionState>)
+  ) {
     const patch = typeof updates === "function" ? updates(memoryState) : updates;
     memoryState = {
       ...memoryState,

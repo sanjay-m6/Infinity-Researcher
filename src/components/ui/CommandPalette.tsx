@@ -71,7 +71,10 @@ export const CommandPalette: React.FC = () => {
       }, 50);
       return () => clearTimeout(timer);
     } else {
-      if (previousActiveElement.current && typeof previousActiveElement.current.focus === "function") {
+      if (
+        previousActiveElement.current &&
+        typeof previousActiveElement.current.focus === "function"
+      ) {
         previousActiveElement.current.focus();
       }
     }
@@ -154,7 +157,14 @@ export const CommandPalette: React.FC = () => {
       }
       setIsCommandPaletteOpen(false);
     },
-    [toggleTheme, lockApplication, setIsOnboardingOpen, setIsAboutModalOpen, openFeedbackCenter, setIsCommandPaletteOpen]
+    [
+      toggleTheme,
+      lockApplication,
+      setIsOnboardingOpen,
+      setIsAboutModalOpen,
+      openFeedbackCenter,
+      setIsCommandPaletteOpen,
+    ]
   );
 
   // Unified Search Engine Hook
@@ -200,7 +210,9 @@ export const CommandPalette: React.FC = () => {
       setSelectedIndex((prev) => (prev + 1) % Math.max(totalResultsCount, 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev - 1 + totalResultsCount) % Math.max(totalResultsCount, 1));
+      setSelectedIndex(
+        (prev) => (prev - 1 + totalResultsCount) % Math.max(totalResultsCount, 1)
+      );
     } else if (e.key === "Home") {
       e.preventDefault();
       setSelectedIndex(0);
@@ -396,13 +408,21 @@ export const CommandPalette: React.FC = () => {
           {renderCategorySection("Research Papers", "papers", resultsByCategory.papers)}
 
           {/* Research Collections */}
-          {renderCategorySection("Collections", "collections", resultsByCategory.collections)}
+          {renderCategorySection(
+            "Collections",
+            "collections",
+            resultsByCategory.collections
+          )}
 
           {/* Research Tools */}
           {renderCategorySection("Research Tools", "tools", resultsByCategory.tools)}
 
           {/* Navigation Pages */}
-          {renderCategorySection("Navigation", "navigation", resultsByCategory.navigation)}
+          {renderCategorySection(
+            "Navigation",
+            "navigation",
+            resultsByCategory.navigation
+          )}
 
           {/* Application Actions */}
           {renderCategorySection("Actions", "actions", resultsByCategory.actions)}
@@ -418,7 +438,8 @@ export const CommandPalette: React.FC = () => {
                   No matching results found for &quot;{query}&quot;
                 </h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                  Try searching by author surname, DOI identifier, or query academic preprint repositories.
+                  Try searching by author surname, DOI identifier, or query academic
+                  preprint repositories.
                 </p>
               </div>
               <button
@@ -440,10 +461,12 @@ export const CommandPalette: React.FC = () => {
         <div className="px-4 py-2 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex items-center justify-between text-[11px] text-slate-400">
           <div className="flex items-center gap-3">
             <span>
-              Use <kbd className="font-mono">↑</kbd> <kbd className="font-mono">↓</kbd> to navigate
+              Use <kbd className="font-mono">↑</kbd> <kbd className="font-mono">↓</kbd> to
+              navigate
             </span>
             <span className="hidden sm:inline">
-              <kbd className="font-mono">Home</kbd> / <kbd className="font-mono">End</kbd> to jump
+              <kbd className="font-mono">Home</kbd> / <kbd className="font-mono">End</kbd>{" "}
+              to jump
             </span>
           </div>
           <div className="flex items-center gap-2">

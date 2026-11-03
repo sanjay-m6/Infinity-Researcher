@@ -51,7 +51,10 @@ const SAMPLE_TEXTS: Record<string, string> = {
 // Invariant Token Guarding & Deterministic Academic Polish
 // ---------------------------------------------------------------------------
 
-function maskInvariantTokens(text: string): { maskedText: string; tokenMap: Map<string, string> } {
+function maskInvariantTokens(text: string): {
+  maskedText: string;
+  tokenMap: Map<string, string>;
+} {
   const tokenMap = new Map<string, string>();
   let counter = 0;
 
@@ -70,16 +73,22 @@ function maskInvariantTokens(text: string): { maskedText: string; tokenMap: Map<
   });
 
   // 3. Citations: [1], [Smith et al., 2024], (Vaswani et al., 2017)
-  result = result.replace(/\[\d+(?:,\s*\d+)*\]|\[[A-Z][a-z]+(?:\s+et\s+al\.)?,\s*\d{4}\]|\([A-Z][a-z]+(?:\s+et\s+al\.)?,\s*\d{4}\)/g, (match) => {
-    const key = `__LOCKED_TOKEN_${counter++}__`;
-    tokenMap.set(key, match);
-    return key;
-  });
+  result = result.replace(
+    /\[\d+(?:,\s*\d+)*\]|\[[A-Z][a-z]+(?:\s+et\s+al\.)?,\s*\d{4}\]|\([A-Z][a-z]+(?:\s+et\s+al\.)?,\s*\d{4}\)/g,
+    (match) => {
+      const key = `__LOCKED_TOKEN_${counter++}__`;
+      tokenMap.set(key, match);
+      return key;
+    }
+  );
 
   return { maskedText: result, tokenMap };
 }
 
-function unmaskInvariantTokens(text: string, tokenMap: Map<string, string>): { restoredText: string; allPreserved: boolean } {
+function unmaskInvariantTokens(
+  text: string,
+  tokenMap: Map<string, string>
+): { restoredText: string; allPreserved: boolean } {
   let restoredText = text;
   let allPreserved = true;
 
@@ -174,34 +183,79 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
   const [selectedPaperId, setSelectedPaperId] = useState<string>("");
 
   // Tool Specific States
-  const [humanizerStyle, setHumanizerStyle] = useState<"peer_review" | "concise" | "engaging">("peer_review");
-  const [paraphraseMode, setParaphraseMode] = useState<"standard" | "dense" | "formal">("standard");
-  const [writingAssistantMode, setWritingAssistantMode] = useState<"clarity" | "academic" | "condense">("clarity");
+  const [humanizerStyle, setHumanizerStyle] = useState<
+    "peer_review" | "concise" | "engaging"
+  >("peer_review");
+  const [paraphraseMode, setParaphraseMode] = useState<"standard" | "dense" | "formal">(
+    "standard"
+  );
+  const [writingAssistantMode, setWritingAssistantMode] = useState<
+    "clarity" | "academic" | "condense"
+  >("clarity");
   const [outputText, setOutputText] = useState<string>("");
   const [useInstantDeterministic, setUseInstantDeterministic] = useState(false);
 
   // Phase 9 Background Jobs & Python Engine Signals
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [jobProgress, setJobProgress] = useState<number>(0);
-  const [pythonAiSignals, setPythonAiSignals] = useState<AiSignalDetectionResult | null>(null);
+  const [pythonAiSignals, setPythonAiSignals] = useState<AiSignalDetectionResult | null>(
+    null
+  );
 
   // Plagiarism Scan & Corpus State
   const [isScanningPlagiarism, setIsScanningPlagiarism] = useState<boolean>(false);
   const [plagiarismScanResult, setPlagiarismScanResult] = useState<{
     totalScore: number;
-    matchedPapers: Array<{ title: string; authors: string; overlap: number; matchCount: number }>;
+    matchedPapers: Array<{
+      title: string;
+      authors: string;
+      overlap: number;
+      matchCount: number;
+    }>;
     corpusCount: number;
     scannedAt: string;
   } | null>(null);
 
   // Integrity Checklist
-  const [integrityItems, setIntegrityItems] = useState<{ id: string; label: string; checked: boolean; category: string }[]>([
-    { id: "data_code", label: "Public Code & Data Availability Statement included", checked: true, category: "Transparency" },
-    { id: "seeds", label: "Deterministic random seeds & hardware specs reported", checked: true, category: "Transparency" },
-    { id: "coi", label: "Explicit Conflict of Interest (COI) disclosure provided", checked: true, category: "Ethics" },
-    { id: "irb", label: "Institutional Review Board (IRB) or ethics exemption stated", checked: false, category: "Ethics" },
-    { id: "credit", label: "CRediT author contribution breakdown specified", checked: true, category: "Authorship" },
-    { id: "license", label: "Open Access or preprint publishing rights confirmed", checked: true, category: "Publishing" },
+  const [integrityItems, setIntegrityItems] = useState<
+    { id: string; label: string; checked: boolean; category: string }[]
+  >([
+    {
+      id: "data_code",
+      label: "Public Code & Data Availability Statement included",
+      checked: true,
+      category: "Transparency",
+    },
+    {
+      id: "seeds",
+      label: "Deterministic random seeds & hardware specs reported",
+      checked: true,
+      category: "Transparency",
+    },
+    {
+      id: "coi",
+      label: "Explicit Conflict of Interest (COI) disclosure provided",
+      checked: true,
+      category: "Ethics",
+    },
+    {
+      id: "irb",
+      label: "Institutional Review Board (IRB) or ethics exemption stated",
+      checked: false,
+      category: "Ethics",
+    },
+    {
+      id: "credit",
+      label: "CRediT author contribution breakdown specified",
+      checked: true,
+      category: "Authorship",
+    },
+    {
+      id: "license",
+      label: "Open Access or preprint publishing rights confirmed",
+      checked: true,
+      category: "Publishing",
+    },
   ]);
 
   // Update sample text when toolId changes
@@ -282,7 +336,10 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
     // Flesch Reading Ease
     const fleschEase = Math.max(
       0,
-      Math.min(100, Math.round(206.835 - 1.015 * wordsPerSentence - 84.6 * syllablesPerWord))
+      Math.min(
+        100,
+        Math.round(206.835 - 1.015 * wordsPerSentence - 84.6 * syllablesPerWord)
+      )
     );
 
     // Flesch-Kincaid Grade Level
@@ -294,18 +351,24 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
     // Gunning Fog Index
     const gunningFog = Math.max(
       1,
-      Math.round(0.4 * (wordsPerSentence + 100 * (complexWordCount / wordCount)) * 10) / 10
+      Math.round(0.4 * (wordsPerSentence + 100 * (complexWordCount / wordCount)) * 10) /
+        10
     );
 
     // Coleman-Liau Index: 0.0588*L - 0.296*S - 15.8
     const L = (letters / wordCount) * 100;
     const S = (sentenceCount / wordCount) * 100;
-    const colemanLiau = Math.max(1, Math.round((0.0588 * L - 0.296 * S - 15.8) * 10) / 10);
+    const colemanLiau = Math.max(
+      1,
+      Math.round((0.0588 * L - 0.296 * S - 15.8) * 10) / 10
+    );
 
     // SMOG
     const smogIndex = Math.max(
       1,
-      Math.round((1.043 * Math.sqrt(complexWordCount * (30 / sentenceCount)) + 3.1291) * 10) / 10
+      Math.round(
+        (1.043 * Math.sqrt(complexWordCount * (30 / sentenceCount)) + 3.1291) * 10
+      ) / 10
     );
 
     return {
@@ -332,13 +395,17 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
 
     // Variance & Standard Deviation
     const variance =
-      lengths.reduce((acc, l) => acc + Math.pow(l - meanLen, 2), 0) / Math.max(1, lengths.length);
+      lengths.reduce((acc, l) => acc + Math.pow(l - meanLen, 2), 0) /
+      Math.max(1, lengths.length);
     const stdDev = Math.sqrt(variance);
 
     // Lower standard deviation in sentence length is a key marker of robotic LLM output
     // Coefficient of variation: cv = stdDev / meanLen
     const cv = meanLen > 0 ? stdDev / meanLen : 0;
-    const uniformityScore = Math.max(0, Math.min(100, Math.round(Math.max(0, 1 - cv) * 100)));
+    const uniformityScore = Math.max(
+      0,
+      Math.min(100, Math.round(Math.max(0, 1 - cv) * 100))
+    );
 
     // Cliché machine transition words & phrases
     const aiCliches = [
@@ -363,7 +430,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
 
     // Composite AI probability estimation (genuine dynamic derivation without artificial clamping)
     const burstiness = Math.round(stdDev * 10) / 10;
-    let computedProb = Math.round(uniformityScore * 0.55 + Math.min(45, clicheCount * 12));
+    let computedProb = Math.round(
+      uniformityScore * 0.55 + Math.min(45, clicheCount * 12)
+    );
     if (burstiness > 8.0) {
       computedProb = Math.max(0, computedProb - 25);
     } else if (burstiness < 2.5 && sentences.length > 2) {
@@ -408,7 +477,12 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
       inputGrams.add(inputWords.slice(i, i + 4).join(" "));
     }
 
-    const matches: { title: string; authors: string; overlap: number; matchCount: number }[] = [];
+    const matches: {
+      title: string;
+      authors: string;
+      overlap: number;
+      matchCount: number;
+    }[] = [];
 
     papers.forEach((p) => {
       const pText = `${p.title} ${p.abstract}`.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
@@ -420,10 +494,15 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
         }
       }
       if (matchCount > 0) {
-        const overlapPct = Math.min(100, Math.round((matchCount / Math.max(1, inputGrams.size)) * 100));
+        const overlapPct = Math.min(
+          100,
+          Math.round((matchCount / Math.max(1, inputGrams.size)) * 100)
+        );
         matches.push({
           title: p.title,
-          authors: Array.isArray(p.authors) ? p.authors.slice(0, 2).join(", ") : String(p.authors || ""),
+          authors: Array.isArray(p.authors)
+            ? p.authors.slice(0, 2).join(", ")
+            : String(p.authors || ""),
           overlap: overlapPct,
           matchCount,
         });
@@ -454,12 +533,25 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
   // Citation Validator
   const citationStats = useMemo(() => {
     const text = inputText;
-    const doiMatches = Array.from(text.matchAll(/\b10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+\b/g)).map((m) => m[0]);
-    const arxivMatches = Array.from(text.matchAll(/\barXiv:\s*(\d{4}\.\d{4,5}(?:v\d+)?)\b/gi)).map((m) => m[1]);
-    const bracketCitations = Array.from(text.matchAll(/\[(\d+(?:,\s*\d+)*)\]/g)).map((m) => m[0]);
-    const authorYearCitations = Array.from(text.matchAll(/\(([A-Z][a-z]+(?:\s+et\s+al\.)?,\s*\d{4})\)/g)).map((m) => m[1]);
+    const doiMatches = Array.from(
+      text.matchAll(/\b10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+\b/g)
+    ).map((m) => m[0]);
+    const arxivMatches = Array.from(
+      text.matchAll(/\barXiv:\s*(\d{4}\.\d{4,5}(?:v\d+)?)\b/gi)
+    ).map((m) => m[1]);
+    const bracketCitations = Array.from(text.matchAll(/\[(\d+(?:,\s*\d+)*)\]/g)).map(
+      (m) => m[0]
+    );
+    const authorYearCitations = Array.from(
+      text.matchAll(/\(([A-Z][a-z]+(?:\s+et\s+al\.)?,\s*\d{4})\)/g)
+    ).map((m) => m[1]);
 
-    const items: { ref: string; type: string; status: "valid" | "warning"; note: string }[] = [];
+    const items: {
+      ref: string;
+      type: string;
+      status: "valid" | "warning";
+      note: string;
+    }[] = [];
 
     doiMatches.forEach((doi) => {
       items.push({
@@ -528,8 +620,8 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
           writingAssistantMode === "clarity"
             ? `Please polish the following academic text for maximum clarity and precision. Strictly preserve all citations, __LOCKED_TOKEN_...__ tokens, equations, numbers, and technical terms exactly. Return only the revised text:\n\n${maskedText}`
             : writingAssistantMode === "academic"
-            ? `Please elevate the following text to high-impact peer-reviewed journal academic tone. Eliminate informal expressions while strictly preserving all scientific meaning, citations, and __LOCKED_TOKEN_...__ tokens:\n\n${maskedText}`
-            : `Please condense the following text concisely for an academic abstract while preserving key empirical contributions, numbers, and __LOCKED_TOKEN_...__ tokens:\n\n${maskedText}`;
+              ? `Please elevate the following text to high-impact peer-reviewed journal academic tone. Eliminate informal expressions while strictly preserving all scientific meaning, citations, and __LOCKED_TOKEN_...__ tokens:\n\n${maskedText}`
+              : `Please condense the following text concisely for an academic abstract while preserving key empirical contributions, numbers, and __LOCKED_TOKEN_...__ tokens:\n\n${maskedText}`;
       } else if (toolId === "ai_humanizer") {
         prompt = `Rewrite the following text so that it reads naturally as if written by an experienced human academic researcher. Break up robotic sentence cadence, vary sentence lengths naturally, remove AI clichés like 'delve into' or 'testament to', and strictly preserve all __LOCKED_TOKEN_...__ tokens, equations, numbers, and citations exactly:\n\n${maskedText}`;
       } else if (toolId === "paraphrasing_tool") {
@@ -574,10 +666,16 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
     setIsProcessing(true);
     setJobProgress(0);
     try {
-      const meta = await ingestDocumentContent("detector_doc.txt", "txt", inputText).catch(() => null);
+      const meta = await ingestDocumentContent(
+        "detector_doc.txt",
+        "txt",
+        inputText
+      ).catch(() => null);
       const docHash = meta?.document_hash || `hash_${inputText.length}`;
 
-      const job = await startAnalysisJob("ai_writing_detection", docHash).catch(() => null);
+      const job = await startAnalysisJob("ai_writing_detection", docHash).catch(
+        () => null
+      );
       if (job) {
         setActiveJobId(job.id);
         const latestJob = await getAnalysisJobStatus(job.id).catch(() => null);
@@ -621,12 +719,17 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
       }
 
       // Merge with in-memory context papers
-      const corpusMap = new Map<string, { title: string; abstract: string; authors: string }>();
+      const corpusMap = new Map<
+        string,
+        { title: string; abstract: string; authors: string }
+      >();
       papers.forEach((p) => {
         corpusMap.set(p.title.toLowerCase().trim(), {
           title: p.title,
           abstract: p.abstract || "",
-          authors: Array.isArray(p.authors) ? p.authors.slice(0, 2).join(", ") : String(p.authors || ""),
+          authors: Array.isArray(p.authors)
+            ? p.authors.slice(0, 2).join(", ")
+            : String(p.authors || ""),
         });
       });
       dbPapers.forEach((p) => {
@@ -647,7 +750,10 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
           corpusCount: allCorpus.length,
           scannedAt: new Date().toLocaleTimeString(),
         });
-        showToast(`Plagiarism scan completed across ${allCorpus.length} corpus papers`, "info");
+        showToast(
+          `Plagiarism scan completed across ${allCorpus.length} corpus papers`,
+          "info"
+        );
         return;
       }
 
@@ -657,10 +763,17 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
         inputGrams.add(inputWords.slice(i, i + 4).join(" "));
       }
 
-      const matches: { title: string; authors: string; overlap: number; matchCount: number }[] = [];
+      const matches: {
+        title: string;
+        authors: string;
+        overlap: number;
+        matchCount: number;
+      }[] = [];
 
       allCorpus.forEach((p) => {
-        const pText = `${p.title} ${p.abstract}`.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+        const pText = `${p.title} ${p.abstract}`
+          .toLowerCase()
+          .replace(/[^a-z0-9\s]/g, " ");
         const pWords = pText.split(/\s+/).filter((w) => w.length > 2);
         let matchCount = 0;
         for (let i = 0; i <= pWords.length - 4; i++) {
@@ -669,7 +782,10 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
           }
         }
         if (matchCount > 0) {
-          const overlapPct = Math.min(100, Math.round((matchCount / Math.max(1, inputGrams.size)) * 100));
+          const overlapPct = Math.min(
+            100,
+            Math.round((matchCount / Math.max(1, inputGrams.size)) * 100)
+          );
           matches.push({
             title: p.title,
             authors: p.authors,
@@ -722,23 +838,59 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
   const getToolTitle = () => {
     switch (toolId) {
       case "ai_writing_detector":
-        return { name: "AI Writing Detector", icon: ScanEye, desc: "Empirical stylometric analysis & perplexity variance scanner" };
+        return {
+          name: "AI Writing Detector",
+          icon: ScanEye,
+          desc: "Empirical stylometric analysis & perplexity variance scanner",
+        };
       case "plagiarism_checker":
-        return { name: "Plagiarism Checker", icon: FileSearch, desc: "Winnowing n-gram text overlap against local library papers" };
+        return {
+          name: "Plagiarism Checker",
+          icon: FileSearch,
+          desc: "Winnowing n-gram text overlap against local library papers",
+        };
       case "ai_humanizer":
-        return { name: "AI Humanizer", icon: Sparkles, desc: "Natural scholarly sentence variation & anti-cliché polisher" };
+        return {
+          name: "AI Humanizer",
+          icon: Sparkles,
+          desc: "Natural scholarly sentence variation & anti-cliché polisher",
+        };
       case "academic_writing_assistant":
-        return { name: "Academic Writing Assistant", icon: PenTool, desc: "Peer-review tone calibration, clarity & passive-voice balancing" };
+        return {
+          name: "Academic Writing Assistant",
+          icon: PenTool,
+          desc: "Peer-review tone calibration, clarity & passive-voice balancing",
+        };
       case "paraphrasing_tool":
-        return { name: "Paraphrasing Tool", icon: RefreshCw, desc: "Precision scholarly rephrasing with citation & equation guards" };
+        return {
+          name: "Paraphrasing Tool",
+          icon: RefreshCw,
+          desc: "Precision scholarly rephrasing with citation & equation guards",
+        };
       case "citation_checker":
-        return { name: "Citation Checker", icon: CheckCircle2, desc: "Canonical DOI, BibTeX, and reference integrity validator" };
+        return {
+          name: "Citation Checker",
+          icon: CheckCircle2,
+          desc: "Canonical DOI, BibTeX, and reference integrity validator",
+        };
       case "readability_analyzer":
-        return { name: "Readability Analyzer", icon: BarChart2, desc: "Flesch-Kincaid, Gunning Fog, and complexity formulas" };
+        return {
+          name: "Readability Analyzer",
+          icon: BarChart2,
+          desc: "Flesch-Kincaid, Gunning Fog, and complexity formulas",
+        };
       case "research_integrity":
-        return { name: "Research Integrity Suite", icon: ShieldCheck, desc: "Peer-review readiness audit & ethical disclosure builder" };
+        return {
+          name: "Research Integrity Suite",
+          icon: ShieldCheck,
+          desc: "Peer-review readiness audit & ethical disclosure builder",
+        };
       default:
-        return { name: "AI Academic Tool", icon: Sparkles, desc: "Specialized scholarly analysis workspace" };
+        return {
+          name: "AI Academic Tool",
+          icon: Sparkles,
+          desc: "Specialized scholarly analysis workspace",
+        };
     }
   };
 
@@ -832,7 +984,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
                 {toolId === "academic_writing_assistant" && (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Target Mode:</span>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      Target Mode:
+                    </span>
                     <button
                       type="button"
                       onClick={() => setWritingAssistantMode("clarity")}
@@ -871,7 +1025,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
 
                 {toolId === "ai_humanizer" && (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Cadence Voice:</span>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      Cadence Voice:
+                    </span>
                     <button
                       type="button"
                       onClick={() => setHumanizerStyle("peer_review")}
@@ -899,7 +1055,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
 
                 {toolId === "paraphrasing_tool" && (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Format:</span>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      Format:
+                    </span>
                     <button
                       type="button"
                       onClick={() => setParaphraseMode("standard")}
@@ -936,7 +1094,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                     }`}
                     title="Instant zero-RAM rule-based academic polish without LLM invocation"
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${useInstantDeterministic ? "bg-emerald-500" : "bg-slate-400"}`} />
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${useInstantDeterministic ? "bg-emerald-500" : "bg-slate-400"}`}
+                    />
                     Instant Polish (0 MB RAM)
                   </button>
                   <Button
@@ -946,7 +1106,11 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                     onClick={handleExecuteToolAction}
                   >
                     <Play className="w-3.5 h-3.5 mr-1.5" />
-                    {isProcessing ? "Processing..." : useInstantDeterministic ? "Polish Instantly" : "Run Tool"}
+                    {isProcessing
+                      ? "Processing..."
+                      : useInstantDeterministic
+                        ? "Polish Instantly"
+                        : "Run Tool"}
                   </Button>
                 </div>
               </div>
@@ -955,7 +1119,8 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
             {toolId === "ai_writing_detector" && (
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
                 <span className="text-xs text-slate-500">
-                  Runs background statistical signal extraction & sentence cadence calibration.
+                  Runs background statistical signal extraction & sentence cadence
+                  calibration.
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
@@ -965,7 +1130,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                     onClick={handleRunAiWritingDetector}
                   >
                     <Play className="w-3.5 h-3.5 mr-1.5" />
-                    {isProcessing ? `Scanning (${jobProgress}%)...` : "Scan Stylometric Signals"}
+                    {isProcessing
+                      ? `Scanning (${jobProgress}%)...`
+                      : "Scan Stylometric Signals"}
                   </Button>
                   {isProcessing && (
                     <Button
@@ -988,7 +1155,13 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
               toolId === "ai_humanizer" ||
               toolId === "paraphrasing_tool") && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-indigo-200 dark:border-indigo-800/80 p-8 flex flex-col items-center justify-center space-y-3 shadow-sm animate-in fade-in duration-200">
-                <LiveOrb size={64} interactive blink variant="webgl" className="shadow-xl" />
+                <LiveOrb
+                  size={64}
+                  interactive
+                  blink
+                  variant="webgl"
+                  className="shadow-xl"
+                />
                 <div className="text-center space-y-1">
                   <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     In-App AI Engine Actively Processing
@@ -1016,7 +1189,11 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                     onClick={() => handleCopy(outputText)}
                     className="flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer"
                   >
-                    {hasCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    {hasCopied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                     <span>{hasCopied ? "Copied" : "Copy Output"}</span>
                   </button>
                 </div>
@@ -1085,33 +1262,41 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                     aiDetectorStats.aiScore < 30
                       ? "success"
                       : aiDetectorStats.aiScore < 65
-                      ? "warning"
-                      : "destructive"
+                        ? "warning"
+                        : "destructive"
                   }
                   size="md"
                 >
                   {aiDetectorStats.aiScore < 30
                     ? "Likely Human Written"
                     : aiDetectorStats.aiScore < 65
-                    ? "Mixed / Heavily Edited AI"
-                    : "Elevated Machine Pattern"}
+                      ? "Mixed / Heavily Edited AI"
+                      : "Elevated Machine Pattern"}
                 </Badge>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-                  <span className="text-slate-400 text-[10px] block font-semibold">Sentence Burstiness</span>
+                  <span className="text-slate-400 text-[10px] block font-semibold">
+                    Sentence Burstiness
+                  </span>
                   <span className="text-base font-bold text-slate-800 dark:text-slate-200">
                     {aiDetectorStats.burstiness}
                   </span>
-                  <span className="text-[10px] text-slate-400 block">&gt; 5.0 indicates human cadence</span>
+                  <span className="text-[10px] text-slate-400 block">
+                    &gt; 5.0 indicates human cadence
+                  </span>
                 </div>
                 <div className="p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-                  <span className="text-slate-400 text-[10px] block font-semibold">Cadence Uniformity</span>
+                  <span className="text-slate-400 text-[10px] block font-semibold">
+                    Cadence Uniformity
+                  </span>
                   <span className="text-base font-bold text-slate-800 dark:text-slate-200">
                     {aiDetectorStats.uniformity}%
                   </span>
-                  <span className="text-[10px] text-slate-400 block">Higher = repetitive length</span>
+                  <span className="text-[10px] text-slate-400 block">
+                    Higher = repetitive length
+                  </span>
                 </div>
               </div>
 
@@ -1134,7 +1319,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
               <div className="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300 leading-snug flex items-start gap-2">
                 <Info className="w-4 h-4 shrink-0 mt-0.5" />
                 <p>
-                  Empirical stylometric metrics are advisory tools for writing polish and academic drafting. Never use statistical metrics as sole criteria for authorship attribution.
+                  Empirical stylometric metrics are advisory tools for writing polish and
+                  academic drafting. Never use statistical metrics as sole criteria for
+                  authorship attribution.
                 </p>
               </div>
             </div>
@@ -1165,8 +1352,15 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                 <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
                   {effectivePlagiarismStats.totalScore}%
                 </div>
-                <Badge variant={effectivePlagiarismStats.totalScore > 20 ? "warning" : "success"} size="md">
-                  {effectivePlagiarismStats.totalScore > 20 ? "Substantial Match Found" : "Original / Low Overlap"}
+                <Badge
+                  variant={
+                    effectivePlagiarismStats.totalScore > 20 ? "warning" : "success"
+                  }
+                  size="md"
+                >
+                  {effectivePlagiarismStats.totalScore > 20
+                    ? "Substantial Match Found"
+                    : "Original / Low Overlap"}
                 </Badge>
               </div>
 
@@ -1215,7 +1409,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                   <div className="text-2xl font-black text-rose-600 dark:text-rose-400">
                     {readabilityStats.fleschGrade}
                   </div>
-                  <span className="text-[10px] text-slate-400">Target: Grade 12–16 (College/Research)</span>
+                  <span className="text-[10px] text-slate-400">
+                    Target: Grade 12–16 (College/Research)
+                  </span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
@@ -1225,7 +1421,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                   <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
                     {readabilityStats.gunningFog}
                   </div>
-                  <span className="text-[10px] text-slate-400">Ideal: 12.0–15.0 for scholarly journals</span>
+                  <span className="text-[10px] text-slate-400">
+                    Ideal: 12.0–15.0 for scholarly journals
+                  </span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
@@ -1235,7 +1433,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                   <div className="text-2xl font-black text-sky-600 dark:text-sky-400">
                     {readabilityStats.fleschEase}
                   </div>
-                  <span className="text-[10px] text-slate-400">30–50 is standard for academic prose</span>
+                  <span className="text-[10px] text-slate-400">
+                    30–50 is standard for academic prose
+                  </span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
@@ -1245,7 +1445,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                   <div className="text-2xl font-black text-purple-600 dark:text-purple-400">
                     {readabilityStats.colemanLiau}
                   </div>
-                  <span className="text-[10px] text-slate-400">Letter & sentence frequency based</span>
+                  <span className="text-[10px] text-slate-400">
+                    Letter & sentence frequency based
+                  </span>
                 </div>
               </div>
 
@@ -1257,13 +1459,22 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                   <span className="text-slate-500">Complex Words (3+ syllables)</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200">
                     {readabilityStats.complexWords} (
-                    {Math.round((readabilityStats.complexWords / Math.max(1, readabilityStats.words)) * 100)}%)
+                    {Math.round(
+                      (readabilityStats.complexWords /
+                        Math.max(1, readabilityStats.words)) *
+                        100
+                    )}
+                    %)
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-200/50 dark:border-slate-700/40">
                   <span className="text-slate-500">Avg. Sentence Length</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200">
-                    {Math.round((readabilityStats.words / Math.max(1, readabilityStats.sentences)) * 10) / 10} words
+                    {Math.round(
+                      (readabilityStats.words / Math.max(1, readabilityStats.sentences)) *
+                        10
+                    ) / 10}{" "}
+                    words
                   </span>
                 </div>
               </div>
@@ -1318,7 +1529,12 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                   Submission Readiness Audit
                 </h2>
                 <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">
-                  {Math.round((integrityItems.filter((i) => i.checked).length / integrityItems.length) * 100)}% Ready
+                  {Math.round(
+                    (integrityItems.filter((i) => i.checked).length /
+                      integrityItems.length) *
+                      100
+                  )}
+                  % Ready
                 </span>
               </div>
 
@@ -1333,7 +1549,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                       checked={item.checked}
                       onChange={() =>
                         setIntegrityItems((prev) =>
-                          prev.map((i) => (i.id === item.id ? { ...i, checked: !i.checked } : i))
+                          prev.map((i) =>
+                            i.id === item.id ? { ...i, checked: !i.checked } : i
+                          )
                         )
                       }
                       className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500"
@@ -1342,7 +1560,9 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
                       <span className="font-semibold text-slate-800 dark:text-slate-200 block">
                         {item.label}
                       </span>
-                      <span className="text-[10px] text-slate-400">{item.category} Compliance</span>
+                      <span className="text-[10px] text-slate-400">
+                        {item.category} Compliance
+                      </span>
                     </div>
                   </label>
                 ))}

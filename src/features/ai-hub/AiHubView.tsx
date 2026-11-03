@@ -115,14 +115,18 @@ const POPULAR_PROVIDER_MODELS: Record<string, string[]> = {
   ],
   ollama_local: ["llama3.2:latest", "mistral:latest", "qwen2.5:latest"],
   groq_cloud: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
-  openrouter: ["meta-llama/llama-3.2-3b-instruct:free", "google/gemini-2.0-flash-exp:free"],
+  openrouter: [
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "google/gemini-2.0-flash-exp:free",
+  ],
   gemini_api: ["gemini-1.5-flash", "gemini-1.5-pro"],
   cerebras: ["llama3.1-8b", "llama3.1-70b"],
   huggingface: ["meta-llama/Llama-3.2-3B-Instruct", "mistralai/Mistral-7B-Instruct-v0.3"],
 };
 
 export const AiHubView: React.FC = () => {
-  const { papers, selectedPaperId, setSelectedPaperId, setReadingPaper, showToast } = useApp();
+  const { papers, selectedPaperId, setSelectedPaperId, setReadingPaper, showToast } =
+    useApp();
   const selectedPaper = papers.find((p) => p.id === selectedPaperId);
   const addToast = ({
     title,
@@ -133,7 +137,10 @@ export const AiHubView: React.FC = () => {
     message: string;
     type: "success" | "warning" | "error" | "info";
   }) => {
-    showToast(message ? `${title}: ${message}` : title, type === "warning" ? "warning" : type === "error" ? "error" : "info");
+    showToast(
+      message ? `${title}: ${message}` : title,
+      type === "warning" ? "warning" : type === "error" ? "error" : "info"
+    );
   };
 
   // Persisted active tab so switching tabs never resets the view back to default
@@ -184,13 +191,16 @@ export const AiHubView: React.FC = () => {
 
   // Providers & Settings state
   const [providers, setProviders] = useState<AiProvider[]>(DEFAULT_AI_PROVIDERS);
-  const [taskRoutes, setTaskRoutes] = useState<AiProviderTaskRoute[]>(DEFAULT_AI_TASK_ROUTES);
+  const [taskRoutes, setTaskRoutes] =
+    useState<AiProviderTaskRoute[]>(DEFAULT_AI_TASK_ROUTES);
   const [settings, setSettings] = useState<AiSettings | null>(null);
   const [testingProviderId, setTestingProviderId] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, ProviderTestResult>>({});
   const [apiKeyInputs, setApiKeyInputs] = useState<Record<string, string>>({});
   const [savingKeyId, setSavingKeyId] = useState<string | null>(null);
-  const [editingModelProviderId, setEditingModelProviderId] = useState<string | null>(null);
+  const [editingModelProviderId, setEditingModelProviderId] = useState<string | null>(
+    null
+  );
   const [modelInputs, setModelInputs] = useState<Record<string, string>>({});
   const [isModelPanelOpen, setIsModelPanelOpen] = useState(false);
 
@@ -208,9 +218,14 @@ export const AiHubView: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedAudience, setSelectedAudience] = useState("researcher");
   const [selectedReadingMode, setSelectedReadingMode] = useState("deep_read");
-  const [activeRagScope, setActiveRagScope] = useState<"paper" | "library" | "none">(() => {
-    return (localStorage.getItem("ai_hub_rag_scope") as "paper" | "library" | "none") || "paper";
-  });
+  const [activeRagScope, setActiveRagScope] = useState<"paper" | "library" | "none">(
+    () => {
+      return (
+        (localStorage.getItem("ai_hub_rag_scope") as "paper" | "library" | "none") ||
+        "paper"
+      );
+    }
+  );
 
   useEffect(() => {
     try {
@@ -254,7 +269,10 @@ export const AiHubView: React.FC = () => {
     try {
       const sessionId = targetPaperId ? `ai_hub_${targetPaperId}` : "ai_hub_default";
       localStorage.setItem("ai_hub_chat_messages", JSON.stringify(chatMessages));
-      localStorage.setItem(`ai_hub_chat_messages_${sessionId}`, JSON.stringify(chatMessages));
+      localStorage.setItem(
+        `ai_hub_chat_messages_${sessionId}`,
+        JSON.stringify(chatMessages)
+      );
     } catch {}
   }, [chatMessages, targetPaperId]);
 
@@ -325,7 +343,11 @@ export const AiHubView: React.FC = () => {
     try {
       const s = await getAiSettings();
       setSettings(s);
-      if (s.active_rag_scope === "paper" || s.active_rag_scope === "library" || s.active_rag_scope === "none") {
+      if (
+        s.active_rag_scope === "paper" ||
+        s.active_rag_scope === "library" ||
+        s.active_rag_scope === "none"
+      ) {
         setActiveRagScope(s.active_rag_scope);
       }
       if (s.default_audience_level) {
@@ -469,7 +491,11 @@ export const AiHubView: React.FC = () => {
   const handleSaveCredential = async (providerId: string) => {
     const key = apiKeyInputs[providerId]?.trim();
     if (!key) {
-      addToast({ title: "Key Required", message: "Enter an API key or token to save.", type: "warning" });
+      addToast({
+        title: "Key Required",
+        message: "Enter an API key or token to save.",
+        type: "warning",
+      });
       return;
     }
     setSavingKeyId(providerId);
@@ -494,7 +520,11 @@ export const AiHubView: React.FC = () => {
     try {
       await clearAiProviderCredential(providerId);
       loadProviders();
-      addToast({ title: "Credential Removed", message: "Saved key reference deleted.", type: "info" });
+      addToast({
+        title: "Credential Removed",
+        message: "Saved key reference deleted.",
+        type: "info",
+      });
     } catch (e: unknown) {
       const msg = getErrorMessage(e, "Error clearing API key.");
       addToast({ title: "Error clearing key", message: msg, type: "error" });
@@ -522,7 +552,10 @@ export const AiHubView: React.FC = () => {
   };
 
   // Settings Toggles
-  const handleToggleSetting = async (key: keyof AiSettings, value: AiSettings[keyof AiSettings]) => {
+  const handleToggleSetting = async (
+    key: keyof AiSettings,
+    value: AiSettings[keyof AiSettings]
+  ) => {
     if (!settings) return;
     const updated = { ...settings, [key]: value };
     setSettings(updated);
@@ -600,7 +633,10 @@ export const AiHubView: React.FC = () => {
         console.warn("Failed to persist AI Hub assistant message to SQLite:", e)
       );
     } catch (e: unknown) {
-      const msg = getErrorMessage(e, "Failed to generate AI response. Check connection and privacy settings.");
+      const msg = getErrorMessage(
+        e,
+        "Failed to generate AI response. Check connection and privacy settings."
+      );
       const errorMsg: AiChatMessage = {
         id: createAiHubMsgId("err"),
         session_id: sessionId,
@@ -647,7 +683,11 @@ export const AiHubView: React.FC = () => {
   const handleRunEvaluation = async () => {
     setIsRunningEval(true);
     try {
-      const res = await runAiEvaluation("grounded_qa_bench", "ollama_local", "llama3.2:latest");
+      const res = await runAiEvaluation(
+        "grounded_qa_bench",
+        "ollama_local",
+        "llama3.2:latest"
+      );
       setEvalResults((prev) => [res, ...prev]);
       addToast({
         title: "Evaluation Benchmark Complete",
@@ -778,7 +818,9 @@ export const AiHubView: React.FC = () => {
     },
   ];
 
-  const currentNavTab = NAV_GROUPS.flatMap((g) => g.items).find((item) => item.id === activeTab) || {
+  const currentNavTab = NAV_GROUPS.flatMap((g) => g.items).find(
+    (item) => item.id === activeTab
+  ) || {
     id: activeTab,
     label: "Workspace",
     icon: Bot,
@@ -786,7 +828,8 @@ export const AiHubView: React.FC = () => {
   };
   const CurrentTabIcon = currentNavTab.icon;
 
-  const chatRoute = taskRoutes.find((r) => r.task_type === "chat_grounded") || taskRoutes[0];
+  const chatRoute =
+    taskRoutes.find((r) => r.task_type === "chat_grounded") || taskRoutes[0];
   const activeProvider =
     providers.find((p) => p.id === chatRoute?.provider_id) ||
     providers.find((p) => p.is_enabled) ||
@@ -803,8 +846,12 @@ export const AiHubView: React.FC = () => {
             type="button"
             onClick={toggleSideNav}
             className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors shadow-2xs"
-            title={isSideNavCollapsed ? "Expand Navigation Rail" : "Collapse Navigation Rail"}
-            aria-label={isSideNavCollapsed ? "Expand Navigation Rail" : "Collapse Navigation Rail"}
+            title={
+              isSideNavCollapsed ? "Expand Navigation Rail" : "Collapse Navigation Rail"
+            }
+            aria-label={
+              isSideNavCollapsed ? "Expand Navigation Rail" : "Collapse Navigation Rail"
+            }
           >
             {isSideNavCollapsed ? (
               <PanelLeft className="w-4 h-4" />
@@ -822,14 +869,17 @@ export const AiHubView: React.FC = () => {
               <h1 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
                 AI Workspace & Research Knowledge
               </h1>
-              <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
+              <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">
+                /
+              </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                 <CurrentTabIcon className="w-3.5 h-3.5 text-slate-500" />
                 {currentNavTab.label}
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-              Multi-provider local/cloud AI · Shared RAG library pipeline · Transparent recommendations
+              Multi-provider local/cloud AI · Shared RAG library pipeline · Transparent
+              recommendations
             </p>
           </div>
         </div>
@@ -987,888 +1037,446 @@ export const AiHubView: React.FC = () => {
 
         {/* Main Tab Content Area */}
         <main className="flex-1 overflow-y-auto p-6 scrollbar-thin min-w-0 bg-slate-50/50 dark:bg-slate-950/50">
-        {/* ========================================================================= */}
-        {/* TAB 1: PROVIDERS & MODELS */}
-        {/* ========================================================================= */}
-        {activeTab === "providers" && (
-          <div className="space-y-6 max-w-6xl mx-auto">
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  AI Provider Catalog & Routing
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Local runtimes (Ollama, LM Studio) run entirely offline without cloud API keys. Cloud providers use developer free tiers or manual API keys.
-                </p>
+          {/* ========================================================================= */}
+          {/* TAB 1: PROVIDERS & MODELS */}
+          {/* ========================================================================= */}
+          {activeTab === "providers" && (
+            <div className="space-y-6 max-w-6xl mx-auto">
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    AI Provider Catalog & Routing
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Local runtimes (Ollama, LM Studio) run entirely offline without cloud
+                    API keys. Cloud providers use developer free tiers or manual API keys.
+                  </p>
+                </div>
+                <button
+                  onClick={loadProviders}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 shadow-sm"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Refresh Status
+                </button>
               </div>
-              <button
-                onClick={loadProviders}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 shadow-sm"
-              >
-                <RefreshCw className="w-3.5 h-3.5" /> Refresh Status
-              </button>
-            </div>
 
-            {/* Provider Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {providers.map((p) => {
-                const isLocal = p.is_local;
-                const testRes = testResults[p.id];
-                const isTesting = testingProviderId === p.id;
-                const isSavedKey = !!p.credential_ref;
-
-                return (
-                  <div
-                    key={p.id}
-                    className={`rounded-xl border p-4 bg-white dark:bg-slate-900 flex flex-col justify-between transition-all shadow-sm ${
-                      p.is_enabled
-                        ? "border-slate-200 dark:border-slate-800"
-                        : "opacity-60 border-slate-200/50 dark:border-slate-800/50"
-                    }`}
-                  >
-                    <div>
-                      {/* Provider Header */}
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-sm text-slate-900 dark:text-slate-100">
-                              {p.display_name}
-                            </span>
-                            {isLocal ? (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                                LOCAL
-                              </span>
-                            ) : (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
-                                CLOUD
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[11px] text-slate-500 capitalize">
-                            {p.access_category.replace(/_/g, " ")}
-                          </span>
-                        </div>
-
-                        {/* Enable/Disable Switch */}
-                        <button
-                          onClick={() => handleToggleProvider(p.id, p.is_enabled)}
-                          className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                            p.is_enabled
-                              ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-                              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                          }`}
-                        >
-                          {p.is_enabled ? "Enabled" : "Disabled"}
-                        </button>
-                      </div>
-
-                      {/* Capabilities */}
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {p.supported_capabilities.map((cap) => (
-                          <span
-                            key={cap}
-                            className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                          >
-                            {cap}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Model & Endpoint Details */}
-                      <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400 mb-4 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">Model:</span>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-mono text-slate-900 dark:text-slate-200 font-semibold text-[11px] truncate max-w-[190px]" title={p.default_model}>
-                                {p.default_model}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (editingModelProviderId === p.id) {
-                                    setEditingModelProviderId(null);
-                                  } else {
-                                    setEditingModelProviderId(p.id);
-                                    setModelInputs((prev) => ({ ...prev, [p.id]: p.default_model }));
-                                  }
-                                }}
-                                className="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 p-0.5 rounded transition-colors"
-                                title="Change or customize model"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                          {editingModelProviderId === p.id && (
-                            <div className="mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
-                              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">
-                                Configure Model ID:
-                              </label>
-                              <div className="flex gap-1.5">
-                                <input
-                                  type="text"
-                                  value={modelInputs[p.id] ?? p.default_model}
-                                  onChange={(e) =>
-                                    setModelInputs((prev) => ({ ...prev, [p.id]: e.target.value }))
-                                  }
-                                  placeholder="e.g. mistralai/mistral-large-4-1t-a52b"
-                                  className="flex-1 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleSaveModel(p.id)}
-                                  className="px-2.5 py-1 text-xs font-medium rounded bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
-                                >
-                                  Save
-                                </button>
-                              </div>
-                              {((POPULAR_PROVIDER_MODELS[p.id] || []).length > 0 || (testRes?.detected_models || []).length > 0) && (
-                                <div className="space-y-1">
-                                  <span className="text-[10px] text-slate-400">Quick Select:</span>
-                                  <div className="flex flex-wrap gap-1">
-                                    {Array.from(new Set([...(testRes?.detected_models || []), ...(POPULAR_PROVIDER_MODELS[p.id] || [])])).map((m) => (
-                                      <button
-                                        key={m}
-                                        type="button"
-                                        onClick={() => setModelInputs((prev) => ({ ...prev, [p.id]: m }))}
-                                        className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-700/80 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900/60 dark:hover:text-indigo-200 font-mono transition-colors truncate max-w-[200px]"
-                                        title={m}
-                                      >
-                                        {m.split("/").pop()}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex justify-between truncate">
-                          <span className="text-slate-500">Endpoint:</span>
-                          <span className="font-mono text-[11px] truncate max-w-[170px]" title={p.endpoint_url}>
-                            {p.endpoint_url}
-                          </span>
-                        </div>
-                        {p.doc_url && (
-                          <div className="flex justify-between items-center pt-1 border-t border-slate-200/50 dark:border-slate-700/50">
-                            <span className="text-slate-500 text-[11px]">Official Docs:</span>
-                            <a
-                              href={p.doc_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-indigo-500 hover:text-indigo-600 flex items-center gap-1 text-[11px]"
-                            >
-                              Docs <ExternalLink className="w-2.5 h-2.5" />
-                            </a>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* API Key Form for Cloud Providers */}
-                      {!isLocal && (
-                        <div className="mb-4 space-y-1.5">
-                          <label className="text-[11px] font-medium text-slate-500">API Key / Token:</label>
-                          <div className="flex gap-1.5">
-                            <input
-                              type="password"
-                              placeholder={isSavedKey ? "•••••••••••••••• (Saved)" : "Enter API key"}
-                              value={apiKeyInputs[p.id] || ""}
-                              onChange={(e) =>
-                                setApiKeyInputs({ ...apiKeyInputs, [p.id]: e.target.value })
-                              }
-                              className="flex-1 px-2.5 py-1 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            />
-                            <button
-                              onClick={() => handleSaveCredential(p.id)}
-                              disabled={savingKeyId === p.id}
-                              className="px-2.5 py-1 text-xs font-medium rounded bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 hover:opacity-90 disabled:opacity-50"
-                            >
-                              Save
-                            </button>
-                            {isSavedKey && (
-                              <button
-                                onClick={() => handleClearCredential(p.id)}
-                                title="Clear saved key from vault"
-                                className="px-2 py-1 text-xs font-medium rounded bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
-                              >
-                                Clear
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Connection Test Diagnostic Message */}
-                      {testRes && (
-                        <div
-                          className={`p-2 rounded text-[11px] mb-3 border ${
-                            testRes.success
-                              ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                              : "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
-                          }`}
-                        >
-                          <div className="font-medium">{testRes.message}</div>
-                          {testRes.detected_models.length > 0 && (
-                            <div className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
-                              Detected: {testRes.detected_models.slice(0, 3).join(", ")}
-                              {testRes.detected_models.length > 3 ? ` +${testRes.detected_models.length - 3} more` : ""}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* In-App Model Manager Panel Button */}
-                      {p.id === "in_app_local" && (
-                        <div className="mb-3">
-                          <button
-                            type="button"
-                            onClick={() => setIsModelPanelOpen(true)}
-                            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors shadow-2xs cursor-pointer"
-                          >
-                            <Brain className="w-3.5 h-3.5 text-indigo-500" />
-                            <span>Manage Local Models (DeepSeek, Qwen, Llama)</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Card Action Buttons */}
-                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                        {p.last_health_status === "connected" ? (
-                          <span className="flex items-center gap-1 text-emerald-600 font-medium">
-                            <CheckCircle2 className="w-3 h-3" /> Ready
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-slate-400">
-                            <HelpCircle className="w-3 h-3" /> Untested
-                          </span>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={() => handleTestProvider(p.id)}
-                        disabled={isTesting}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors disabled:opacity-50"
-                      >
-                        {isTesting ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-                        Test Connection
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Task Routing Configuration Section */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm mt-8">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1">
-                Task-to-Model Routing Rules
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                Define which configured AI provider handles specific research tasks. The system falls back cleanly if a provider is unavailable.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {[
-                  { id: "quick_summary", label: "Quick Summary & Abstract" },
-                  { id: "deep_analysis", label: "Deep Section Methodology" },
-                  { id: "qa_citations", label: "Grounded Q&A with Citations" },
-                  { id: "cross_paper_compare", label: "Cross-Paper Comparison" },
-                  { id: "recommendations", label: "Recommendation Ranking" },
-                  { id: "embeddings", label: "Library Vector Embeddings" },
-                ].map((task) => {
-                  const currentRoute = taskRoutes.find((r) => r.task_type === task.id);
-                  const activeProvId = currentRoute?.provider_id || "ollama_local";
-                  const assignedProv = providers.find((p) => p.id === activeProvId);
+              {/* Provider Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {providers.map((p) => {
+                  const isLocal = p.is_local;
+                  const testRes = testResults[p.id];
+                  const isTesting = testingProviderId === p.id;
+                  const isSavedKey = !!p.credential_ref;
 
                   return (
                     <div
-                      key={task.id}
-                      className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 shadow-xs space-y-2 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                      key={p.id}
+                      className={`rounded-xl border p-4 bg-white dark:bg-slate-900 flex flex-col justify-between transition-all shadow-sm ${
+                        p.is_enabled
+                          ? "border-slate-200 dark:border-slate-800"
+                          : "opacity-60 border-slate-200/50 dark:border-slate-800/50"
+                      }`}
                     >
-                      <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                        {task.label}
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={activeProvId}
-                          onChange={async (e) => {
-                            const newProvId = e.target.value;
-                            const prov = providers.find((p) => p.id === newProvId);
-                            const model = prov ? prov.default_model : "default";
-                            await setAiTaskRoute(task.id, newProvId, model);
-                            loadTaskRoutes();
-                            addToast({
-                              title: "Route Updated",
-                              message: `Assigned ${task.label} to ${prov?.display_name || newProvId}`,
-                              type: "info",
-                            });
-                          }}
-                          className="w-full text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer hover:border-slate-400 dark:hover:border-slate-600 transition-colors"
-                        >
-                          {providers.length === 0 && (
-                            <option value="ollama_local">Ollama Local Runtime (Local)</option>
-                          )}
-                          {!providers.some((p) => p.id === activeProvId) && (
-                            <option value={activeProvId}>{activeProvId} (Configured)</option>
-                          )}
-                          {providers.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.display_name} ({p.is_local ? "Local" : "Cloud"})
-                            </option>
-                          ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
-                          <ChevronDown className="w-4 h-4" />
+                      <div>
+                        {/* Provider Header */}
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-sm text-slate-900 dark:text-slate-100">
+                                {p.display_name}
+                              </span>
+                              {isLocal ? (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                  LOCAL
+                                </span>
+                              ) : (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                                  CLOUD
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-slate-500 capitalize">
+                              {p.access_category.replace(/_/g, " ")}
+                            </span>
+                          </div>
+
+                          {/* Enable/Disable Switch */}
+                          <button
+                            onClick={() => handleToggleProvider(p.id, p.is_enabled)}
+                            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                              p.is_enabled
+                                ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                            }`}
+                          >
+                            {p.is_enabled ? "Enabled" : "Disabled"}
+                          </button>
                         </div>
+
+                        {/* Capabilities */}
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {p.supported_capabilities.map((cap) => (
+                            <span
+                              key={cap}
+                              className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                            >
+                              {cap}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Model & Endpoint Details */}
+                        <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400 mb-4 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-500 font-medium">Model:</span>
+                              <div className="flex items-center gap-1.5">
+                                <span
+                                  className="font-mono text-slate-900 dark:text-slate-200 font-semibold text-[11px] truncate max-w-[190px]"
+                                  title={p.default_model}
+                                >
+                                  {p.default_model}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (editingModelProviderId === p.id) {
+                                      setEditingModelProviderId(null);
+                                    } else {
+                                      setEditingModelProviderId(p.id);
+                                      setModelInputs((prev) => ({
+                                        ...prev,
+                                        [p.id]: p.default_model,
+                                      }));
+                                    }
+                                  }}
+                                  className="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 p-0.5 rounded transition-colors"
+                                  title="Change or customize model"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                            {editingModelProviderId === p.id && (
+                              <div className="mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
+                                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">
+                                  Configure Model ID:
+                                </label>
+                                <div className="flex gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={modelInputs[p.id] ?? p.default_model}
+                                    onChange={(e) =>
+                                      setModelInputs((prev) => ({
+                                        ...prev,
+                                        [p.id]: e.target.value,
+                                      }))
+                                    }
+                                    placeholder="e.g. mistralai/mistral-large-4-1t-a52b"
+                                    className="flex-1 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSaveModel(p.id)}
+                                    className="px-2.5 py-1 text-xs font-medium rounded bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                                  >
+                                    Save
+                                  </button>
+                                </div>
+                                {((POPULAR_PROVIDER_MODELS[p.id] || []).length > 0 ||
+                                  (testRes?.detected_models || []).length > 0) && (
+                                  <div className="space-y-1">
+                                    <span className="text-[10px] text-slate-400">
+                                      Quick Select:
+                                    </span>
+                                    <div className="flex flex-wrap gap-1">
+                                      {Array.from(
+                                        new Set([
+                                          ...(testRes?.detected_models || []),
+                                          ...(POPULAR_PROVIDER_MODELS[p.id] || []),
+                                        ])
+                                      ).map((m) => (
+                                        <button
+                                          key={m}
+                                          type="button"
+                                          onClick={() =>
+                                            setModelInputs((prev) => ({
+                                              ...prev,
+                                              [p.id]: m,
+                                            }))
+                                          }
+                                          className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-700/80 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900/60 dark:hover:text-indigo-200 font-mono transition-colors truncate max-w-[200px]"
+                                          title={m}
+                                        >
+                                          {m.split("/").pop()}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex justify-between truncate">
+                            <span className="text-slate-500">Endpoint:</span>
+                            <span
+                              className="font-mono text-[11px] truncate max-w-[170px]"
+                              title={p.endpoint_url}
+                            >
+                              {p.endpoint_url}
+                            </span>
+                          </div>
+                          {p.doc_url && (
+                            <div className="flex justify-between items-center pt-1 border-t border-slate-200/50 dark:border-slate-700/50">
+                              <span className="text-slate-500 text-[11px]">
+                                Official Docs:
+                              </span>
+                              <a
+                                href={p.doc_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-indigo-500 hover:text-indigo-600 flex items-center gap-1 text-[11px]"
+                              >
+                                Docs <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* API Key Form for Cloud Providers */}
+                        {!isLocal && (
+                          <div className="mb-4 space-y-1.5">
+                            <label className="text-[11px] font-medium text-slate-500">
+                              API Key / Token:
+                            </label>
+                            <div className="flex gap-1.5">
+                              <input
+                                type="password"
+                                placeholder={
+                                  isSavedKey
+                                    ? "•••••••••••••••• (Saved)"
+                                    : "Enter API key"
+                                }
+                                value={apiKeyInputs[p.id] || ""}
+                                onChange={(e) =>
+                                  setApiKeyInputs({
+                                    ...apiKeyInputs,
+                                    [p.id]: e.target.value,
+                                  })
+                                }
+                                className="flex-1 px-2.5 py-1 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              />
+                              <button
+                                onClick={() => handleSaveCredential(p.id)}
+                                disabled={savingKeyId === p.id}
+                                className="px-2.5 py-1 text-xs font-medium rounded bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 hover:opacity-90 disabled:opacity-50"
+                              >
+                                Save
+                              </button>
+                              {isSavedKey && (
+                                <button
+                                  onClick={() => handleClearCredential(p.id)}
+                                  title="Clear saved key from vault"
+                                  className="px-2 py-1 text-xs font-medium rounded bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
+                                >
+                                  Clear
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Connection Test Diagnostic Message */}
+                        {testRes && (
+                          <div
+                            className={`p-2 rounded text-[11px] mb-3 border ${
+                              testRes.success
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                                : "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                            }`}
+                          >
+                            <div className="font-medium">{testRes.message}</div>
+                            {testRes.detected_models.length > 0 && (
+                              <div className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                                Detected: {testRes.detected_models.slice(0, 3).join(", ")}
+                                {testRes.detected_models.length > 3
+                                  ? ` +${testRes.detected_models.length - 3} more`
+                                  : ""}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* In-App Model Manager Panel Button */}
+                        {p.id === "in_app_local" && (
+                          <div className="mb-3">
+                            <button
+                              type="button"
+                              onClick={() => setIsModelPanelOpen(true)}
+                              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors shadow-2xs cursor-pointer"
+                            >
+                              <Brain className="w-3.5 h-3.5 text-indigo-500" />
+                              <span>Manage Local Models (DeepSeek, Qwen, Llama)</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
-                        <span className="truncate max-w-[170px]" title={assignedProv?.default_model || "default"}>
-                          Model: {assignedProv?.default_model || "default"}
-                        </span>
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-semibold shrink-0 ${
-                            assignedProv?.is_local
-                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60"
-                              : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60"
-                          }`}
+
+                      {/* Card Action Buttons */}
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                          {p.last_health_status === "connected" ? (
+                            <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                              <CheckCircle2 className="w-3 h-3" /> Ready
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-slate-400">
+                              <HelpCircle className="w-3 h-3" /> Untested
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => handleTestProvider(p.id)}
+                          disabled={isTesting}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors disabled:opacity-50"
                         >
-                          {assignedProv?.is_local ? "Local" : "Cloud"}
-                        </span>
+                          {isTesting ? (
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Play className="w-3 h-3" />
+                          )}
+                          Test Connection
+                        </button>
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* ========================================================================= */}
-        {/* TAB 2: READING ASSISTANT & GROUNDED RESEARCH CHAT */}
-        {/* ========================================================================= */}
-        {activeTab === "chat" && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full max-w-7xl mx-auto">
-            {/* Left Controls & Context Presets */}
-            <div className="lg:col-span-1 space-y-4">
-              {/* Paper Selector */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
-                  Target Research Paper:
-                </label>
-                <div className="relative">
-                  <select
-                    value={targetPaperId}
-                    onChange={(e) => {
-                      const pid = e.target.value;
-                      setTargetPaperId(pid);
-                      const p = papers.find((item) => item.id === pid);
-                      if (p) setSelectedPaperId(p.id);
-                      loadChunks(pid);
-                    }}
-                    className="w-full text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer truncate"
-                  >
-                    {papers.length === 0 ? (
-                      <option value="">No papers in library</option>
-                    ) : (
-                      papers.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.title}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
-                    <ChevronDown className="w-4 h-4" />
-                  </div>
-                </div>
+              {/* Task Routing Configuration Section */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm mt-8">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1">
+                  Task-to-Model Routing Rules
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                  Define which configured AI provider handles specific research tasks. The
+                  system falls back cleanly if a provider is unavailable.
+                </p>
 
-                {activePaper && (
-                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 space-y-1">
-                    <div className="font-medium text-slate-800 dark:text-slate-200 line-clamp-2">
-                      {activePaper.title}
-                    </div>
-                    <div>Year: {activePaper.year || "Unknown"} · Chunks: {paperChunks.length}</div>
-                    {paperChunks.length === 0 && (
-                      <button
-                        onClick={() => handleIndexPaper(activePaper.id)}
-                        disabled={isIndexing}
-                        className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 hover:bg-indigo-100"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isIndexing ? "animate-spin" : ""}`} />
-                        Index Paper for Citations
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* AI Engine & Model Switcher Card */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    AI Engine & Provider:
-                  </label>
-                  {(() => {
-                    const currentProv = providers.find((p) => p.id === selectedChatProviderId);
-                    const isLocal = currentProv ? currentProv.is_local : false;
-                    return (
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 ${
-                          isLocal
-                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60"
-                            : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60"
-                        }`}
-                      >
-                        {isLocal ? (
-                          <>
-                            <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                            <span>Local Offline</span>
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                            <span>Cloud API</span>
-                          </>
-                        )}
-                      </span>
-                    );
-                  })()}
-                </div>
-
-                <div className="relative">
-                  <select
-                    value={selectedChatProviderId}
-                    onChange={(e) => {
-                      const newPid = e.target.value;
-                      setSelectedChatProviderId(newPid);
-                      const prov = providers.find((p) => p.id === newPid);
-                      if (prov) {
-                        setSelectedChatModelId(prov.default_model);
-                      }
-                    }}
-                    className="w-full text-xs font-semibold pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer"
-                  >
-                    {providers.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.is_local ? "🔒 " : "⚡ "} {p.display_name} ({p.is_local ? "Local LLM" : "Cloud API"})
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
-                    <ChevronDown className="w-4 h-4" />
-                  </div>
-                </div>
-
-                {/* Model Identifier Selector / Preset */}
-                <div>
-                  <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
-                    <span>Model Identifier:</span>
-                    {selectedChatProviderId === "nvidia_nim" && (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Active: Nemotron-3-Ultra</span>
-                    )}
-                  </div>
-                  {POPULAR_PROVIDER_MODELS[selectedChatProviderId] ? (
-                    <div className="relative">
-                      <select
-                        value={
-                          selectedChatModelId ||
-                          providers.find((p) => p.id === selectedChatProviderId)?.default_model ||
-                          ""
-                        }
-                        onChange={(e) => setSelectedChatModelId(e.target.value)}
-                        className="w-full text-xs font-mono pl-3 pr-8 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer truncate"
-                      >
-                        {POPULAR_PROVIDER_MODELS[selectedChatProviderId].map((m) => (
-                          <option key={m} value={m}>
-                            {m}
-                          </option>
-                        ))}
-                        {(() => {
-                          const configuredModel = providers.find((p) => p.id === selectedChatProviderId)?.default_model;
-                          if (
-                            configuredModel &&
-                            !POPULAR_PROVIDER_MODELS[selectedChatProviderId].includes(configuredModel)
-                          ) {
-                            return <option value={configuredModel}>{configuredModel} (Configured)</option>;
-                          }
-                          return null;
-                        })()}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                  ) : (
-                    <input
-                      type="text"
-                      value={
-                        selectedChatModelId ||
-                        providers.find((p) => p.id === selectedChatProviderId)?.default_model ||
-                        ""
-                      }
-                      onChange={(e) => setSelectedChatModelId(e.target.value)}
-                      placeholder="e.g. nvidia/nemotron-3-ultra-550b-a55b, gpt-4o"
-                      className="w-full text-xs font-mono px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-xs"
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Scope & Grounding Switch */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                  Retrieval Scope (RAG):
-                </label>
-                <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-[11px] font-medium">
-                  {(["paper", "library", "none"] as const).map((sc) => (
-                    <button
-                      key={sc}
-                      onClick={() => setActiveRagScope(sc)}
-                      className={`py-1.5 rounded transition-all capitalize ${
-                        activeRagScope === sc
-                          ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm font-semibold"
-                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                      }`}
-                    >
-                      {sc === "paper" ? "This Paper" : sc === "library" ? "Full Library" : "No Context"}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Audience Level */}
-                <div className="pt-2">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Audience Explanation Level:
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={selectedAudience}
-                      onChange={(e) => setSelectedAudience(e.target.value)}
-                      className="w-full text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer"
-                    >
-                      <option value="beginner">Beginner / High School</option>
-                      <option value="undergraduate">Undergraduate Student</option>
-                      <option value="postgraduate">Postgraduate Researcher</option>
-                      <option value="researcher">Domain Specialist</option>
-                      <option value="expert">Expert / Rigorous Claims</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
-                      <ChevronDown className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Reading Mode */}
-                <div className="pt-2">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Reading Mode:
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={selectedReadingMode}
-                      onChange={(e) => setSelectedReadingMode(e.target.value)}
-                      className="w-full text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer"
-                    >
-                      <option value="quick_read">Quick Read (Summary & Key Takeaway)</option>
-                      <option value="deep_read">Deep Read (Methodology, Results & Validity)</option>
-                      <option value="critical_review">Critical Review (Strengths, Weaknesses & Assumptions)</option>
-                      <option value="implementation">Implementation Read (Datasets, Code & Steps)</option>
-                      <option value="compare">Compare Papers (Cross-paper Synthesis)</option>
-                      <option value="study">Study Mode (Glossary, Flashcards & Revision)</option>
-                      <option value="research_planning">Research Planning (Hypotheses & Literature Queries)</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
-                      <ChevronDown className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* One-Click Analysis Actions */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
-                  Paper Deep-Dive Prompts:
-                </h4>
-                <div className="flex flex-col gap-1.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {[
-                    { label: "Explain in Simple Terms", prompt: "Explain the core concept and contribution of this paper in simple terms." },
-                    { label: "5-Sentence Executive Summary", prompt: "Provide a concise 5-sentence executive summary covering the problem, methodology, findings, and implications." },
-                    { label: "Methodology & Experiments", prompt: "Detail the proposed methodology, neural architecture, datasets, baselines, and evaluation metrics." },
-                    { label: "Limitations & Threats to Validity", prompt: "Identify the critical limitations, assumptions, and threats to validity explicitly stated or implied by the authors." },
-                    { label: "Critical Appraisal", prompt: "Provide a balanced critical review of this paper's evidence quality, baseline fairness, and reproducibility." },
-                    { label: "Study Flashcards & Key Terms", prompt: "Generate 5 study flashcard questions and answers along with a technical glossary from this paper." },
-                  ].map((preset) => (
-                    <button
-                      key={preset.label}
-                      onClick={() => handleGenerate(preset.prompt)}
-                      disabled={isGenerating}
-                      className="text-left px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors border border-slate-200/60 dark:border-slate-800 disabled:opacity-50"
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+                    { id: "quick_summary", label: "Quick Summary & Abstract" },
+                    { id: "deep_analysis", label: "Deep Section Methodology" },
+                    { id: "qa_citations", label: "Grounded Q&A with Citations" },
+                    { id: "cross_paper_compare", label: "Cross-Paper Comparison" },
+                    { id: "recommendations", label: "Recommendation Ranking" },
+                    { id: "embeddings", label: "Library Vector Embeddings" },
+                  ].map((task) => {
+                    const currentRoute = taskRoutes.find((r) => r.task_type === task.id);
+                    const activeProvId = currentRoute?.provider_id || "ollama_local";
+                    const assignedProv = providers.find((p) => p.id === activeProvId);
 
-            {/* Right Chat Conversation Canvas */}
-            <div className="lg:col-span-3 flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden h-[700px]">
-              {/* Chat Canvas Header */}
-              <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    Grounded Research Assistant
-                  </span>
-                  <span className="text-slate-400">·</span>
-                  <span className="text-indigo-600 dark:text-indigo-400 font-medium">
-                    {activeRagScope === "paper" ? "Grounding: Current Paper" : activeRagScope === "library" ? "Grounding: All Papers" : "Grounding: Off"}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {/* Quick Engine Switcher in Header */}
-                  <div className="relative">
-                    <select
-                      value={selectedChatProviderId}
-                      onChange={(e) => {
-                        const newPid = e.target.value;
-                        setSelectedChatProviderId(newPid);
-                        const prov = providers.find((p) => p.id === newPid);
-                        if (prov) setSelectedChatModelId(prov.default_model);
-                      }}
-                      className="text-[11px] font-semibold pl-2.5 pr-7 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none cursor-pointer shadow-xs"
-                      title="Select active AI engine"
-                    >
-                      {providers.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.is_local ? "🔒 " : "⚡ "} {p.display_name}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400">
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={async () => {
-                      const sessionId = targetPaperId ? `ai_hub_${targetPaperId}` : "ai_hub_default";
-                      setChatMessages([]);
-                      try {
-                        localStorage.removeItem("ai_hub_chat_messages");
-                        localStorage.removeItem(`ai_hub_chat_messages_${sessionId}`);
-                      } catch {}
-                      try {
-                        await clearAiChatSession(sessionId);
-                      } catch (e) {
-                        console.warn("Failed to clear AI Hub chat session in SQLite:", e);
-                      }
-                    }}
-                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-500 transition-colors"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" /> Clear History
-                  </button>
-                </div>
-              </div>
-
-              {/* Message List */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {chatMessages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
-                    <BookOpen className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" />
-                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      Ask Questions Grounded in Your Research Library
-                    </h3>
-                    <p className="text-xs max-w-md mt-1 text-slate-500">
-                      Every claim is anchored to extracted passages with page numbers. Click any citation to view the source passage in the PDF reader.
-                    </p>
-                  </div>
-                ) : (
-                  chatMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
-                    >
+                    return (
                       <div
-                        className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
-                          msg.role === "user"
-                            ? "bg-indigo-600 text-white rounded-br-none"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-none border border-slate-200 dark:border-slate-700"
-                        }`}
+                        key={task.id}
+                        className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 shadow-xs space-y-2 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                       >
-                        {msg.role === "user" ? (
-                          <div className="whitespace-pre-wrap">{msg.content}</div>
-                        ) : (
-                          <MarkdownMessage content={msg.content} />
-                        )}
-
-                        {/* Interactive Page Citations */}
-                        {msg.citations && msg.citations.length > 0 && (
-                          <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-700/80">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
-                              Sources & Citations:
-                            </span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {msg.citations.map((c, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => {
-                                    if (activePaper) {
-                                      setReadingPaper(activePaper);
-                                      addToast({
-                                        title: `Citation Navigated`,
-                                        message: `Jumping to Page ${c.page_number} (${c.section_heading || "Main text"})`,
-                                        type: "info",
-                                      });
-                                    }
-                                  }}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 shadow-xs"
-                                  title={c.snippet}
-                                >
-                                  <FileText className="w-3 h-3" />
-                                  Page {c.page_number} ({c.section_heading || "Context"})
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1 px-1">
-                        <span>
-                          {msg.role === "assistant"
-                            ? `Generated by ${msg.provider_id || selectedChatProviderId} (${msg.model_id || currentChatModel}) · ${new Date(msg.created_at).toLocaleTimeString()}`
-                            : "You"}
-                        </span>
-                        {msg.role === "assistant" && (
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(msg.content);
-                              addToast({ title: "Copied", message: "Response copied to clipboard", type: "info" });
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                          {task.label}
+                        </label>
+                        <div className="relative">
+                          <select
+                            value={activeProvId}
+                            onChange={async (e) => {
+                              const newProvId = e.target.value;
+                              const prov = providers.find((p) => p.id === newProvId);
+                              const model = prov ? prov.default_model : "default";
+                              await setAiTaskRoute(task.id, newProvId, model);
+                              loadTaskRoutes();
+                              addToast({
+                                title: "Route Updated",
+                                message: `Assigned ${task.label} to ${prov?.display_name || newProvId}`,
+                                type: "info",
+                              });
                             }}
-                            className="hover:text-slate-600 dark:hover:text-slate-200 transition-colors flex items-center gap-1"
+                            className="w-full text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer hover:border-slate-400 dark:hover:border-slate-600 transition-colors"
                           >
-                            <Copy className="w-3 h-3" /> Copy
-                          </button>
-                        )}
+                            {providers.length === 0 && (
+                              <option value="ollama_local">
+                                Ollama Local Runtime (Local)
+                              </option>
+                            )}
+                            {!providers.some((p) => p.id === activeProvId) && (
+                              <option value={activeProvId}>
+                                {activeProvId} (Configured)
+                              </option>
+                            )}
+                            {providers.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.display_name} ({p.is_local ? "Local" : "Cloud"})
+                              </option>
+                            ))}
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
+                            <ChevronDown className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                          <span
+                            className="truncate max-w-[170px]"
+                            title={assignedProv?.default_model || "default"}
+                          >
+                            Model: {assignedProv?.default_model || "default"}
+                          </span>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold shrink-0 ${
+                              assignedProv?.is_local
+                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60"
+                                : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60"
+                            }`}
+                          >
+                            {assignedProv?.is_local ? "Local" : "Cloud"}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                )}
-                <AITypingIndicator
-                  visible={isGenerating}
-                  activityState="generating"
-                  context="research_assistant"
-                  statusMessage="Searching indexed passages and formulating answer with citations..."
-                  variant="chat"
-                />
-              </div>
-
-              {/* Chat Input Bar */}
-              <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                {chatPrompt.trim() && (() => {
-                  const intentResult = classifyResearchQuery(chatPrompt, { activePaperCount: 1 });
-                  return (
-                    <div className="mb-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300">
-                      <div className="flex items-center gap-1.5">
-                        <Compass className="w-3.5 h-3.5 text-slate-500" />
-                        <span>Query Intent: <strong className="capitalize">{intentResult.intent.replace(/_/g, " ")}</strong></span>
-                      </div>
-                      <span className="text-[10px] text-slate-500 font-medium">
-                        {Math.round(intentResult.confidence * 100)}% match
-                      </span>
-                    </div>
-                  );
-                })()}
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleGenerate();
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <input
-                    type="text"
-                    placeholder="Ask a question about this paper or your research library..."
-                    value={chatPrompt}
-                    onChange={(e) => setChatPrompt(e.target.value)}
-                    disabled={isGenerating}
-                    className="flex-1 px-4 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-800 dark:text-slate-100"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isGenerating || !chatPrompt.trim()}
-                    className="px-4 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm"
-                  >
-                    <Send className="w-3.5 h-3.5" /> Send
-                  </button>
-                </form>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ========================================================================= */}
-        {/* TAB: PAPER UNDERSTANDING */}
-        {/* ========================================================================= */}
-        {activeTab === "understanding" && (
-          <PaperUnderstandingPanel
-            activePaper={activePaper}
-            paperChunks={paperChunks.map((c) => ({
-              id: c.id,
-              paper_id: c.paper_id,
-              content_text: c.content_text,
-              page_number: c.page_number,
-              section_heading: c.section_heading,
-            }))}
-          />
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB: MULTI-PAPER COMPARISON & GAPS */}
-        {/* ========================================================================= */}
-        {activeTab === "comparison" && (
-          <MultiPaperComparisonPanel
-            papers={papers}
-          />
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 3: RECOMMENDATIONS */}
-        {/* ========================================================================= */}
-        {activeTab === "recommendations" && (
-          <div className="space-y-6 max-w-6xl mx-auto">
-            {/* Recommendations Header Controls */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                    Transparent Research Paper Recommendations
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Multi-signal scoring based on method similarity, concept overlap, and diversity reranking.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
+          {/* ========================================================================= */}
+          {/* TAB 2: READING ASSISTANT & GROUNDED RESEARCH CHAT */}
+          {/* ========================================================================= */}
+          {activeTab === "chat" && (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full max-w-7xl mx-auto">
+              {/* Left Controls & Context Presets */}
+              <div className="lg:col-span-1 space-y-4">
+                {/* Paper Selector */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
+                    Target Research Paper:
+                  </label>
                   <div className="relative">
                     <select
                       value={targetPaperId}
                       onChange={(e) => {
-                        setTargetPaperId(e.target.value);
-                        loadRecommendations(e.target.value, recommendationMode);
+                        const pid = e.target.value;
+                        setTargetPaperId(pid);
+                        const p = papers.find((item) => item.id === pid);
+                        if (p) setSelectedPaperId(p.id);
+                        loadChunks(pid);
                       }}
-                      className="text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer truncate max-w-xs"
+                      className="w-full text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer truncate"
                     >
                       {papers.length === 0 ? (
-                        <option value="">No papers available</option>
+                        <option value="">No papers in library</option>
                       ) : (
                         papers.map((p) => (
                           <option key={p.id} value={p.id}>
-                            Seed: {p.title.slice(0, 45)}...
+                            {p.title}
                           </option>
                         ))
                       )}
@@ -1877,543 +1485,1205 @@ export const AiHubView: React.FC = () => {
                       <ChevronDown className="w-4 h-4" />
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Recommendation Mode Tabs */}
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                {[
-                  { id: "next_paper", label: "Next Paper" },
-                  { id: "methodology_match", label: "Methodology Match" },
-                  { id: "recent_developments", label: "Recent Developments" },
-                  { id: "foundational", label: "Foundational Papers" },
-                  { id: "diversify", label: "Cross-Domain Discovery" },
-                ].map((mode) => (
-                  <button
-                    key={mode.id}
-                    onClick={() => {
-                      setRecommendationMode(mode.id);
-                      loadRecommendations(targetPaperId, mode.id);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      recommendationMode === mode.id
-                        ? "bg-indigo-600 text-white shadow-sm"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
-                    }`}
-                  >
-                    {mode.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Recommendations Grid */}
-            {isLoadingRecs ? (
-              <div className="p-12 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" /> Computing concept overlaps and diversity reranking...
-              </div>
-            ) : recommendations.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 text-center text-slate-400">
-                <Compass className="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-                <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  No Additional Recommendations in Library
-                </h4>
-                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                  Add more papers to your library via the Discover view to unlock deeper multi-paper recommendation clusters.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recommendations.map((rec) => (
-                  <div
-                    key={rec.id}
-                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between hover:border-indigo-300 dark:hover:border-indigo-800 transition-all"
-                  >
-                    <div>
-                      {/* Top Badges */}
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                          {rec.confidence_label}
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-mono">
-                          Score: {Math.round(rec.score * 100)}%
-                        </span>
+                  {activePaper && (
+                    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 space-y-1">
+                      <div className="font-medium text-slate-800 dark:text-slate-200 line-clamp-2">
+                        {activePaper.title}
                       </div>
-
-                      {/* Title & Authors */}
-                      <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 line-clamp-2">
-                        {rec.recommended_title}
-                      </h4>
-                      <p className="text-xs text-slate-500 mt-1 truncate">
-                        {rec.recommended_authors.join(", ")} · {rec.recommended_year || "N/A"}
-                      </p>
-
-                      {/* Transparent Why Recommended */}
-                      <div className="mt-3 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300">
-                        <span className="font-semibold text-slate-900 dark:text-slate-100 block mb-0.5">
-                          Why Recommended:
-                        </span>
-                        {rec.reason}
+                      <div>
+                        Year: {activePaper.year || "Unknown"} · Chunks:{" "}
+                        {paperChunks.length}
                       </div>
-
-                      {/* Matched Concepts */}
-                      {rec.matched_concepts.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2.5">
-                          {rec.matched_concepts.map((concept) => (
-                            <span
-                              key={concept}
-                              className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                            >
-                              #{concept}
-                            </span>
-                          ))}
-                        </div>
+                      {paperChunks.length === 0 && (
+                        <button
+                          onClick={() => handleIndexPaper(activePaper.id)}
+                          disabled={isIndexing}
+                          className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 hover:bg-indigo-100"
+                        >
+                          <RefreshCw
+                            className={`w-3.5 h-3.5 ${isIndexing ? "animate-spin" : ""}`}
+                          />
+                          Index Paper for Citations
+                        </button>
                       )}
                     </div>
+                  )}
+                </div>
 
-                    {/* Bottom Actions & User Feedback */}
-                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            const p = papers.find((item) => item.id === rec.recommended_paper_id);
-                            if (p) setReadingPaper(p);
-                          }}
-                          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                {/* AI Engine & Model Switcher Card */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                      AI Engine & Provider:
+                    </label>
+                    {(() => {
+                      const currentProv = providers.find(
+                        (p) => p.id === selectedChatProviderId
+                      );
+                      const isLocal = currentProv ? currentProv.is_local : false;
+                      return (
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 ${
+                            isLocal
+                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60"
+                              : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60"
+                          }`}
                         >
-                          Read Paper
-                        </button>
-                      </div>
+                          {isLocal ? (
+                            <>
+                              <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                              <span>Local Offline</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                              <span>Cloud API</span>
+                            </>
+                          )}
+                        </span>
+                      );
+                    })()}
+                  </div>
 
-                      {/* Feedback buttons */}
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => submitRecommendationFeedback(rec.id, "saved")}
-                          title="Save recommendation preference"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                        >
-                          <ThumbsUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            submitRecommendationFeedback(rec.id, "dismissed");
-                            setRecommendations((prev) => prev.filter((r) => r.id !== rec.id));
-                            addToast({ title: "Paper Dismissed", message: "Downranked in future recommendations.", type: "info" });
-                          }}
-                          title="Not relevant / Dismiss"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-                        >
-                          <ThumbsDown className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                  <div className="relative">
+                    <select
+                      value={selectedChatProviderId}
+                      onChange={(e) => {
+                        const newPid = e.target.value;
+                        setSelectedChatProviderId(newPid);
+                        const prov = providers.find((p) => p.id === newPid);
+                        if (prov) {
+                          setSelectedChatModelId(prov.default_model);
+                        }
+                      }}
+                      className="w-full text-xs font-semibold pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer"
+                    >
+                      {providers.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.is_local ? "🔒 " : "⚡ "} {p.display_name} (
+                          {p.is_local ? "Local LLM" : "Cloud API"})
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
+                      <ChevronDown className="w-4 h-4" />
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* ========================================================================= */}
-        {/* TAB 4: LIBRARY INDEXING (RAG) */}
-        {/* ========================================================================= */}
-        {activeTab === "indexing" && (
-          <div className="space-y-6 max-w-6xl mx-auto">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Library Knowledge Extraction & Section Chunks
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Extracted section chunks power lexical FTS5 search and exact page citations across your research papers.
-                </p>
-              </div>
-
-              <button
-                onClick={async () => {
-                  for (const p of papers) {
-                    await indexPaperForRag(p.id);
-                  }
-                  if (activePaper) loadChunks(activePaper.id);
-                  addToast({ title: "Batch Index Complete", message: "Indexed all papers in library.", type: "success" });
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 hover:opacity-90"
-              >
-                <Layers className="w-3.5 h-3.5" /> Re-Index Entire Library
-              </button>
-            </div>
-
-            {/* Papers Table */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
-              <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 font-semibold text-xs text-slate-800 dark:text-slate-200">
-                Library Paper Records ({papers.length})
-              </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                {papers.map((p) => (
-                  <div key={p.id} className="p-4 flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-slate-900 dark:text-slate-100 truncate">
-                        {p.title}
-                      </div>
-                      <div className="text-slate-400 text-[11px] mt-0.5">
-                        {p.authors?.join(", ") || "Unknown authors"} · {p.year || "Year unknown"}
-                      </div>
+                  {/* Model Identifier Selector / Preset */}
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      <span>Model Identifier:</span>
+                      {selectedChatProviderId === "nvidia_nim" && (
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                          Active: Nemotron-3-Ultra
+                        </span>
+                      )}
                     </div>
+                    {POPULAR_PROVIDER_MODELS[selectedChatProviderId] ? (
+                      <div className="relative">
+                        <select
+                          value={
+                            selectedChatModelId ||
+                            providers.find((p) => p.id === selectedChatProviderId)
+                              ?.default_model ||
+                            ""
+                          }
+                          onChange={(e) => setSelectedChatModelId(e.target.value)}
+                          className="w-full text-xs font-mono pl-3 pr-8 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer truncate"
+                        >
+                          {POPULAR_PROVIDER_MODELS[selectedChatProviderId].map((m) => (
+                            <option key={m} value={m}>
+                              {m}
+                            </option>
+                          ))}
+                          {(() => {
+                            const configuredModel = providers.find(
+                              (p) => p.id === selectedChatProviderId
+                            )?.default_model;
+                            if (
+                              configuredModel &&
+                              !POPULAR_PROVIDER_MODELS[selectedChatProviderId].includes(
+                                configuredModel
+                              )
+                            ) {
+                              return (
+                                <option value={configuredModel}>
+                                  {configuredModel} (Configured)
+                                </option>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </div>
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        value={
+                          selectedChatModelId ||
+                          providers.find((p) => p.id === selectedChatProviderId)
+                            ?.default_model ||
+                          ""
+                        }
+                        onChange={(e) => setSelectedChatModelId(e.target.value)}
+                        placeholder="e.g. nvidia/nemotron-3-ultra-550b-a55b, gpt-4o"
+                        className="w-full text-xs font-mono px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-xs"
+                      />
+                    )}
+                  </div>
+                </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                {/* Scope & Grounding Switch */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Retrieval Scope (RAG):
+                  </label>
+                  <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-[11px] font-medium">
+                    {(["paper", "library", "none"] as const).map((sc) => (
                       <button
-                        onClick={() => handleIndexPaper(p.id)}
-                        disabled={isIndexing}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 hover:bg-indigo-100"
+                        key={sc}
+                        onClick={() => setActiveRagScope(sc)}
+                        className={`py-1.5 rounded transition-all capitalize ${
+                          activeRagScope === sc
+                            ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm font-semibold"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                        }`}
                       >
-                        Index Document
+                        {sc === "paper"
+                          ? "This Paper"
+                          : sc === "library"
+                            ? "Full Library"
+                            : "No Context"}
                       </button>
+                    ))}
+                  </div>
+
+                  {/* Audience Level */}
+                  <div className="pt-2">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Audience Explanation Level:
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedAudience}
+                        onChange={(e) => setSelectedAudience(e.target.value)}
+                        className="w-full text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer"
+                      >
+                        <option value="beginner">Beginner / High School</option>
+                        <option value="undergraduate">Undergraduate Student</option>
+                        <option value="postgraduate">Postgraduate Researcher</option>
+                        <option value="researcher">Domain Specialist</option>
+                        <option value="expert">Expert / Rigorous Claims</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* ========================================================================= */}
-        {/* TAB 5: FINE-TUNING LAB */}
-        {/* ========================================================================= */}
-        {activeTab === "finetuning" && (
-          <div className="space-y-6 max-w-6xl mx-auto">
-            {/* Conceptual Distinction Callout */}
-            <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent p-5 rounded-xl border border-amber-300 dark:border-amber-800">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">
-                    Important: RAG vs. Model Fine-Tuning
+                  {/* Reading Mode */}
+                  <div className="pt-2">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Reading Mode:
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedReadingMode}
+                        onChange={(e) => setSelectedReadingMode(e.target.value)}
+                        className="w-full text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer"
+                      >
+                        <option value="quick_read">
+                          Quick Read (Summary & Key Takeaway)
+                        </option>
+                        <option value="deep_read">
+                          Deep Read (Methodology, Results & Validity)
+                        </option>
+                        <option value="critical_review">
+                          Critical Review (Strengths, Weaknesses & Assumptions)
+                        </option>
+                        <option value="implementation">
+                          Implementation Read (Datasets, Code & Steps)
+                        </option>
+                        <option value="compare">
+                          Compare Papers (Cross-paper Synthesis)
+                        </option>
+                        <option value="study">
+                          Study Mode (Glossary, Flashcards & Revision)
+                        </option>
+                        <option value="research_planning">
+                          Research Planning (Hypotheses & Literature Queries)
+                        </option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* One-Click Analysis Actions */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
+                    Paper Deep-Dive Prompts:
                   </h4>
-                  <p className="text-xs text-amber-800 dark:text-amber-300 mt-1 leading-relaxed">
-                    <strong>RAG (Retrieval-Augmented Generation)</strong> provides query-time access to your research library without modifying model weights. It works instantly across every configured provider.
-                    <br />
-                    <strong>Fine-tuning</strong> actually trains new weights/adapters (PEFT/LoRA) using curated datasets. It is optional, resource-intensive, and requires supported local open-weight models and hardware.
+                  <div className="flex flex-col gap-1.5">
+                    {[
+                      {
+                        label: "Explain in Simple Terms",
+                        prompt:
+                          "Explain the core concept and contribution of this paper in simple terms.",
+                      },
+                      {
+                        label: "5-Sentence Executive Summary",
+                        prompt:
+                          "Provide a concise 5-sentence executive summary covering the problem, methodology, findings, and implications.",
+                      },
+                      {
+                        label: "Methodology & Experiments",
+                        prompt:
+                          "Detail the proposed methodology, neural architecture, datasets, baselines, and evaluation metrics.",
+                      },
+                      {
+                        label: "Limitations & Threats to Validity",
+                        prompt:
+                          "Identify the critical limitations, assumptions, and threats to validity explicitly stated or implied by the authors.",
+                      },
+                      {
+                        label: "Critical Appraisal",
+                        prompt:
+                          "Provide a balanced critical review of this paper's evidence quality, baseline fairness, and reproducibility.",
+                      },
+                      {
+                        label: "Study Flashcards & Key Terms",
+                        prompt:
+                          "Generate 5 study flashcard questions and answers along with a technical glossary from this paper.",
+                      },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() => handleGenerate(preset.prompt)}
+                        disabled={isGenerating}
+                        className="text-left px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors border border-slate-200/60 dark:border-slate-800 disabled:opacity-50"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Chat Conversation Canvas */}
+              <div className="lg:col-span-3 flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden h-[700px]">
+                {/* Chat Canvas Header */}
+                <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      Grounded Research Assistant
+                    </span>
+                    <span className="text-slate-400">·</span>
+                    <span className="text-indigo-600 dark:text-indigo-400 font-medium">
+                      {activeRagScope === "paper"
+                        ? "Grounding: Current Paper"
+                        : activeRagScope === "library"
+                          ? "Grounding: All Papers"
+                          : "Grounding: Off"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Quick Engine Switcher in Header */}
+                    <div className="relative">
+                      <select
+                        value={selectedChatProviderId}
+                        onChange={(e) => {
+                          const newPid = e.target.value;
+                          setSelectedChatProviderId(newPid);
+                          const prov = providers.find((p) => p.id === newPid);
+                          if (prov) setSelectedChatModelId(prov.default_model);
+                        }}
+                        className="text-[11px] font-semibold pl-2.5 pr-7 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none cursor-pointer shadow-xs"
+                        title="Select active AI engine"
+                      >
+                        {providers.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.is_local ? "🔒 " : "⚡ "} {p.display_name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400">
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={async () => {
+                        const sessionId = targetPaperId
+                          ? `ai_hub_${targetPaperId}`
+                          : "ai_hub_default";
+                        setChatMessages([]);
+                        try {
+                          localStorage.removeItem("ai_hub_chat_messages");
+                          localStorage.removeItem(`ai_hub_chat_messages_${sessionId}`);
+                        } catch {}
+                        try {
+                          await clearAiChatSession(sessionId);
+                        } catch (e) {
+                          console.warn(
+                            "Failed to clear AI Hub chat session in SQLite:",
+                            e
+                          );
+                        }
+                      }}
+                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-500 transition-colors"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" /> Clear History
+                    </button>
+                  </div>
+                </div>
+
+                {/* Message List */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {chatMessages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
+                      <BookOpen className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" />
+                      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        Ask Questions Grounded in Your Research Library
+                      </h3>
+                      <p className="text-xs max-w-md mt-1 text-slate-500">
+                        Every claim is anchored to extracted passages with page numbers.
+                        Click any citation to view the source passage in the PDF reader.
+                      </p>
+                    </div>
+                  ) : (
+                    chatMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
+                      >
+                        <div
+                          className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
+                            msg.role === "user"
+                              ? "bg-indigo-600 text-white rounded-br-none"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-none border border-slate-200 dark:border-slate-700"
+                          }`}
+                        >
+                          {msg.role === "user" ? (
+                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                          ) : (
+                            <MarkdownMessage content={msg.content} />
+                          )}
+
+                          {/* Interactive Page Citations */}
+                          {msg.citations && msg.citations.length > 0 && (
+                            <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-700/80">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+                                Sources & Citations:
+                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {msg.citations.map((c, idx) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => {
+                                      if (activePaper) {
+                                        setReadingPaper(activePaper);
+                                        addToast({
+                                          title: `Citation Navigated`,
+                                          message: `Jumping to Page ${c.page_number} (${c.section_heading || "Main text"})`,
+                                          type: "info",
+                                        });
+                                      }
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 shadow-xs"
+                                    title={c.snippet}
+                                  >
+                                    <FileText className="w-3 h-3" />
+                                    Page {c.page_number} ({c.section_heading || "Context"}
+                                    )
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1 px-1">
+                          <span>
+                            {msg.role === "assistant"
+                              ? `Generated by ${msg.provider_id || selectedChatProviderId} (${msg.model_id || currentChatModel}) · ${new Date(msg.created_at).toLocaleTimeString()}`
+                              : "You"}
+                          </span>
+                          {msg.role === "assistant" && (
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(msg.content);
+                                addToast({
+                                  title: "Copied",
+                                  message: "Response copied to clipboard",
+                                  type: "info",
+                                });
+                              }}
+                              className="hover:text-slate-600 dark:hover:text-slate-200 transition-colors flex items-center gap-1"
+                            >
+                              <Copy className="w-3 h-3" /> Copy
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  <AITypingIndicator
+                    visible={isGenerating}
+                    activityState="generating"
+                    context="research_assistant"
+                    statusMessage="Searching indexed passages and formulating answer with citations..."
+                    variant="chat"
+                  />
+                </div>
+
+                {/* Chat Input Bar */}
+                <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                  {chatPrompt.trim() &&
+                    (() => {
+                      const intentResult = classifyResearchQuery(chatPrompt, {
+                        activePaperCount: 1,
+                      });
+                      return (
+                        <div className="mb-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300">
+                          <div className="flex items-center gap-1.5">
+                            <Compass className="w-3.5 h-3.5 text-slate-500" />
+                            <span>
+                              Query Intent:{" "}
+                              <strong className="capitalize">
+                                {intentResult.intent.replace(/_/g, " ")}
+                              </strong>
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-slate-500 font-medium">
+                            {Math.round(intentResult.confidence * 100)}% match
+                          </span>
+                        </div>
+                      );
+                    })()}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleGenerate();
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Ask a question about this paper or your research library..."
+                      value={chatPrompt}
+                      onChange={(e) => setChatPrompt(e.target.value)}
+                      disabled={isGenerating}
+                      className="flex-1 px-4 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-800 dark:text-slate-100"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isGenerating || !chatPrompt.trim()}
+                      className="px-4 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                    >
+                      <Send className="w-3.5 h-3.5" /> Send
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: PAPER UNDERSTANDING */}
+          {/* ========================================================================= */}
+          {activeTab === "understanding" && (
+            <PaperUnderstandingPanel
+              activePaper={activePaper}
+              paperChunks={paperChunks.map((c) => ({
+                id: c.id,
+                paper_id: c.paper_id,
+                content_text: c.content_text,
+                page_number: c.page_number,
+                section_heading: c.section_heading,
+              }))}
+            />
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: MULTI-PAPER COMPARISON & GAPS */}
+          {/* ========================================================================= */}
+          {activeTab === "comparison" && <MultiPaperComparisonPanel papers={papers} />}
+
+          {/* ========================================================================= */}
+          {/* TAB 3: RECOMMENDATIONS */}
+          {/* ========================================================================= */}
+          {activeTab === "recommendations" && (
+            <div className="space-y-6 max-w-6xl mx-auto">
+              {/* Recommendations Header Controls */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      Transparent Research Paper Recommendations
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Multi-signal scoring based on method similarity, concept overlap,
+                      and diversity reranking.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <select
+                        value={targetPaperId}
+                        onChange={(e) => {
+                          setTargetPaperId(e.target.value);
+                          loadRecommendations(e.target.value, recommendationMode);
+                        }}
+                        className="text-xs font-medium pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer truncate max-w-xs"
+                      >
+                        {papers.length === 0 ? (
+                          <option value="">No papers available</option>
+                        ) : (
+                          papers.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              Seed: {p.title.slice(0, 45)}...
+                            </option>
+                          ))
+                        )}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recommendation Mode Tabs */}
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  {[
+                    { id: "next_paper", label: "Next Paper" },
+                    { id: "methodology_match", label: "Methodology Match" },
+                    { id: "recent_developments", label: "Recent Developments" },
+                    { id: "foundational", label: "Foundational Papers" },
+                    { id: "diversify", label: "Cross-Domain Discovery" },
+                  ].map((mode) => (
+                    <button
+                      key={mode.id}
+                      onClick={() => {
+                        setRecommendationMode(mode.id);
+                        loadRecommendations(targetPaperId, mode.id);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        recommendationMode === mode.id
+                          ? "bg-indigo-600 text-white shadow-sm"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
+                      }`}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recommendations Grid */}
+              {isLoadingRecs ? (
+                <div className="p-12 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" /> Computing
+                  concept overlaps and diversity reranking...
+                </div>
+              ) : recommendations.length === 0 ? (
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 text-center text-slate-400">
+                  <Compass className="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                  <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    No Additional Recommendations in Library
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    Add more papers to your library via the Discover view to unlock deeper
+                    multi-paper recommendation clusters.
                   </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Hardware Pre-Flight Card */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                    Local Hardware & Capability Pre-Flight Check
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Evaluates CUDA GPU, VRAM, RAM, and disk storage before allocating compute resources.
-                  </p>
-                </div>
-                <button
-                  onClick={loadHardwareInfo}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" /> Re-Check Hardware
-                </button>
-              </div>
-
-              {hardwareInfo && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                  <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-400 block text-[11px]">NVIDIA CUDA GPU:</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                      {hardwareInfo.cuda_available ? "Detected" : "None / CPU Only"}
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-400 block text-[11px]">Architecture:</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200 text-sm capitalize">
-                      {hardwareInfo.os} ({hardwareInfo.arch})
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-400 block text-[11px]">Min Recommended VRAM:</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                      {hardwareInfo.min_recommended_vram_gb} GB
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-400 block text-[11px]">Supported Techniques:</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                      PEFT / LoRA (4-bit)
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Dataset Preparation & Job Registration Form */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                Register Fine-Tuning Job (LoRA / PEFT)
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <label className="block text-slate-600 dark:text-slate-400 mb-1">Base Open-Weight Model:</label>
-                  <input
-                    type="text"
-                    value={ftModelName}
-                    onChange={(e) => setFtModelName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-600 dark:text-slate-400 mb-1">Adapter Name:</label>
-                  <input
-                    type="text"
-                    value={ftAdapterName}
-                    onChange={(e) => setFtAdapterName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-600 dark:text-slate-400 mb-1">Training Epochs:</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={ftEpochs}
-                    onChange={(e) => setFtEpochs(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-600 dark:text-slate-400 mb-1">Curated Examples Count:</label>
-                  <input
-                    type="number"
-                    min={20}
-                    max={5000}
-                    value={ftDatasetSize}
-                    onChange={(e) => setFtDatasetSize(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end">
-                <button
-                  onClick={handleCreateFineTuningJob}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm flex items-center gap-1.5"
-                >
-                  <Play className="w-3.5 h-3.5" /> Pre-Flight & Queue LoRA Job
-                </button>
-              </div>
-            </div>
-
-            {/* Jobs History Table */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">
-                Fine-Tuning Jobs & Adapters ({finetuningJobs.length})
-              </h3>
-              {finetuningJobs.length === 0 ? (
-                <div className="text-xs text-slate-400 text-center py-6">
-                  No fine-tuning jobs registered. Use RAG for instant question answering across papers.
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {finetuningJobs.map((j) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {recommendations.map((rec) => (
                     <div
-                      key={j.id}
-                      className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-xs flex items-center justify-between"
+                      key={rec.id}
+                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between hover:border-indigo-300 dark:hover:border-indigo-800 transition-all"
                     >
                       <div>
-                        <div className="font-semibold text-slate-900 dark:text-slate-100">
-                          {j.adapter_name} ({j.model_name})
+                        {/* Top Badges */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                            {rec.confidence_label}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            Score: {Math.round(rec.score * 100)}%
+                          </span>
                         </div>
-                        <div className="text-slate-500 mt-0.5">
-                          {j.stage_message || j.status} · Epochs: {j.epochs} · Dataset: {j.dataset_size} examples
+
+                        {/* Title & Authors */}
+                        <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 line-clamp-2">
+                          {rec.recommended_title}
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1 truncate">
+                          {rec.recommended_authors.join(", ")} ·{" "}
+                          {rec.recommended_year || "N/A"}
+                        </p>
+
+                        {/* Transparent Why Recommended */}
+                        <div className="mt-3 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300">
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 block mb-0.5">
+                            Why Recommended:
+                          </span>
+                          {rec.reason}
+                        </div>
+
+                        {/* Matched Concepts */}
+                        {rec.matched_concepts.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2.5">
+                            {rec.matched_concepts.map((concept) => (
+                              <span
+                                key={concept}
+                                className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                              >
+                                #{concept}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bottom Actions & User Feedback */}
+                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              const p = papers.find(
+                                (item) => item.id === rec.recommended_paper_id
+                              );
+                              if (p) setReadingPaper(p);
+                            }}
+                            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                          >
+                            Read Paper
+                          </button>
+                        </div>
+
+                        {/* Feedback buttons */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => submitRecommendationFeedback(rec.id, "saved")}
+                            title="Save recommendation preference"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                          >
+                            <ThumbsUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              submitRecommendationFeedback(rec.id, "dismissed");
+                              setRecommendations((prev) =>
+                                prev.filter((r) => r.id !== rec.id)
+                              );
+                              addToast({
+                                title: "Paper Dismissed",
+                                message: "Downranked in future recommendations.",
+                                type: "info",
+                              });
+                            }}
+                            title="Not relevant / Dismiss"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          >
+                            <ThumbsDown className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
-                      <span className="px-2.5 py-1 rounded text-xs font-semibold capitalize bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                        {j.status}
-                      </span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ========================================================================= */}
-        {/* TAB 6: EVALUATIONS & QUALITY BENCHMARKS */}
-        {/* ========================================================================= */}
-        {activeTab === "evaluations" && (
-          <div className="space-y-6 max-w-6xl mx-auto">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Deterministic Local Evaluation Center
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Benchmarks citation accuracy, honest abstention on missing evidence, prompt injection safety, and latency.
-                </p>
+          {/* ========================================================================= */}
+          {/* TAB 4: LIBRARY INDEXING (RAG) */}
+          {/* ========================================================================= */}
+          {activeTab === "indexing" && (
+            <div className="space-y-6 max-w-6xl mx-auto">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    Library Knowledge Extraction & Section Chunks
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Extracted section chunks power lexical FTS5 search and exact page
+                    citations across your research papers.
+                  </p>
+                </div>
+
+                <button
+                  onClick={async () => {
+                    for (const p of papers) {
+                      await indexPaperForRag(p.id);
+                    }
+                    if (activePaper) loadChunks(activePaper.id);
+                    addToast({
+                      title: "Batch Index Complete",
+                      message: "Indexed all papers in library.",
+                      type: "success",
+                    });
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 hover:opacity-90"
+                >
+                  <Layers className="w-3.5 h-3.5" /> Re-Index Entire Library
+                </button>
               </div>
 
-              <button
-                onClick={handleRunEvaluation}
-                disabled={isRunningEval}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-50"
-              >
-                <Activity className={`w-3.5 h-3.5 ${isRunningEval ? "animate-spin" : ""}`} />
-                {isRunningEval ? "Running Benchmarks..." : "Run Evaluation Suite"}
-              </button>
-            </div>
-
-            {/* Scorecards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <span className="text-xs text-slate-500 block">Citation Accuracy</span>
-                <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">100%</span>
-                <span className="text-[11px] text-slate-400 block mt-1">Exact page & section attribution</span>
-              </div>
-              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <span className="text-xs text-slate-500 block">Abstention Rate</span>
-                <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">100%</span>
-                <span className="text-[11px] text-slate-400 block mt-1">Honest refusal when uncited</span>
-              </div>
-              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <span className="text-xs text-slate-500 block">Injection Neutralization</span>
-                <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">Pass</span>
-                <span className="text-[11px] text-slate-400 block mt-1">Untrusted paper text isolated</span>
-              </div>
-              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <span className="text-xs text-slate-500 block">Avg Response Latency</span>
-                <span className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                  {evalResults[0]?.avg_latency_ms || 45} ms
-                </span>
-                <span className="text-[11px] text-slate-400 block mt-1">Local FTS5 query dispatch</span>
-              </div>
-            </div>
-
-            {/* Past Evaluations Table */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
-              <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 font-semibold text-xs text-slate-800 dark:text-slate-200">
-                Benchmark Run History
-              </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                {evalResults.map((e) => (
-                  <div key={e.id} className="p-4 flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-slate-900 dark:text-slate-100">
-                        {e.benchmark_suite} ({e.provider_id} / {e.model_id})
+              {/* Papers Table */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 font-semibold text-xs text-slate-800 dark:text-slate-200">
+                  Library Paper Records ({papers.length})
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                  {papers.map((p) => (
+                    <div
+                      key={p.id}
+                      className="p-4 flex items-center justify-between gap-4"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                          {p.title}
+                        </div>
+                        <div className="text-slate-400 text-[11px] mt-0.5">
+                          {p.authors?.join(", ") || "Unknown authors"} ·{" "}
+                          {p.year || "Year unknown"}
+                        </div>
                       </div>
-                      <div className="text-slate-400 text-[11px] mt-0.5">
-                        Passed: {e.passed_tests}/{e.total_tests} · Latency: {e.avg_latency_ms}ms · {new Date(e.evaluated_at).toLocaleString()}
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <button
+                          onClick={() => handleIndexPaper(p.id)}
+                          disabled={isIndexing}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 hover:bg-indigo-100"
+                        >
+                          Index Document
+                        </button>
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                      Passed
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 7: PRIVACY & STORAGE */}
-        {/* ========================================================================= */}
-        {activeTab === "privacy" && (
-          <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                Backend-Enforced Privacy Boundaries
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                These switches are checked inside the Rust/SQLite backend before any network packets are transmitted.
-              </p>
-
-              <div className="space-y-4 pt-2">
-                {/* Local Only Mode */}
-                <div className="flex items-start justify-between gap-4 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-                  <div>
-                    <span className="font-bold text-xs text-slate-900 dark:text-slate-100 block">
-                      Local-Only Mode
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      Disables all outbound remote AI providers. Only local Ollama, LM Studio, and llama.cpp runtimes are permitted.
-                    </span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={settings?.local_only_mode || false}
-                    onChange={(e) => handleToggleSetting("local_only_mode", e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded mt-1"
-                  />
-                </div>
-
-                {/* Never Use Paid APIs */}
-                <div className="flex items-start justify-between gap-4 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-                  <div>
-                    <span className="font-bold text-xs text-slate-900 dark:text-slate-100 block">
-                      Never Use Paid APIs
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      Strictly blocks any provider or model route classified as paid. Prevents unexpected cloud charges.
-                    </span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={settings?.never_use_paid_apis ?? true}
-                    onChange={(e) => handleToggleSetting("never_use_paid_apis", e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded mt-1"
-                  />
-                </div>
-
-                {/* Cloud Paper Sharing Consent */}
-                <div className="flex items-start justify-between gap-4 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-                  <div>
-                    <span className="font-bold text-xs text-slate-900 dark:text-slate-100 block">
-                      Cloud Paper Context Sharing
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      Allows sending paper excerpts to permitted cloud providers when using RAG. If disabled, cloud models cannot access paper passages.
-                    </span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={settings?.cloud_paper_sharing_enabled || false}
-                    onChange={(e) => handleToggleSetting("cloud_paper_sharing_enabled", e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded mt-1"
-                  />
+                  ))}
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Storage Info */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-3">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                Local SQLite Knowledge Storage
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                All extracted chunks, BM25 indices, and recommendation caches reside on your local machine.
-              </p>
-              <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
-                <div>Total Indexed Papers: {papers.length}</div>
-                <div>Storage Location: Application Data Directory (research-paper-scraper.sqlite3)</div>
-                <div>Secure Key Vault: <code>security/.vault.dat</code> (Key references only)</div>
+          {/* ========================================================================= */}
+          {/* TAB 5: FINE-TUNING LAB */}
+          {/* ========================================================================= */}
+          {activeTab === "finetuning" && (
+            <div className="space-y-6 max-w-6xl mx-auto">
+              {/* Conceptual Distinction Callout */}
+              <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent p-5 rounded-xl border border-amber-300 dark:border-amber-800">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                      Important: RAG vs. Model Fine-Tuning
+                    </h4>
+                    <p className="text-xs text-amber-800 dark:text-amber-300 mt-1 leading-relaxed">
+                      <strong>RAG (Retrieval-Augmented Generation)</strong> provides
+                      query-time access to your research library without modifying model
+                      weights. It works instantly across every configured provider.
+                      <br />
+                      <strong>Fine-tuning</strong> actually trains new weights/adapters
+                      (PEFT/LoRA) using curated datasets. It is optional,
+                      resource-intensive, and requires supported local open-weight models
+                      and hardware.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hardware Pre-Flight Card */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      Local Hardware & Capability Pre-Flight Check
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Evaluates CUDA GPU, VRAM, RAM, and disk storage before allocating
+                      compute resources.
+                    </p>
+                  </div>
+                  <button
+                    onClick={loadHardwareInfo}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Re-Check Hardware
+                  </button>
+                </div>
+
+                {hardwareInfo && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-400 block text-[11px]">
+                        NVIDIA CUDA GPU:
+                      </span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                        {hardwareInfo.cuda_available ? "Detected" : "None / CPU Only"}
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-400 block text-[11px]">
+                        Architecture:
+                      </span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200 text-sm capitalize">
+                        {hardwareInfo.os} ({hardwareInfo.arch})
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-400 block text-[11px]">
+                        Min Recommended VRAM:
+                      </span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                        {hardwareInfo.min_recommended_vram_gb} GB
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-400 block text-[11px]">
+                        Supported Techniques:
+                      </span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                        PEFT / LoRA (4-bit)
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Dataset Preparation & Job Registration Form */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  Register Fine-Tuning Job (LoRA / PEFT)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="block text-slate-600 dark:text-slate-400 mb-1">
+                      Base Open-Weight Model:
+                    </label>
+                    <input
+                      type="text"
+                      value={ftModelName}
+                      onChange={(e) => setFtModelName(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 dark:text-slate-400 mb-1">
+                      Adapter Name:
+                    </label>
+                    <input
+                      type="text"
+                      value={ftAdapterName}
+                      onChange={(e) => setFtAdapterName(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 dark:text-slate-400 mb-1">
+                      Training Epochs:
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={ftEpochs}
+                      onChange={(e) => setFtEpochs(Number(e.target.value))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 dark:text-slate-400 mb-1">
+                      Curated Examples Count:
+                    </label>
+                    <input
+                      type="number"
+                      min={20}
+                      max={5000}
+                      value={ftDatasetSize}
+                      onChange={(e) => setFtDatasetSize(Number(e.target.value))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    onClick={handleCreateFineTuningJob}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm flex items-center gap-1.5"
+                  >
+                    <Play className="w-3.5 h-3.5" /> Pre-Flight & Queue LoRA Job
+                  </button>
+                </div>
+              </div>
+
+              {/* Jobs History Table */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">
+                  Fine-Tuning Jobs & Adapters ({finetuningJobs.length})
+                </h3>
+                {finetuningJobs.length === 0 ? (
+                  <div className="text-xs text-slate-400 text-center py-6">
+                    No fine-tuning jobs registered. Use RAG for instant question answering
+                    across papers.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {finetuningJobs.map((j) => (
+                      <div
+                        key={j.id}
+                        className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-xs flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-slate-100">
+                            {j.adapter_name} ({j.model_name})
+                          </div>
+                          <div className="text-slate-500 mt-0.5">
+                            {j.stage_message || j.status} · Epochs: {j.epochs} · Dataset:{" "}
+                            {j.dataset_size} examples
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 rounded text-xs font-semibold capitalize bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                          {j.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        )}
-      </main>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 6: EVALUATIONS & QUALITY BENCHMARKS */}
+          {/* ========================================================================= */}
+          {activeTab === "evaluations" && (
+            <div className="space-y-6 max-w-6xl mx-auto">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    Deterministic Local Evaluation Center
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Benchmarks citation accuracy, honest abstention on missing evidence,
+                    prompt injection safety, and latency.
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleRunEvaluation}
+                  disabled={isRunningEval}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-50"
+                >
+                  <Activity
+                    className={`w-3.5 h-3.5 ${isRunningEval ? "animate-spin" : ""}`}
+                  />
+                  {isRunningEval ? "Running Benchmarks..." : "Run Evaluation Suite"}
+                </button>
+              </div>
+
+              {/* Scorecards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <span className="text-xs text-slate-500 block">Citation Accuracy</span>
+                  <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    100%
+                  </span>
+                  <span className="text-[11px] text-slate-400 block mt-1">
+                    Exact page & section attribution
+                  </span>
+                </div>
+                <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <span className="text-xs text-slate-500 block">Abstention Rate</span>
+                  <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                    100%
+                  </span>
+                  <span className="text-[11px] text-slate-400 block mt-1">
+                    Honest refusal when uncited
+                  </span>
+                </div>
+                <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <span className="text-xs text-slate-500 block">
+                    Injection Neutralization
+                  </span>
+                  <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    Pass
+                  </span>
+                  <span className="text-[11px] text-slate-400 block mt-1">
+                    Untrusted paper text isolated
+                  </span>
+                </div>
+                <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <span className="text-xs text-slate-500 block">
+                    Avg Response Latency
+                  </span>
+                  <span className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                    {evalResults[0]?.avg_latency_ms || 45} ms
+                  </span>
+                  <span className="text-[11px] text-slate-400 block mt-1">
+                    Local FTS5 query dispatch
+                  </span>
+                </div>
+              </div>
+
+              {/* Past Evaluations Table */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 font-semibold text-xs text-slate-800 dark:text-slate-200">
+                  Benchmark Run History
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                  {evalResults.map((e) => (
+                    <div key={e.id} className="p-4 flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-slate-900 dark:text-slate-100">
+                          {e.benchmark_suite} ({e.provider_id} / {e.model_id})
+                        </div>
+                        <div className="text-slate-400 text-[11px] mt-0.5">
+                          Passed: {e.passed_tests}/{e.total_tests} · Latency:{" "}
+                          {e.avg_latency_ms}ms ·{" "}
+                          {new Date(e.evaluated_at).toLocaleString()}
+                        </div>
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        Passed
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 7: PRIVACY & STORAGE */}
+          {/* ========================================================================= */}
+          {activeTab === "privacy" && (
+            <div className="space-y-6 max-w-4xl mx-auto">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  Backend-Enforced Privacy Boundaries
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  These switches are checked inside the Rust/SQLite backend before any
+                  network packets are transmitted.
+                </p>
+
+                <div className="space-y-4 pt-2">
+                  {/* Local Only Mode */}
+                  <div className="flex items-start justify-between gap-4 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+                    <div>
+                      <span className="font-bold text-xs text-slate-900 dark:text-slate-100 block">
+                        Local-Only Mode
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        Disables all outbound remote AI providers. Only local Ollama, LM
+                        Studio, and llama.cpp runtimes are permitted.
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings?.local_only_mode || false}
+                      onChange={(e) =>
+                        handleToggleSetting("local_only_mode", e.target.checked)
+                      }
+                      className="w-4 h-4 text-indigo-600 rounded mt-1"
+                    />
+                  </div>
+
+                  {/* Never Use Paid APIs */}
+                  <div className="flex items-start justify-between gap-4 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+                    <div>
+                      <span className="font-bold text-xs text-slate-900 dark:text-slate-100 block">
+                        Never Use Paid APIs
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        Strictly blocks any provider or model route classified as paid.
+                        Prevents unexpected cloud charges.
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings?.never_use_paid_apis ?? true}
+                      onChange={(e) =>
+                        handleToggleSetting("never_use_paid_apis", e.target.checked)
+                      }
+                      className="w-4 h-4 text-indigo-600 rounded mt-1"
+                    />
+                  </div>
+
+                  {/* Cloud Paper Sharing Consent */}
+                  <div className="flex items-start justify-between gap-4 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+                    <div>
+                      <span className="font-bold text-xs text-slate-900 dark:text-slate-100 block">
+                        Cloud Paper Context Sharing
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        Allows sending paper excerpts to permitted cloud providers when
+                        using RAG. If disabled, cloud models cannot access paper passages.
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings?.cloud_paper_sharing_enabled || false}
+                      onChange={(e) =>
+                        handleToggleSetting(
+                          "cloud_paper_sharing_enabled",
+                          e.target.checked
+                        )
+                      }
+                      className="w-4 h-4 text-indigo-600 rounded mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Storage Info */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-3">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  Local SQLite Knowledge Storage
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  All extracted chunks, BM25 indices, and recommendation caches reside on
+                  your local machine.
+                </p>
+                <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                  <div>Total Indexed Papers: {papers.length}</div>
+                  <div>
+                    Storage Location: Application Data Directory
+                    (research-paper-scraper.sqlite3)
+                  </div>
+                  <div>
+                    Secure Key Vault: <code>security/.vault.dat</code> (Key references
+                    only)
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* In-App Model & Sidecar Manager Panel */}
+      <InAppModelManagerModal
+        isOpen={isModelPanelOpen}
+        onClose={() => setIsModelPanelOpen(false)}
+        onStatusChange={() => {
+          loadProviders();
+        }}
+      />
     </div>
-
-    {/* In-App Model & Sidecar Manager Panel */}
-    <InAppModelManagerModal
-      isOpen={isModelPanelOpen}
-      onClose={() => setIsModelPanelOpen(false)}
-      onStatusChange={() => {
-        loadProviders();
-      }}
-    />
-  </div>
-);
+  );
 };

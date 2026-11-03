@@ -29,7 +29,8 @@ import { AITypingIndicator } from "../../components/loading";
 import { LiveOrb } from "../../components/ui/live-orb";
 import { MarkdownMessage } from "../../components/ui/MarkdownMessage";
 
-export type ContextScope = "entire_matrix" | "selected_paper" | "selected_cell" | "filtered";
+export type ContextScope =
+  "entire_matrix" | "selected_paper" | "selected_cell" | "filtered";
 
 interface MatrixAiAssistantPanelProps {
   workspaceId: string;
@@ -140,17 +141,17 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
         activeScope === "selected_paper" && selectedPaper
           ? selectedPaper.paper_id
           : activeScope === "selected_cell" && selectedCell
-          ? selectedCell.row.paper_id
-          : rows.length > 0
-          ? rows[0].paper_id
-          : null;
+            ? selectedCell.row.paper_id
+            : rows.length > 0
+              ? rows[0].paper_id
+              : null;
 
       const selectedPaperIds =
         activeScope === "selected_paper" && selectedPaper
           ? [selectedPaper.paper_id]
           : activeScope === "filtered"
-          ? rows.map((r) => r.paper_id)
-          : null;
+            ? rows.map((r) => r.paper_id)
+            : null;
 
       const selectedCellJson =
         activeScope === "selected_cell" && selectedCell
@@ -192,7 +193,10 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
         };
         setMessages((prev) => [...prev, abortedMsg]);
       } else {
-        const msg = desktopApi.getErrorMessage(err, "Failed to communicate with AI assistant.");
+        const msg = desktopApi.getErrorMessage(
+          err,
+          "Failed to communicate with AI assistant."
+        );
         const errorMsg: EvidenceCopilotMessage = {
           id: generateId("err"),
           session_id: sessionId,
@@ -269,7 +273,8 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
   const handleSaveAsNote = async (msgId: string, content: string) => {
     try {
       const targetPaperId =
-        selectedPaper?.paper_id || (rows.length > 0 ? rows[0].paper_id : "matrix_workspace");
+        selectedPaper?.paper_id ||
+        (rows.length > 0 ? rows[0].paper_id : "matrix_workspace");
 
       await desktopApi.saveNote({
         paper_id: targetPaperId,
@@ -385,10 +390,10 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
               {activeScope === "entire_matrix"
                 ? `${rows.length} papers`
                 : activeScope === "selected_paper"
-                ? selectedPaper?.paper_title.slice(0, 20) + "..."
-                : activeScope === "selected_cell"
-                ? selectedCell?.col.label
-                : `${filteredRowCount ?? rows.length} filtered`}
+                  ? selectedPaper?.paper_title.slice(0, 20) + "..."
+                  : activeScope === "selected_cell"
+                    ? selectedCell?.col.label
+                    : `${filteredRowCount ?? rows.length} filtered`}
             </span>
           </div>
 
@@ -406,13 +411,17 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
             <button
               onClick={() => setActiveScope("selected_paper")}
               disabled={!selectedPaper}
-              title={!selectedPaper ? "Select a row in the matrix first" : selectedPaper.paper_title}
+              title={
+                !selectedPaper
+                  ? "Select a row in the matrix first"
+                  : selectedPaper.paper_title
+              }
               className={`py-1 px-1.5 rounded-md font-medium text-center truncate transition-colors ${
                 activeScope === "selected_paper"
                   ? "bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-xs"
                   : selectedPaper
-                  ? "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                  : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
+                    ? "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                    : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
               }`}
             >
               Paper
@@ -420,13 +429,17 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
             <button
               onClick={() => setActiveScope("selected_cell")}
               disabled={!selectedCell}
-              title={!selectedCell ? "Click a cell in the matrix first" : selectedCell.col.label}
+              title={
+                !selectedCell
+                  ? "Click a cell in the matrix first"
+                  : selectedCell.col.label
+              }
               className={`py-1 px-1.5 rounded-md font-medium text-center truncate transition-colors ${
                 activeScope === "selected_cell"
                   ? "bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-xs"
                   : selectedCell
-                  ? "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                  : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
+                    ? "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                    : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
               }`}
             >
               Cell
@@ -434,13 +447,17 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
             <button
               onClick={() => setActiveScope("filtered")}
               disabled={!hasFilterActive}
-              title={!hasFilterActive ? "Filter rows via the search bar first" : "Active filter"}
+              title={
+                !hasFilterActive
+                  ? "Filter rows via the search bar first"
+                  : "Active filter"
+              }
               className={`py-1 px-1.5 rounded-md font-medium text-center truncate transition-colors ${
                 activeScope === "filtered"
                   ? "bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-xs"
                   : hasFilterActive
-                  ? "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                  : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
+                    ? "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                    : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
               }`}
             >
               Filtered
@@ -526,7 +543,9 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
                         >
                           <FileText className="w-2.5 h-2.5" />
                           <span className="truncate max-w-[150px]">{ev.paper_title}</span>
-                          {ev.page_number && <span className="font-mono">· p.{ev.page_number}</span>}
+                          {ev.page_number && (
+                            <span className="font-mono">· p.{ev.page_number}</span>
+                          )}
                           <ExternalLink className="w-2.5 h-2.5 ml-0.5 opacity-60" />
                         </button>
                       ))}
@@ -573,7 +592,9 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
                               </p>
                               {onNavigateToPdf && ev.page_number && (
                                 <button
-                                  onClick={() => onNavigateToPdf(ev.paper_id, ev.page_number!)}
+                                  onClick={() =>
+                                    onNavigateToPdf(ev.paper_id, ev.page_number!)
+                                  }
                                   className="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline font-medium inline-flex items-center gap-1"
                                 >
                                   <ExternalLink className="w-2.5 h-2.5" />
@@ -618,7 +639,9 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
                         {copiedCitationsId === msg.id ? (
                           <>
                             <Check className="w-3 h-3 text-emerald-500" />
-                            <span className="text-emerald-600 font-medium">Citations Copied!</span>
+                            <span className="text-emerald-600 font-medium">
+                              Citations Copied!
+                            </span>
                           </>
                         ) : (
                           <>
@@ -637,7 +660,9 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
                       {savedNoteMsgId === msg.id ? (
                         <>
                           <Check className="w-3 h-3 text-emerald-500" />
-                          <span className="text-emerald-600 font-medium">Saved to Notes!</span>
+                          <span className="text-emerald-600 font-medium">
+                            Saved to Notes!
+                          </span>
                         </>
                       ) : (
                         <>
@@ -707,8 +732,8 @@ export const MatrixAiAssistantPanel: React.FC<MatrixAiAssistantPanelProps> = ({
                 activeScope === "selected_cell"
                   ? `Ask about this claim or compare with other papers...`
                   : activeScope === "selected_paper"
-                  ? `Ask about ${selectedPaper?.paper_title.slice(0, 30)}...`
-                  : `Ask about research questions, methods, datasets, or gaps...`
+                    ? `Ask about ${selectedPaper?.paper_title.slice(0, 30)}...`
+                    : `Ask about research questions, methods, datasets, or gaps...`
               }
               rows={2}
               disabled={isLoading}

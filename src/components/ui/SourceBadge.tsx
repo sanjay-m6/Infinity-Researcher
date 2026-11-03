@@ -34,7 +34,12 @@ export function getSourceTheme(sourceName?: string | null): SourceTheme {
     };
   }
 
-  if (norm.includes("pubmed") || norm.includes("pmc") || norm.includes("europe pmc") || norm.includes("europepmc")) {
+  if (
+    norm.includes("pubmed") ||
+    norm.includes("pmc") ||
+    norm.includes("europe pmc") ||
+    norm.includes("europepmc")
+  ) {
     return {
       label: norm.includes("europe") ? "Europe PMC" : "PubMed",
       dotColor: "bg-sky-500",
@@ -47,8 +52,8 @@ export function getSourceTheme(sourceName?: string | null): SourceTheme {
     const name = norm.includes("biorxiv")
       ? "bioRxiv"
       : norm.includes("medrxiv")
-      ? "medRxiv"
-      : "ChemRxiv";
+        ? "medRxiv"
+        : "ChemRxiv";
     return {
       label: name,
       dotColor: "bg-rose-500",
@@ -75,13 +80,17 @@ export function getSourceTheme(sourceName?: string | null): SourceTheme {
     };
   }
 
-  if (norm.includes("semantic") || norm.includes("crossref") || norm.includes("openalex")) {
+  if (
+    norm.includes("semantic") ||
+    norm.includes("crossref") ||
+    norm.includes("openalex")
+  ) {
     return {
       label: norm.includes("crossref")
         ? "Crossref"
         : norm.includes("openalex")
-        ? "OpenAlex"
-        : "Semantic Scholar",
+          ? "OpenAlex"
+          : "Semantic Scholar",
       dotColor: "bg-indigo-500",
       containerClass:
         "bg-indigo-50 text-indigo-700 border-indigo-200/80 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800/80",

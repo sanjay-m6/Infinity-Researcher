@@ -26,7 +26,10 @@ export interface ExecuteThemeSplashOptions {
  * Extracts viewport pixel coordinates (x, y) from an origin argument.
  * Defaults to the center of the viewport if no origin is provided or coordinates are 0.
  */
-export function getSplashCoordinates(origin?: ThemeSplashOrigin): { x: number; y: number } {
+export function getSplashCoordinates(origin?: ThemeSplashOrigin): {
+  x: number;
+  y: number;
+} {
   const fallbackX = typeof window !== "undefined" ? window.innerWidth / 2 : 0;
   const fallbackY = typeof window !== "undefined" ? window.innerHeight / 2 : 0;
 
@@ -165,7 +168,10 @@ export async function executeThemeSplash(
 /**
  * Lightweight expanding ripple overlay for engines where startViewTransition is unsupported.
  */
-function triggerFallbackRipple(origin: ThemeSplashOrigin | undefined, resolved: ResolvedTheme): void {
+function triggerFallbackRipple(
+  origin: ThemeSplashOrigin | undefined,
+  resolved: ResolvedTheme
+): void {
   try {
     const { x, y } = getSplashCoordinates(origin);
     const ripple = document.createElement("div");
@@ -175,9 +181,14 @@ function triggerFallbackRipple(origin: ThemeSplashOrigin | undefined, resolved: 
     ripple.style.width = "20px";
     ripple.style.height = "20px";
     ripple.style.transform = "translate(-50%, -50%) scale(1)";
-    ripple.style.backgroundColor = resolved === "dark" ? "rgba(11, 16, 27, 0.4)" : "rgba(255, 255, 255, 0.4)";
-    ripple.style.boxShadow = resolved === "dark" ? "0 0 40px rgba(99, 102, 241, 0.4)" : "0 0 40px rgba(245, 158, 11, 0.4)";
-    ripple.style.transition = "transform 400ms cubic-bezier(0.2, 0, 0, 1), opacity 400ms ease-out";
+    ripple.style.backgroundColor =
+      resolved === "dark" ? "rgba(11, 16, 27, 0.4)" : "rgba(255, 255, 255, 0.4)";
+    ripple.style.boxShadow =
+      resolved === "dark"
+        ? "0 0 40px rgba(99, 102, 241, 0.4)"
+        : "0 0 40px rgba(245, 158, 11, 0.4)";
+    ripple.style.transition =
+      "transform 400ms cubic-bezier(0.2, 0, 0, 1), opacity 400ms ease-out";
     ripple.style.opacity = "1";
 
     document.body.appendChild(ripple);
@@ -195,4 +206,3 @@ function triggerFallbackRipple(origin: ThemeSplashOrigin | undefined, resolved: 
     // Non-critical fallback
   }
 }
-

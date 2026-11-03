@@ -82,9 +82,7 @@ export function useAppUpdater(): UseAppUpdaterReturn {
 
   const isTauri =
     typeof window !== "undefined" &&
-    Boolean(
-      (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
-    );
+    Boolean((window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__);
 
   const setAutoCheckEnabled = (enabled: boolean) => {
     setAutoCheckState(enabled);

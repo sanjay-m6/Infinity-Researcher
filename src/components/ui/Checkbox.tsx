@@ -2,8 +2,10 @@ import React, { forwardRef } from "react";
 import { Check } from "lucide-react";
 import { cn } from "../../lib/utils";
 
-export interface CheckboxProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onChange"> {
+export interface CheckboxProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "onChange"
+> {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   label?: string;
@@ -93,4 +95,3 @@ export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(
 
 Checkbox.displayName = "Checkbox";
 export default Checkbox;
-

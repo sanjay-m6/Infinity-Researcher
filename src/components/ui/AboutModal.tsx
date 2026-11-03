@@ -1,12 +1,6 @@
 import React from "react";
 import { Modal } from "./Modal";
-import {
-  Bug,
-  GitPullRequest,
-  ExternalLink,
-  Heart,
-  Coffee,
-} from "lucide-react";
+import { Bug, GitPullRequest, ExternalLink, Heart, Coffee } from "lucide-react";
 import { GithubIcon } from "./GithubIcon";
 import { useApp } from "../../context/AppContext";
 
@@ -58,7 +52,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
             <span className="font-bold text-slate-700 dark:text-slate-300">
               Open Source & Community
             </span>
-            <span className="text-[11px] text-slate-400 font-mono">sanjay-m6/Infinity-Researcher</span>
+            <span className="text-[11px] text-slate-400 font-mono">
+              sanjay-m6/Infinity-Researcher
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -118,7 +114,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
               <Heart className="w-3.5 h-3.5 text-rose-500 fill-current animate-pulse" />
               <span>Support & Donations</span>
             </span>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">Back sovereign scientific software</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              Back sovereign scientific software
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -126,7 +124,11 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={() =>
-                window.open("https://ko-fi.com/infinity86", "_blank", "noopener,noreferrer")
+                window.open(
+                  "https://ko-fi.com/infinity86",
+                  "_blank",
+                  "noopener,noreferrer"
+                )
               }
               className="flex items-center justify-center gap-2 p-2.5 rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-slate-900 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 font-semibold transition-colors cursor-pointer shadow-2xs"
             >
@@ -139,7 +141,11 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={() =>
-                window.open("https://paypal.me/infinity86s?locale.x=en_GB&country.x=IN", "_blank", "noopener,noreferrer")
+                window.open(
+                  "https://paypal.me/infinity86s?locale.x=en_GB&country.x=IN",
+                  "_blank",
+                  "noopener,noreferrer"
+                )
               }
               className="flex items-center justify-center gap-2 p-2.5 rounded-lg border border-blue-200 dark:border-blue-800 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-semibold transition-colors cursor-pointer shadow-2xs"
             >
@@ -151,7 +157,11 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={() =>
-                window.open("https://github.com/sponsors/sanjay-m6", "_blank", "noopener,noreferrer")
+                window.open(
+                  "https://github.com/sponsors/sanjay-m6",
+                  "_blank",
+                  "noopener,noreferrer"
+                )
               }
               className="flex items-center justify-center gap-2 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold transition-colors cursor-pointer shadow-2xs"
             >

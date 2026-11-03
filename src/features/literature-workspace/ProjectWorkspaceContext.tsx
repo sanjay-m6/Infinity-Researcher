@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   LiteraturePaper,
   WorkspaceTabId,
@@ -43,7 +50,11 @@ interface ProjectWorkspaceContextType {
   setSelectedTag: (tag: string | null) => void;
   addPaper: (paper: LiteraturePaper) => void;
   removePaper: (id: string) => void;
-  updatePaperStatus: (id: string, status: LiteraturePaper["extractionStatus"], warning?: string) => void;
+  updatePaperStatus: (
+    id: string,
+    status: LiteraturePaper["extractionStatus"],
+    warning?: string
+  ) => void;
   selectPaper: (id: string | null) => void;
   importLibraryPapers: () => void;
   appPapersCount: number;
@@ -97,7 +108,11 @@ interface ProjectWorkspaceContextType {
   activeEvidence: SourceEvidenceItem | null;
   setActiveEvidence: (evidence: SourceEvidenceItem | null) => void;
   similarityMatches: SimilarityMatchFinding[];
-  updateSimilarityStatus: (matchId: string, newStatus: SimilarityReviewStatus, notes?: string) => void;
+  updateSimilarityStatus: (
+    matchId: string,
+    newStatus: SimilarityReviewStatus,
+    notes?: string
+  ) => void;
   inspectEvidenceForPaper: (paperId: string, columnKey?: string) => void;
 
   // Layout & Resizing
@@ -113,7 +128,9 @@ interface ProjectWorkspaceContextType {
 
 const ProjectWorkspaceContext = createContext<ProjectWorkspaceContextType | null>(null);
 
-export const ProjectWorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ProjectWorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const appContext = useContext(AppContext);
   const appPapers = appContext?.papers || [];
 
@@ -121,15 +138,17 @@ export const ProjectWorkspaceProvider: React.FC<{ children: React.ReactNode }> =
     const authorList = Array.isArray(p.authors)
       ? p.authors
       : typeof p.authors === "string"
-      ? (p.authors as string).split(",").map((s) => s.trim())
-      : ["Unknown Author"];
+        ? (p.authors as string).split(",").map((s) => s.trim())
+        : ["Unknown Author"];
 
     return {
       id: p.id,
       title: p.title || "Untitled Paper",
       authors: authorList.length > 0 ? authorList : ["Unknown Author"],
       publicationYear:
-        p.year || (p.publicationDate ? parseInt(p.publicationDate.slice(0, 4), 10) : 2024) || 2024,
+        p.year ||
+        (p.publicationDate ? parseInt(p.publicationDate.slice(0, 4), 10) : 2024) ||
+        2024,
       abstract: p.abstract || "",
       venue: p.venue || p.sourceName || "Academic Venue",
       doi: p.doi || null,
@@ -212,14 +231,18 @@ export const ProjectWorkspaceProvider: React.FC<{ children: React.ReactNode }> =
 
   // Tab 3 Gaps
   const [researchGaps] = useState<ResearchGapItem[]>(SAMPLE_RESEARCH_GAPS);
-  const [selectedGapId, setSelectedGapId] = useState<string | null>(SAMPLE_RESEARCH_GAPS[0].id);
+  const [selectedGapId, setSelectedGapId] = useState<string | null>(
+    SAMPLE_RESEARCH_GAPS[0].id
+  );
 
   // Tab 4 Writing
   const [sections, setSections] = useState<WritingSection[]>(() => {
     const saved = localStorage.getItem("lit_workspace_sections");
     return saved ? JSON.parse(saved) : SAMPLE_WRITING_SECTIONS;
   });
-  const [activeSectionId, setActiveSectionId] = useState<string>(SAMPLE_WRITING_SECTIONS[0].id);
+  const [activeSectionId, setActiveSectionId] = useState<string>(
+    SAMPLE_WRITING_SECTIONS[0].id
+  );
   const [selectedClaim, setSelectedClaim] = useState<WritingClaim | null>(
     SAMPLE_WRITING_SECTIONS[0].claims[0] || null
   );
@@ -229,7 +252,9 @@ export const ProjectWorkspaceProvider: React.FC<{ children: React.ReactNode }> =
 
   // Tab 6 Assets
   const [assets] = useState<ExtractedAssetItem[]>(SAMPLE_EXTRACTED_ASSETS);
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(SAMPLE_EXTRACTED_ASSETS[0].id);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(
+    SAMPLE_EXTRACTED_ASSETS[0].id
+  );
 
   // Panel 3 Details & Evidence Inspector
   const [panel3Tab, setPanel3Tab] = useState<Panel3TabId>("evidence");
@@ -319,7 +344,9 @@ export const ProjectWorkspaceProvider: React.FC<{ children: React.ReactNode }> =
   const updatePaperStatus = useCallback(
     (id: string, status: LiteraturePaper["extractionStatus"], warning?: string) => {
       setPapers((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, extractionStatus: status, extractionWarning: warning } : p))
+        prev.map((p) =>
+          p.id === id ? { ...p, extractionStatus: status, extractionWarning: warning } : p
+        )
       );
     },
     []
@@ -377,7 +404,11 @@ export const ProjectWorkspaceProvider: React.FC<{ children: React.ReactNode }> =
 
       setReviewingPaperId(paperId);
       try {
-        let chunks: { page_number: number; content_text: string; section_heading?: string | null }[] = [];
+        let chunks: {
+          page_number: number;
+          content_text: string;
+          section_heading?: string | null;
+        }[] = [];
         try {
           const rawChunks = await getPaperRagChunks(targetPaper.id);
           if (rawChunks && rawChunks.length > 0) {
@@ -401,7 +432,10 @@ export const ProjectWorkspaceProvider: React.FC<{ children: React.ReactNode }> =
 
         const contextText = chunks
           .slice(0, 10)
-          .map((c) => `[Page ${c.page_number}${c.section_heading ? ` - ${c.section_heading}` : ""}]:\n${c.content_text}`)
+          .map(
+            (c) =>
+              `[Page ${c.page_number}${c.section_heading ? ` - ${c.section_heading}` : ""}]:\n${c.content_text}`
+          )
           .join("\n\n---\n\n")
           .slice(0, 10000);
 
@@ -436,12 +470,21 @@ ${contextText}`;
           });
 
           if (aiRes && aiRes.text) {
-            const jsonMatch = aiRes.text.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || aiRes.text.match(/\{[\s\S]*\}/);
-            const rawJson = jsonMatch ? (jsonMatch[1] ? jsonMatch[1].trim() : jsonMatch[0].trim()) : aiRes.text.trim();
+            const jsonMatch =
+              aiRes.text.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ||
+              aiRes.text.match(/\{[\s\S]*\}/);
+            const rawJson = jsonMatch
+              ? jsonMatch[1]
+                ? jsonMatch[1].trim()
+                : jsonMatch[0].trim()
+              : aiRes.text.trim();
             parsed = JSON.parse(rawJson);
           }
         } catch (aiErr) {
-          console.warn("AI generation error, using grounded heuristic extraction:", aiErr);
+          console.warn(
+            "AI generation error, using grounded heuristic extraction:",
+            aiErr
+          );
         }
 
         // Heuristic extraction fallback grounded in real paper content
@@ -452,18 +495,29 @@ ${contextText}`;
 
           const objSentence = sentences[0] || targetPaper.title;
           const methSentence =
-            sentences.find((s) => /propose|method|architect|model|approach|framework|network|algorithm/i.test(s)) ||
+            sentences.find((s) =>
+              /propose|method|architect|model|approach|framework|network|algorithm/i.test(
+                s
+              )
+            ) ||
             sentences[1] ||
             "Empirical evaluation and comparative analysis pipeline.";
           const dataSentence =
-            sentences.find((s) => /dataset|data|benchmark|corpus|evaluated on|tested on|sample|experiment/i.test(s)) ||
-            "Domain benchmarks and experimental evaluation suites.";
+            sentences.find((s) =>
+              /dataset|data|benchmark|corpus|evaluated on|tested on|sample|experiment/i.test(
+                s
+              )
+            ) || "Domain benchmarks and experimental evaluation suites.";
           const resSentence =
-            sentences.find((s) => /achiev|result|outperform|show|demonstrat|accurac|improv|gain/i.test(s)) ||
+            sentences.find((s) =>
+              /achiev|result|outperform|show|demonstrat|accurac|improv|gain/i.test(s)
+            ) ||
             sentences[sentences.length - 2] ||
             "Demonstrated measurable performance improvements across target evaluation metrics.";
           const limSentence =
-            sentences.find((s) => /limit|challeng|computat|trade-off|bottleneck|bound|futur/i.test(s)) ||
+            sentences.find((s) =>
+              /limit|challeng|computat|trade-off|bottleneck|bound|futur/i.test(s)
+            ) ||
             "Evaluation bounded by domain-specific distributions and dataset availability.";
 
           parsed = {
@@ -474,11 +528,27 @@ ${contextText}`;
             limitations: limSentence,
             futureWork: "Further exploration across broader multi-domain benchmarks.",
             evidence: {
-              objective: { excerpt: objSentence, pageNumber: 1, contextSection: "Abstract" },
-              methodology: { excerpt: methSentence, pageNumber: 1, contextSection: "Methodology" },
-              dataset: { excerpt: dataSentence, pageNumber: 1, contextSection: "Evaluation" },
+              objective: {
+                excerpt: objSentence,
+                pageNumber: 1,
+                contextSection: "Abstract",
+              },
+              methodology: {
+                excerpt: methSentence,
+                pageNumber: 1,
+                contextSection: "Methodology",
+              },
+              dataset: {
+                excerpt: dataSentence,
+                pageNumber: 1,
+                contextSection: "Evaluation",
+              },
               results: { excerpt: resSentence, pageNumber: 1, contextSection: "Results" },
-              limitations: { excerpt: limSentence, pageNumber: 1, contextSection: "Discussion" },
+              limitations: {
+                excerpt: limSentence,
+                pageNumber: 1,
+                contextSection: "Discussion",
+              },
             },
           };
         }
@@ -505,7 +575,8 @@ ${contextText}`;
               paperTitle: targetPaper.title,
               pageNumber: parsed.evidence?.objective?.pageNumber || 1,
               verbatimExcerpt: parsed.evidence?.objective?.excerpt || parsed.objective,
-              contextSection: parsed.evidence?.objective?.contextSection || "Introduction",
+              contextSection:
+                parsed.evidence?.objective?.contextSection || "Introduction",
               confidenceScore: 0.96,
               supportRating: "direct",
               extractionMethod: "ai_inference",
@@ -516,8 +587,10 @@ ${contextText}`;
               paperId: targetPaper.id,
               paperTitle: targetPaper.title,
               pageNumber: parsed.evidence?.methodology?.pageNumber || 1,
-              verbatimExcerpt: parsed.evidence?.methodology?.excerpt || parsed.methodology,
-              contextSection: parsed.evidence?.methodology?.contextSection || "Methodology",
+              verbatimExcerpt:
+                parsed.evidence?.methodology?.excerpt || parsed.methodology,
+              contextSection:
+                parsed.evidence?.methodology?.contextSection || "Methodology",
               confidenceScore: 0.94,
               supportRating: "direct",
               extractionMethod: "ai_inference",
@@ -552,9 +625,11 @@ ${contextText}`;
               paperId: targetPaper.id,
               paperTitle: targetPaper.title,
               pageNumber: parsed.evidence?.limitations?.pageNumber || 1,
-              verbatimExcerpt: parsed.evidence?.limitations?.excerpt || parsed.limitations,
-              contextSection: parsed.evidence?.limitations?.contextSection || "Discussion",
-              confidenceScore: 0.90,
+              verbatimExcerpt:
+                parsed.evidence?.limitations?.excerpt || parsed.limitations,
+              contextSection:
+                parsed.evidence?.limitations?.contextSection || "Discussion",
+              confidenceScore: 0.9,
               supportRating: "related",
               extractionMethod: "ai_inference",
               verifiedByResearcher: true,
@@ -615,39 +690,42 @@ ${contextText}`;
     }
   }, [appPapers, convertPaper, papers, selectedPaperId]);
 
-  const updateSurveyCell = useCallback((paperId: string, columnKey: string, newValue: string) => {
-    setSurveyRows((prev) =>
-      prev.map((r) => {
-        if (r.paperId !== paperId) return r;
-        const currentEvidence = r.evidence[columnKey];
-        return {
-          ...r,
-          [columnKey]: newValue,
-          evidence: {
-            ...r.evidence,
-            [columnKey]: currentEvidence
-              ? {
-                  ...currentEvidence,
-                  verbatimExcerpt: newValue,
-                  verifiedByResearcher: true,
-                  extractionMethod: "manual_entry",
-                }
-              : {
-                  id: `ev_custom_${Date.now()}`,
-                  paperId,
-                  paperTitle: r.paperTitle,
-                  pageNumber: 1,
-                  verbatimExcerpt: newValue,
-                  confidenceScore: 1.0,
-                  supportRating: "direct",
-                  extractionMethod: "manual_entry",
-                  verifiedByResearcher: true,
-                },
-          },
-        };
-      })
-    );
-  }, []);
+  const updateSurveyCell = useCallback(
+    (paperId: string, columnKey: string, newValue: string) => {
+      setSurveyRows((prev) =>
+        prev.map((r) => {
+          if (r.paperId !== paperId) return r;
+          const currentEvidence = r.evidence[columnKey];
+          return {
+            ...r,
+            [columnKey]: newValue,
+            evidence: {
+              ...r.evidence,
+              [columnKey]: currentEvidence
+                ? {
+                    ...currentEvidence,
+                    verbatimExcerpt: newValue,
+                    verifiedByResearcher: true,
+                    extractionMethod: "manual_entry",
+                  }
+                : {
+                    id: `ev_custom_${Date.now()}`,
+                    paperId,
+                    paperTitle: r.paperTitle,
+                    pageNumber: 1,
+                    verbatimExcerpt: newValue,
+                    confidenceScore: 1.0,
+                    supportRating: "direct",
+                    extractionMethod: "manual_entry",
+                    verifiedByResearcher: true,
+                  },
+            },
+          };
+        })
+      );
+    },
+    []
+  );
 
   const toggleComparedPaper = useCallback((paperId: string) => {
     setComparedPaperIds((prev) =>
@@ -846,9 +924,7 @@ ${contextText}`;
 export const useProjectWorkspace = (): ProjectWorkspaceContextType => {
   const context = useContext(ProjectWorkspaceContext);
   if (!context) {
-    throw new Error(
-      "useProjectWorkspace must be used within a ProjectWorkspaceProvider"
-    );
+    throw new Error("useProjectWorkspace must be used within a ProjectWorkspaceProvider");
   }
   return context;
 };

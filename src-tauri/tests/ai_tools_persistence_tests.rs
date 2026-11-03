@@ -70,7 +70,10 @@ fn test_integrity_report_crud_and_finding_review() {
         .expect("report must exist");
 
     assert_eq!(retrieved.id, report_id);
-    assert_eq!(retrieved.title, "Deep Learning In Distributed Grid Networks");
+    assert_eq!(
+        retrieved.title,
+        "Deep Learning In Distributed Grid Networks"
+    );
     assert_eq!(retrieved.findings_count, 2);
     assert_eq!(retrieved.unreviewed_count, 1);
     assert_eq!(retrieved.findings.len(), 2);
@@ -122,8 +125,8 @@ fn test_integrity_report_crud_and_finding_review() {
         .expect("delete_integrity_report failed");
     assert!(deleted);
 
-    let after_delete = AiToolsRepository::get_integrity_report(&conn, &report_id)
-        .expect("query after delete");
+    let after_delete =
+        AiToolsRepository::get_integrity_report(&conn, &report_id).expect("query after delete");
     assert!(after_delete.is_none());
 
     let findings_remaining = AiToolsRepository::get_findings_for_report(&conn, &report_id)
@@ -169,8 +172,8 @@ fn test_citation_audit_crud_and_listing() {
     assert_eq!(fetched.health_score, 95);
 
     // 3. List citation audits
-    let audits = AiToolsRepository::list_citation_audits(&conn, 10, 0)
-        .expect("list_citation_audits failed");
+    let audits =
+        AiToolsRepository::list_citation_audits(&conn, 10, 0).expect("list_citation_audits failed");
     assert!(!audits.is_empty());
     assert_eq!(audits[0].id, "audit_cit_001");
 
@@ -371,7 +374,8 @@ fn test_document_ingestion_and_genuine_metrics_extraction() {
     let db = Database::open_in_memory().expect("in-memory db open failed");
     let conn = db.lock().expect("db lock failed");
 
-    let sample_text = "Surface codes provide a robust topological framework for quantum error correction. \
+    let sample_text =
+        "Surface codes provide a robust topological framework for quantum error correction. \
 The minimum-weight perfect matching decoder maps syndrome measurements into graph structures. \
 We evaluate fault-tolerant thresholds under realistic depolarization noise. \
 Numerical simulation confirms error suppression with threshold exceeding 1.2 percent.";

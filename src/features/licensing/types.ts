@@ -4,15 +4,15 @@
  * tiers, feature entitlements, and diagnostic reporting.
  */
 
-export type LicenseTier = 'community' | 'pro' | 'trial' | 'enterprise';
+export type LicenseTier = "community" | "pro" | "trial" | "enterprise";
 
 export type FeatureEntitlement =
-  | 'feature:batch_synthesis'
-  | 'feature:advanced_export'
-  | 'feature:priority_crawling'
-  | 'feature:unlimited_corpus'
-  | 'feature:deep_integrity_audit'
-  | 'feature:custom_llm_endpoints';
+  | "feature:batch_synthesis"
+  | "feature:advanced_export"
+  | "feature:priority_crawling"
+  | "feature:unlimited_corpus"
+  | "feature:deep_integrity_audit"
+  | "feature:custom_llm_endpoints";
 
 export interface CustomerInfo {
   name: string;
@@ -39,15 +39,15 @@ export interface SignedLicense {
 }
 
 export type LicenseValidationStatus =
-  | 'valid'
-  | 'expired'
-  | 'not_yet_valid'
-  | 'invalid_signature'
-  | 'tampered'
-  | 'product_mismatch'
-  | 'unsupported_schema'
-  | 'unknown_key'
-  | 'community_default';
+  | "valid"
+  | "expired"
+  | "not_yet_valid"
+  | "invalid_signature"
+  | "tampered"
+  | "product_mismatch"
+  | "unsupported_schema"
+  | "unknown_key"
+  | "community_default";
 
 export interface LicenseValidationResult {
   valid: boolean;

@@ -31,12 +31,14 @@ describe("Phase 7 — Readability Analyzer Engine", () => {
   });
 
   it("detects English vs Non-English language and emits formula applicability caveats", () => {
-    const englishText = "The researcher conducted a comprehensive analysis of the empirical data.";
+    const englishText =
+      "The researcher conducted a comprehensive analysis of the empirical data.";
     const engLang = detectTextLanguage(englishText);
     expect(engLang.detectedCode).toBe("en");
     expect(engLang.isEnglish).toBe(true);
 
-    const spanishText = "El investigador realizó un análisis exhaustivo de los datos empíricos para el estudio.";
+    const spanishText =
+      "El investigador realizó un análisis exhaustivo de los datos empíricos para el estudio.";
     const spLang = detectTextLanguage(spanishText);
     expect(spLang.detectedCode).toBe("es");
     expect(spLang.isEnglish).toBe(false);
@@ -105,9 +107,15 @@ describe("Phase 7 — Readability Analyzer View Component", () => {
     });
 
     // Tab buttons
-    expect(screen.getByRole("button", { name: /Sentences & Clarity/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Paragraph-Level Breakdown/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Vocabulary & Repetition/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Sentences & Clarity/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Paragraph-Level Breakdown/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Vocabulary & Repetition/i })
+    ).toBeInTheDocument();
 
     // Switch to Paragraphs tab
     fireEvent.click(screen.getByRole("button", { name: /Paragraph-Level Breakdown/i }));
@@ -151,7 +159,9 @@ describe("Phase 7 — Research Integrity Engine (7 Dimensions & Ethical Guardrai
     }
 
     // Verify Ethical Disclaimer
-    expect(report.ethicalDisclaimer).toMatch(/automated advisory checks and do NOT constitute proof of misconduct/i);
+    expect(report.ethicalDisclaimer).toMatch(
+      /automated advisory checks and do NOT constitute proof of misconduct/i
+    );
   });
 
   it("detects verbatim benchmark overlap in text similarity dimension", () => {
@@ -173,12 +183,16 @@ References
     `;
 
     const report = generateIntegrityReport(manuscriptWithOverlap, "Overlap Test");
-    const similarityFindings = report.findings.filter((f) => f.dimension === "similarity");
+    const similarityFindings = report.findings.filter(
+      (f) => f.dimension === "similarity"
+    );
 
     expect(similarityFindings.length).toBeGreaterThan(0);
     const overlapFinding = similarityFindings.find((f) => f.status === "concern");
     expect(overlapFinding).toBeDefined();
-    expect(overlapFinding?.evidence).toContain("attention mechanism computes a weighted sum");
+    expect(overlapFinding?.evidence).toContain(
+      "attention mechanism computes a weighted sum"
+    );
   });
 
   it("detects citation inconsistencies (unmatched citations and uncited references)", () => {
@@ -191,13 +205,16 @@ References
     const citationFindings = report.findings.filter((f) => f.dimension === "citations");
     // [99] was cited in text but not in bibliography
     const missingRef = citationFindings.find(
-      (f) => f.title.includes("Missing Bibliography Reference") || f.evidence.includes("[99]")
+      (f) =>
+        f.title.includes("Missing Bibliography Reference") || f.evidence.includes("[99]")
     );
     expect(missingRef).toBeDefined();
     expect(missingRef?.status).toBe("concern");
 
     // [3] and [4] were in bibliography but never cited in text
-    const uncited = citationFindings.find((f) => f.title.includes("Uncited Bibliography Reference"));
+    const uncited = citationFindings.find((f) =>
+      f.title.includes("Uncited Bibliography Reference")
+    );
     expect(uncited).toBeDefined();
   });
 
@@ -277,7 +294,8 @@ describe("Phase 7 — Report Storage and Finding Review Tracking", () => {
     saveReportToStorage(report);
 
     const firstFinding = report.findings[0];
-    const initialDimUnreviewed = report.dimensions[firstFinding.dimension].unreviewedCount;
+    const initialDimUnreviewed =
+      report.dimensions[firstFinding.dimension].unreviewedCount;
 
     const updated = updateFindingReviewStatus(
       report.id,
@@ -313,7 +331,9 @@ describe("Phase 7 — Research Integrity View Component", () => {
     );
 
     expect(screen.getByText(/Research Integrity Auditor/i)).toBeInTheDocument();
-    expect(screen.getByText(/Transparent Multi-Dimensional Integrity Protocol/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Transparent Multi-Dimensional Integrity Protocol/i)
+    ).toBeInTheDocument();
 
     await waitFor(() => {
       // 7 dimension cards
@@ -323,11 +343,15 @@ describe("Phase 7 — Research Integrity View Component", () => {
       expect(screen.getAllByText(/Reference Metadata & DOIs/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/Readability & Clarity/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/Document Structure/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/Extraction & OCR Diagnostics/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Extraction & OCR Diagnostics/i).length).toBeGreaterThan(
+        0
+      );
     });
 
     // Check findings table search input exists
-    expect(screen.getByPlaceholderText(/Search findings, evidence, location/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/Search findings, evidence, location/i)
+    ).toBeInTheDocument();
 
     // Check action buttons exist
     expect(screen.getByRole("button", { name: /Upload File/i })).toBeInTheDocument();
@@ -352,7 +376,9 @@ describe("Phase 7 — Research Integrity View Component", () => {
 
     // Filter indicator should show
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Show All Dimensions/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Show All Dimensions/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -364,14 +390,18 @@ describe("Phase 7 — Research Integrity View Component", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getAllByRole("button", { name: /Mark as Reviewed/i }).length).toBeGreaterThan(0);
+      expect(
+        screen.getAllByRole("button", { name: /Mark as Reviewed/i }).length
+      ).toBeGreaterThan(0);
     });
 
     const firstMarkBtn = screen.getAllByRole("button", { name: /Mark as Reviewed/i })[0];
     fireEvent.click(firstMarkBtn);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Mark Unreviewed/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Mark Unreviewed/i })
+      ).toBeInTheDocument();
     });
   });
 

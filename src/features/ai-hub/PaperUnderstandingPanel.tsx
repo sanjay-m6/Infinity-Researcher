@@ -32,7 +32,8 @@ import type { CandidateChunk } from "../../lib/ai/evidenceValidator";
 import { useApp } from "../../context/AppContext";
 import { AITypingIndicator } from "../../components/loading";
 
-type UnderstandingSubTab = "summary" | "methodology" | "results" | "limitations" | "terminology";
+type UnderstandingSubTab =
+  "summary" | "methodology" | "results" | "limitations" | "terminology";
 
 interface PaperUnderstandingPanelProps {
   activePaper?: Paper | null;
@@ -52,9 +53,13 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
 
   // Stored analysis states
   const [summaryData, setSummaryData] = useState<StructuredPaperSummary | null>(null);
-  const [methodologyData, setMethodologyData] = useState<MethodologyAnalysis | null>(null);
+  const [methodologyData, setMethodologyData] = useState<MethodologyAnalysis | null>(
+    null
+  );
   const [resultsData, setResultsData] = useState<ResultsAnalysis | null>(null);
-  const [limitationsData, setLimitationsData] = useState<LimitationsAnalysis | null>(null);
+  const [limitationsData, setLimitationsData] = useState<LimitationsAnalysis | null>(
+    null
+  );
   const [termQuery, setTermQuery] = useState("");
   const [termData, setTermData] = useState<TerminologyExplanation | null>(null);
 
@@ -82,7 +87,9 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
       );
       setSummaryData(res);
     } catch (e: unknown) {
-      setErrorMessage(e instanceof Error ? e.message : "Failed to generate structured summary.");
+      setErrorMessage(
+        e instanceof Error ? e.message : "Failed to generate structured summary."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +100,11 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const res = await generateMethodologyAnalysis(activePaper.id, activePaper.title, paperChunks);
+      const res = await generateMethodologyAnalysis(
+        activePaper.id,
+        activePaper.title,
+        paperChunks
+      );
       setMethodologyData(res);
     } catch (e: unknown) {
       setErrorMessage(e instanceof Error ? e.message : "Failed to analyze methodology.");
@@ -107,10 +118,16 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const res = await generateResultsAnalysis(activePaper.id, activePaper.title, paperChunks);
+      const res = await generateResultsAnalysis(
+        activePaper.id,
+        activePaper.title,
+        paperChunks
+      );
       setResultsData(res);
     } catch (e: unknown) {
-      setErrorMessage(e instanceof Error ? e.message : "Failed to extract results & metrics.");
+      setErrorMessage(
+        e instanceof Error ? e.message : "Failed to extract results & metrics."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -121,10 +138,16 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const res = await generateLimitationsAnalysis(activePaper.id, activePaper.title, paperChunks);
+      const res = await generateLimitationsAnalysis(
+        activePaper.id,
+        activePaper.title,
+        paperChunks
+      );
       setLimitationsData(res);
     } catch (e: unknown) {
-      setErrorMessage(e instanceof Error ? e.message : "Failed to analyze paper limitations.");
+      setErrorMessage(
+        e instanceof Error ? e.message : "Failed to analyze paper limitations."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -136,10 +159,16 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const res = await explainTerminology(targetTerm.trim(), activePaper.id, paperChunks);
+      const res = await explainTerminology(
+        targetTerm.trim(),
+        activePaper.id,
+        paperChunks
+      );
       setTermData(res);
     } catch (e: unknown) {
-      setErrorMessage(e instanceof Error ? e.message : "Failed to explain technical term.");
+      setErrorMessage(
+        e instanceof Error ? e.message : "Failed to explain technical term."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -160,17 +189,19 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
     return (
       <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800">
         <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
-          <Award className="w-3.5 h-3.5 text-indigo-500" /> Grounded Evidence & Page Citations:
+          <Award className="w-3.5 h-3.5 text-indigo-500" /> Grounded Evidence & Page
+          Citations:
         </div>
         <div className="flex flex-wrap gap-2">
           {evidenceList.map((ev, i) => (
             <button
               key={`${ev.chunk_id}_${i}`}
               onClick={() => handleJumpToPage(ev.page_number, ev.snippet)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border shadow-2xs transition-all ${ev.is_verified
-                ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100"
-                : "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border-amber-300 dark:border-amber-800 hover:bg-amber-100"
-                }`}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border shadow-2xs transition-all ${
+                ev.is_verified
+                  ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100"
+                  : "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border-amber-300 dark:border-amber-800 hover:bg-amber-100"
+              }`}
               title={ev.snippet}
             >
               {ev.is_verified ? (
@@ -197,7 +228,8 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
           No Paper Selected
         </h3>
         <p className="text-xs max-w-sm mt-1 text-slate-500">
-          Select a research paper from your library to perform grounded synthesis, methodology inspection, and limitations extraction.
+          Select a research paper from your library to perform grounded synthesis,
+          methodology inspection, and limitations extraction.
         </p>
       </div>
     );
@@ -215,8 +247,10 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
             {activePaper.title}
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            {Array.isArray(activePaper.authors) ? activePaper.authors.join(", ") : activePaper.authors || "Unknown authors"} · {activePaper.year || "Year unknown"} ·{" "}
-            {paperChunks.length} indexed chunks
+            {Array.isArray(activePaper.authors)
+              ? activePaper.authors.join(", ")
+              : activePaper.authors || "Unknown authors"}{" "}
+            · {activePaper.year || "Year unknown"} · {paperChunks.length} indexed chunks
           </p>
         </div>
 
@@ -253,10 +287,11 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id as UnderstandingSubTab)}
-              className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl transition-all whitespace-nowrap ${isActive
-                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                : "bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80"
-                }`}
+              className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl transition-all whitespace-nowrap ${
+                isActive
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : "bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80"
+              }`}
             >
               <Icon className="w-3.5 h-3.5" />
               {tab.label}
@@ -291,7 +326,9 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
         <div className="space-y-4">
           {!summaryData ? (
             <div className="p-6 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <p className="text-xs text-slate-500 mb-3">Structured summary has not been generated yet.</p>
+              <p className="text-xs text-slate-500 mb-3">
+                Structured summary has not been generated yet.
+              </p>
               <button
                 onClick={() => runSummary()}
                 className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
@@ -362,7 +399,9 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
         <div className="space-y-4">
           {!methodologyData ? (
             <div className="p-6 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <p className="text-xs text-slate-500 mb-3">Methodology analysis not generated yet.</p>
+              <p className="text-xs text-slate-500 mb-3">
+                Methodology analysis not generated yet.
+              </p>
               <button
                 onClick={() => runMethodology()}
                 className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
@@ -442,7 +481,9 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
         <div className="space-y-4">
           {!resultsData ? (
             <div className="p-6 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <p className="text-xs text-slate-500 mb-3">Empirical results not extracted yet.</p>
+              <p className="text-xs text-slate-500 mb-3">
+                Empirical results not extracted yet.
+              </p>
               <button
                 onClick={() => runResults()}
                 className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
@@ -469,14 +510,19 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {resultsData.key_metrics.map((m, i) => (
-                        <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                        <tr
+                          key={i}
+                          className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40"
+                        >
                           <td className="p-2.5 font-semibold text-slate-900 dark:text-slate-100">
                             {m.name}
                           </td>
                           <td className="p-2.5 font-mono text-indigo-600 dark:text-indigo-400 font-bold">
                             {m.value}
                           </td>
-                          <td className="p-2.5 font-mono text-slate-500">{m.baseline_value || "—"}</td>
+                          <td className="p-2.5 font-mono text-slate-500">
+                            {m.baseline_value || "—"}
+                          </td>
                           <td className="p-2.5 text-slate-600 dark:text-slate-400">
                             {m.context || "Standard test split"}
                           </td>
@@ -504,7 +550,8 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
                     Statistical Significance & Unexpected Findings
                   </h3>
                   <p className="text-xs text-slate-700 dark:text-slate-300 mb-2">
-                    <strong>Significance:</strong> {resultsData.statistical_significance || "Not stated"}
+                    <strong>Significance:</strong>{" "}
+                    {resultsData.statistical_significance || "Not stated"}
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-xs text-slate-700 dark:text-slate-300">
                     {resultsData.unexpected_outcomes.map((un, i) => (
@@ -525,7 +572,9 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
         <div className="space-y-4">
           {!limitationsData ? (
             <div className="p-6 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <p className="text-xs text-slate-500 mb-3">Limitations analysis not generated yet.</p>
+              <p className="text-xs text-slate-500 mb-3">
+                Limitations analysis not generated yet.
+              </p>
               <button
                 onClick={() => runLimitations()}
                 className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
@@ -539,7 +588,8 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
                 {/* Author-Acknowledged */}
                 <div className="bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/80 rounded-xl p-4 shadow-xs">
                   <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 font-bold text-xs uppercase tracking-wider mb-2">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Author-Acknowledged Limitations
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Author-Acknowledged
+                    Limitations
                   </div>
                   <ul className="list-disc list-inside space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
                     {limitationsData.author_acknowledged.map((item, i) => (
@@ -551,7 +601,8 @@ export const PaperUnderstandingPanel: React.FC<PaperUnderstandingPanelProps> = (
                 {/* Inferred Methodological */}
                 <div className="bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/80 rounded-xl p-4 shadow-xs">
                   <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300 font-bold text-xs uppercase tracking-wider mb-2">
-                    <AlertCircle className="w-3.5 h-3.5" /> Inferred Methodological Vulnerabilities
+                    <AlertCircle className="w-3.5 h-3.5" /> Inferred Methodological
+                    Vulnerabilities
                   </div>
                   <ul className="list-disc list-inside space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
                     {limitationsData.inferred_methodological.map((item, i) => (

@@ -43,7 +43,6 @@ import type {
   PaperPdfInfo,
   PdfResolutionResult,
   ReaderState,
-
   WebsitePolicyCheck,
   IeeeManualImportInput,
   LocalOaPdfImportInput,
@@ -100,13 +99,13 @@ import type {
   LocalAiStatus,
 } from "./types";
 
-
-
-
-
 export * from "./types";
 export * from "./adapters";
-export { isTauriEnvironment, normalizeCommandError, getErrorMessage } from "../tauri-bridge";
+export {
+  isTauriEnvironment,
+  normalizeCommandError,
+  getErrorMessage,
+} from "../tauri-bridge";
 
 /**
  * Invokes a typed Tauri command with error normalization.
@@ -165,15 +164,24 @@ export async function toggleSavePaper(id: string, isSaved: boolean): Promise<boo
   return invokeCommand<boolean>("toggle_save_paper", { id, isSaved });
 }
 
-export async function setPaperReadingStatus(id: string, status: string): Promise<boolean> {
+export async function setPaperReadingStatus(
+  id: string,
+  status: string
+): Promise<boolean> {
   return invokeCommand<boolean>("set_paper_reading_status", { id, status });
 }
 
-export async function setPaperReadingProgress(id: string, progress: number): Promise<boolean> {
+export async function setPaperReadingProgress(
+  id: string,
+  progress: number
+): Promise<boolean> {
   return invokeCommand<boolean>("set_paper_reading_progress", { id, progress });
 }
 
-export async function bulkUpdateReadingStatus(paperIds: string[], status: string): Promise<number> {
+export async function bulkUpdateReadingStatus(
+  paperIds: string[],
+  status: string
+): Promise<number> {
   return invokeCommand<number>("bulk_update_reading_status", { paperIds, status });
 }
 
@@ -195,9 +203,7 @@ export async function createCollection(
   return invokeCommand<DbCollection>("create_collection", { input });
 }
 
-export async function updateCollection(
-  input: CollectionUpdateInput
-): Promise<boolean> {
+export async function updateCollection(input: CollectionUpdateInput): Promise<boolean> {
   return invokeCommand<boolean>("update_collection", { input });
 }
 
@@ -233,10 +239,7 @@ export async function listTags(): Promise<DbTag[]> {
   return invokeCommand<DbTag[]>("list_tags");
 }
 
-export async function assignTagToPaper(
-  paperId: string,
-  tagName: string
-): Promise<DbTag> {
+export async function assignTagToPaper(paperId: string, tagName: string): Promise<DbTag> {
   return invokeCommand<DbTag>("assign_tag_to_paper", { paperId, tagName });
 }
 
@@ -279,7 +282,9 @@ export async function getSavedSearch(id: string): Promise<SavedSearch | null> {
   return invokeCommand<SavedSearch | null>("get_saved_search", { id });
 }
 
-export async function createSavedSearch(input: SavedSearchCreateInput): Promise<SavedSearch> {
+export async function createSavedSearch(
+  input: SavedSearchCreateInput
+): Promise<SavedSearch> {
   return invokeCommand<SavedSearch>("create_saved_search", { input });
 }
 
@@ -324,7 +329,9 @@ export async function listSources(): Promise<DbSource[]> {
 // ---------------------------------------------------------------------------
 
 export async function listAcademicProviders(): Promise<ProviderCapabilities[]> {
-  const rawList = await invokeCommand<Record<string, unknown>[]>("list_academic_providers");
+  const rawList = await invokeCommand<Record<string, unknown>[]>(
+    "list_academic_providers"
+  );
   return (rawList || []).map((p) => {
     const rawId = p.provider_id || p.id || "";
     const pid = String(rawId).toLowerCase().trim();
@@ -363,7 +370,9 @@ export async function searchAcademicSources(
     providers: finalProviders,
   };
 
-  return invokeCommand<UnifiedSearchResponse>("search_academic_sources", { query: payload });
+  return invokeCommand<UnifiedSearchResponse>("search_academic_sources", {
+    query: payload,
+  });
 }
 
 export async function importSearchResults(
@@ -402,9 +411,7 @@ export async function getAcademicProviderCapabilities(): Promise<ProviderCapabil
   return invokeCommand<ProviderCapabilities[]>("get_provider_capabilities");
 }
 
-export async function enrichPaperMetadata(
-  paperId: string
-): Promise<DbPaper> {
+export async function enrichPaperMetadata(paperId: string): Promise<DbPaper> {
   return invokeCommand<DbPaper>("enrich_paper_metadata", { paperId });
 }
 
@@ -581,11 +588,15 @@ export async function resolvePaperPdf(paperId: string): Promise<PdfResolutionRes
   return invokeCommand<PdfResolutionResult>("resolve_paper_pdf", { paperId });
 }
 
-export async function enqueuePdfDownload(input: EnqueueDownloadInput): Promise<DownloadJob> {
+export async function enqueuePdfDownload(
+  input: EnqueueDownloadInput
+): Promise<DownloadJob> {
   return invokeCommand<DownloadJob>("enqueue_pdf_download", { input });
 }
 
-export async function enqueueBulkPdfDownloads(paperIds: string[]): Promise<BulkDownloadSummary> {
+export async function enqueueBulkPdfDownloads(
+  paperIds: string[]
+): Promise<BulkDownloadSummary> {
   return invokeCommand<BulkDownloadSummary>("enqueue_bulk_pdf_downloads", {
     request: { paper_ids: paperIds },
   });
@@ -713,7 +724,8 @@ export async function listWebsiteSearchSources(): Promise<WebsiteSourceDescripto
         domain: "arxiv.org",
         status: "enabled",
         policy_url: "https://arxiv.org/help/robots",
-        policy_notes: "Permitted HTML search and metadata extraction with 3s crawl delay.",
+        policy_notes:
+          "Permitted HTML search and metadata extraction with 3s crawl delay.",
         supports_native_years: false,
         request_delay_ms: 3000,
         content_types: ["preprint"],
@@ -724,7 +736,8 @@ export async function listWebsiteSearchSources(): Promise<WebsiteSourceDescripto
         domain: "biorxiv.org",
         status: "enabled",
         policy_url: "https://www.biorxiv.org/about/faq",
-        policy_notes: "Cold Spring Harbor Laboratory preprint repository. Permitted HTML search.",
+        policy_notes:
+          "Cold Spring Harbor Laboratory preprint repository. Permitted HTML search.",
         supports_native_years: true,
         request_delay_ms: 2000,
         content_types: ["preprint"],
@@ -779,7 +792,8 @@ export async function listWebsiteSearchSources(): Promise<WebsiteSourceDescripto
         domain: "ieeexplore.ieee.org",
         status: "enabled",
         policy_url: "https://ieeexplore.ieee.org/XploreHelp/legal-terms",
-        policy_notes: "IEEE conference and journal research publications via official REST and Crossref prefix index.",
+        policy_notes:
+          "IEEE conference and journal research publications via official REST and Crossref prefix index.",
         supports_native_years: true,
         request_delay_ms: 1000,
         content_types: ["conference_paper", "journal_article"],
@@ -790,7 +804,8 @@ export async function listWebsiteSearchSources(): Promise<WebsiteSourceDescripto
         domain: "dl.acm.org",
         status: "manual_only",
         policy_url: "https://www.acm.org/about-acm/terms-of-use",
-        policy_notes: "ACM Digital Library terms restrict automated querying. Manual import workflow available.",
+        policy_notes:
+          "ACM Digital Library terms restrict automated querying. Manual import workflow available.",
         supports_native_years: false,
         request_delay_ms: 0,
         content_types: ["conference_paper", "journal_article"],
@@ -801,7 +816,8 @@ export async function listWebsiteSearchSources(): Promise<WebsiteSourceDescripto
         domain: "scholar.google.com",
         status: "disabled",
         policy_url: "https://policies.google.com/terms",
-        policy_notes: "Automated search is strictly prohibited by Google Terms of Service and protected by CAPTCHAs.",
+        policy_notes:
+          "Automated search is strictly prohibited by Google Terms of Service and protected by CAPTCHAs.",
         supports_native_years: false,
         request_delay_ms: 0,
         content_types: ["all"],
@@ -855,7 +871,9 @@ export async function importDiscoveredSearchResult(
       is_saved: true,
       reading_status: "unread",
       reading_progress: 0,
-      open_access_status: result.is_open_access ? "verified_open_access" : "access_unverified",
+      open_access_status: result.is_open_access
+        ? "verified_open_access"
+        : "access_unverified",
       access_evidence_type: "permitted_source_search",
       access_evidence_note: `Discovered via ${result.source_name}`,
       license_name: result.license_name || null,
@@ -927,7 +945,8 @@ export async function startWebsiteSearchStream(
         publication_year: 2024,
         venue: "arXiv cs.AI",
         canonical_doi: null,
-        abstract_text: "A simulated preprint abstract for preview and testing environments.",
+        abstract_text:
+          "A simulated preprint abstract for preview and testing environments.",
         landing_url: "https://arxiv.org/abs/2403.00001",
         pdf_url: "https://arxiv.org/pdf/2403.00001.pdf",
         source_id: "arxiv",
@@ -959,7 +978,8 @@ export async function startWebsiteSearchStream(
         source_id: "plos",
         source_name: "PLOS Open Access Journals",
         status: "unsupported",
-        message: "PLOS search requires browser execution (AJAX). Use official web search.",
+        message:
+          "PLOS search requires browser execution (AJAX). Use official web search.",
         results_count: 0,
         elapsed_ms: 150,
       });
@@ -1077,9 +1097,10 @@ export async function fetchRemotePdfPreview(
 export async function startPythonSearchStream(
   query: WebsiteSearchQuery,
   onEvent: (event: SearchStreamEvent) => void,
-  sessionId?: string,
+  sessionId?: string
 ): Promise<() => void> {
-  const activeSessionId = sessionId || `py_sess_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const activeSessionId =
+    sessionId || `py_sess_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
   if (!isTauriEnvironment()) {
     // In web preview, reuse mock stream
@@ -1545,15 +1566,24 @@ export async function deleteAiProvider(providerId: string): Promise<void> {
   return invokeCommand<void>("delete_ai_provider", { providerId });
 }
 
-export async function setAiProviderEnabled(providerId: string, isEnabled: boolean): Promise<void> {
+export async function setAiProviderEnabled(
+  providerId: string,
+  isEnabled: boolean
+): Promise<void> {
   return invokeCommand<void>("set_ai_provider_enabled", { providerId, isEnabled });
 }
 
-export async function setAiProviderModel(providerId: string, model: string): Promise<void> {
+export async function setAiProviderModel(
+  providerId: string,
+  model: string
+): Promise<void> {
   return invokeCommand<void>("set_ai_provider_model", { providerId, model });
 }
 
-export async function setAiProviderCredential(providerId: string, apiKey: string): Promise<void> {
+export async function setAiProviderCredential(
+  providerId: string,
+  apiKey: string
+): Promise<void> {
   return invokeCommand<void>("set_ai_provider_credential", { providerId, apiKey });
 }
 
@@ -1575,12 +1605,42 @@ export async function testAiProvider(providerId: string): Promise<ProviderTestRe
 }
 
 export const DEFAULT_AI_TASK_ROUTES: AiProviderTaskRoute[] = [
-  { task_type: "quick_summary", provider_id: "ollama_local", model_id: "llama3.2:latest", updated_at: "" },
-  { task_type: "deep_analysis", provider_id: "ollama_local", model_id: "llama3.2:latest", updated_at: "" },
-  { task_type: "qa_citations", provider_id: "ollama_local", model_id: "llama3.2:latest", updated_at: "" },
-  { task_type: "cross_paper_compare", provider_id: "ollama_local", model_id: "llama3.2:latest", updated_at: "" },
-  { task_type: "recommendations", provider_id: "ollama_local", model_id: "llama3.2:latest", updated_at: "" },
-  { task_type: "embeddings", provider_id: "ollama_local", model_id: "nomic-embed-text:latest", updated_at: "" },
+  {
+    task_type: "quick_summary",
+    provider_id: "ollama_local",
+    model_id: "llama3.2:latest",
+    updated_at: "",
+  },
+  {
+    task_type: "deep_analysis",
+    provider_id: "ollama_local",
+    model_id: "llama3.2:latest",
+    updated_at: "",
+  },
+  {
+    task_type: "qa_citations",
+    provider_id: "ollama_local",
+    model_id: "llama3.2:latest",
+    updated_at: "",
+  },
+  {
+    task_type: "cross_paper_compare",
+    provider_id: "ollama_local",
+    model_id: "llama3.2:latest",
+    updated_at: "",
+  },
+  {
+    task_type: "recommendations",
+    provider_id: "ollama_local",
+    model_id: "llama3.2:latest",
+    updated_at: "",
+  },
+  {
+    task_type: "embeddings",
+    provider_id: "ollama_local",
+    model_id: "nomic-embed-text:latest",
+    updated_at: "",
+  },
 ];
 
 export async function listAiTaskRoutes(): Promise<AiProviderTaskRoute[]> {
@@ -1596,7 +1656,11 @@ export async function listAiTaskRoutes(): Promise<AiProviderTaskRoute[]> {
   }
 }
 
-export async function setAiTaskRoute(taskType: string, providerId: string, modelId: string): Promise<void> {
+export async function setAiTaskRoute(
+  taskType: string,
+  providerId: string,
+  modelId: string
+): Promise<void> {
   return invokeCommand<void>("set_ai_task_route", { taskType, providerId, modelId });
 }
 
@@ -1659,7 +1723,12 @@ export async function searchRagPassages(
       is_grounded: false,
     };
   }
-  return invokeCommand<AiRagContext>("search_rag_passages", { query, paperId, scope, limit });
+  return invokeCommand<AiRagContext>("search_rag_passages", {
+    query,
+    paperId,
+    scope,
+    limit,
+  });
 }
 
 export async function searchRagPassagesMulti(
@@ -1677,7 +1746,11 @@ export async function searchRagPassagesMulti(
       is_grounded: false,
     };
   }
-  return invokeCommand<AiRagContext>("search_rag_passages_multi", { query, paperIds, limit });
+  return invokeCommand<AiRagContext>("search_rag_passages_multi", {
+    query,
+    paperIds,
+    limit,
+  });
 }
 
 export async function validateAiCitations(
@@ -1696,10 +1769,15 @@ export async function validateAiCitations(
       confidence: 0.95,
     }));
   }
-  return invokeCommand<VerifiedEvidenceItem[]>("validate_ai_citations", { paperId, citations });
+  return invokeCommand<VerifiedEvidenceItem[]>("validate_ai_citations", {
+    paperId,
+    citations,
+  });
 }
 
-export async function generateAiResponse(input: GenerateRequestInput): Promise<GenerateResponseOutput> {
+export async function generateAiResponse(
+  input: GenerateRequestInput
+): Promise<GenerateResponseOutput> {
   if (!isTauriEnvironment()) {
     try {
       const res = await fetch("http://127.0.0.1:11435/v1/chat/completions", {
@@ -1735,7 +1813,8 @@ export async function generateAiResponse(input: GenerateRequestInput): Promise<G
           paper_title: "Preview Paper",
           page_number: 2,
           section_heading: "Methodology",
-          snippet: "We formulate the retrieval model using dense passage index representations.",
+          snippet:
+            "We formulate the retrieval model using dense passage index representations.",
           score: 0.88,
         },
       ],
@@ -1804,7 +1883,11 @@ export async function getAiRecommendations(
       },
     ];
   }
-  return invokeCommand<AiRecommendation[]>("get_ai_recommendations", { paperId, mode, limit });
+  return invokeCommand<AiRecommendation[]>("get_ai_recommendations", {
+    paperId,
+    mode,
+    limit,
+  });
 }
 
 export async function submitRecommendationFeedback(
@@ -1864,7 +1947,8 @@ export async function getAiHardwareInfo(): Promise<AiHardwareInfo> {
       cuda_available: false,
       min_recommended_vram_gb: 12,
       supported_methods: ["PEFT/LoRA", "QLoRA 4-bit"],
-      notice: "Browser simulation environment. Local hardware detection active in desktop app.",
+      notice:
+        "Browser simulation environment. Local hardware detection active in desktop app.",
     };
   }
   return invokeCommand<AiHardwareInfo>("get_ai_hardware_info");
@@ -1920,22 +2004,78 @@ export async function getMatrixWorkspaceDetail(
         updated_at: new Date().toISOString(),
       },
       columns: [
-        { key: "research_question", label: "Research Question", col_type: "text", required: true, width: 240 },
-        { key: "methodology", label: "Methodology", col_type: "text", required: true, width: 220 },
-        { key: "dataset", label: "Dataset / Benchmark", col_type: "text", required: false, width: 180 },
-        { key: "sample_size", label: "Sample Size", col_type: "text", required: false, width: 130 },
-        { key: "model_architecture", label: "Model / Architecture", col_type: "text", required: false, width: 190 },
-        { key: "eval_metrics", label: "Key Metrics", col_type: "text", required: false, width: 160 },
-        { key: "main_findings", label: "Main Findings", col_type: "text", required: true, width: 260 },
-        { key: "limitations", label: "Limitations", col_type: "text", required: false, width: 200 },
-        { key: "future_work", label: "Future Work", col_type: "text", required: false, width: 180 },
+        {
+          key: "research_question",
+          label: "Research Question",
+          col_type: "text",
+          required: true,
+          width: 240,
+        },
+        {
+          key: "methodology",
+          label: "Methodology",
+          col_type: "text",
+          required: true,
+          width: 220,
+        },
+        {
+          key: "dataset",
+          label: "Dataset / Benchmark",
+          col_type: "text",
+          required: false,
+          width: 180,
+        },
+        {
+          key: "sample_size",
+          label: "Sample Size",
+          col_type: "text",
+          required: false,
+          width: 130,
+        },
+        {
+          key: "model_architecture",
+          label: "Model / Architecture",
+          col_type: "text",
+          required: false,
+          width: 190,
+        },
+        {
+          key: "eval_metrics",
+          label: "Key Metrics",
+          col_type: "text",
+          required: false,
+          width: 160,
+        },
+        {
+          key: "main_findings",
+          label: "Main Findings",
+          col_type: "text",
+          required: true,
+          width: 260,
+        },
+        {
+          key: "limitations",
+          label: "Limitations",
+          col_type: "text",
+          required: false,
+          width: 200,
+        },
+        {
+          key: "future_work",
+          label: "Future Work",
+          col_type: "text",
+          required: false,
+          width: 180,
+        },
       ],
       rows: [],
       total_papers: 0,
       total_extractions: 0,
     };
   }
-  return invokeCommand<MatrixWorkspaceDetail>("get_matrix_workspace_detail", { workspaceId });
+  return invokeCommand<MatrixWorkspaceDetail>("get_matrix_workspace_detail", {
+    workspaceId,
+  });
 }
 
 export async function createMatrixWorkspace(
@@ -2086,7 +2226,8 @@ export async function ingestDocumentContent(
 
   if (!isTauriEnvironment()) {
     // Deterministic 64-character hash for web preview / test environments
-    let h1 = 0x811c9dc5, h2 = 0x27d4eb2f;
+    let h1 = 0x811c9dc5,
+      h2 = 0x27d4eb2f;
     for (let i = 0; i < rawContent.length; i++) {
       h1 = Math.imul(h1 ^ rawContent.charCodeAt(i), 0x01000193);
       h2 = Math.imul(h2 ^ rawContent.charCodeAt(i), 0x5bd1e995);
@@ -2168,9 +2309,7 @@ export async function saveIntegrityReportDb(
   return invokeCommand<SavedIntegrityReportDb>("save_integrity_report", { report });
 }
 
-export async function getIntegrityReportDb(
-  id: string
-): Promise<SavedIntegrityReportDb> {
+export async function getIntegrityReportDb(id: string): Promise<SavedIntegrityReportDb> {
   if (!isTauriEnvironment()) {
     const found = mockIntegrityReports.get(id);
     if (!found) {
@@ -2241,9 +2380,7 @@ export async function saveCitationAuditDb(
   return invokeCommand<SavedCitationAuditDb>("save_citation_audit", { audit });
 }
 
-export async function getCitationAuditDb(
-  id: string
-): Promise<SavedCitationAuditDb> {
+export async function getCitationAuditDb(id: string): Promise<SavedCitationAuditDb> {
   if (!isTauriEnvironment()) {
     const found = mockCitationAudits.get(id);
     if (!found) {
@@ -2334,12 +2471,13 @@ export async function extractDocumentText(
   });
 }
 
-export async function detectAiSignals(
-  text: string
-): Promise<AiSignalDetectionResult> {
+export async function detectAiSignals(text: string): Promise<AiSignalDetectionResult> {
   if (!isTauriEnvironment()) {
     const words = text.trim().split(/\s+/).filter(Boolean);
-    const sentences = text.split(/[.!?]+/).map((s) => s.trim()).filter(Boolean);
+    const sentences = text
+      .split(/[.!?]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
     return {
       status: "completed",
       overall_signal_score: 0.35,
@@ -2405,7 +2543,9 @@ export async function diagnoseAiSystem(): Promise<AiDiagnosticReport[]> {
   return invokeCommand<AiDiagnosticReport[]>("diagnose_ai_system");
 }
 
-export async function testAiGeneration(providerId: string): Promise<DiagnosticTestGenResult> {
+export async function testAiGeneration(
+  providerId: string
+): Promise<DiagnosticTestGenResult> {
   if (!isTauriEnvironment()) {
     return {
       provider_id: providerId,
@@ -2427,17 +2567,74 @@ export async function testAiGeneration(providerId: string): Promise<DiagnosticTe
 export async function listResearchDomains(): Promise<ResearchDomain[]> {
   if (!isTauriEnvironment()) {
     return [
-      { id: "dom_cs", parent_id: null, name: "Computer Science", slug: "computer-science", description: "Computing & intelligent systems", icon: "Cpu", color: "#4f46e5", is_custom: false, created_at: "", updated_at: "" },
-      { id: "sub_cs_ai", parent_id: "dom_cs", name: "Artificial Intelligence", slug: "artificial-intelligence", description: "AI foundations & models", icon: "Bot", color: "#4f46e5", is_custom: false, created_at: "", updated_at: "" },
-      { id: "sub_cs_nlp", parent_id: "dom_cs", name: "Natural Language Processing", slug: "natural-language-processing", description: "Language models & text extraction", icon: "MessageSquare", color: "#4f46e5", is_custom: false, created_at: "", updated_at: "" },
-      { id: "dom_life", parent_id: null, name: "Medicine and Life Sciences", slug: "medicine-life-sciences", description: "Biomedicine & biology", icon: "Activity", color: "#dc2626", is_custom: false, created_at: "", updated_at: "" },
-      { id: "sub_life_bioinf", parent_id: "dom_life", name: "Bioinformatics", slug: "bioinformatics", description: "Genomics & computational medicine", icon: "Dna", color: "#dc2626", is_custom: false, created_at: "", updated_at: "" },
+      {
+        id: "dom_cs",
+        parent_id: null,
+        name: "Computer Science",
+        slug: "computer-science",
+        description: "Computing & intelligent systems",
+        icon: "Cpu",
+        color: "#4f46e5",
+        is_custom: false,
+        created_at: "",
+        updated_at: "",
+      },
+      {
+        id: "sub_cs_ai",
+        parent_id: "dom_cs",
+        name: "Artificial Intelligence",
+        slug: "artificial-intelligence",
+        description: "AI foundations & models",
+        icon: "Bot",
+        color: "#4f46e5",
+        is_custom: false,
+        created_at: "",
+        updated_at: "",
+      },
+      {
+        id: "sub_cs_nlp",
+        parent_id: "dom_cs",
+        name: "Natural Language Processing",
+        slug: "natural-language-processing",
+        description: "Language models & text extraction",
+        icon: "MessageSquare",
+        color: "#4f46e5",
+        is_custom: false,
+        created_at: "",
+        updated_at: "",
+      },
+      {
+        id: "dom_life",
+        parent_id: null,
+        name: "Medicine and Life Sciences",
+        slug: "medicine-life-sciences",
+        description: "Biomedicine & biology",
+        icon: "Activity",
+        color: "#dc2626",
+        is_custom: false,
+        created_at: "",
+        updated_at: "",
+      },
+      {
+        id: "sub_life_bioinf",
+        parent_id: "dom_life",
+        name: "Bioinformatics",
+        slug: "bioinformatics",
+        description: "Genomics & computational medicine",
+        icon: "Dna",
+        color: "#dc2626",
+        is_custom: false,
+        created_at: "",
+        updated_at: "",
+      },
     ];
   }
   return invokeCommand<ResearchDomain[]>("list_research_domains");
 }
 
-export async function createCustomResearchDomain(input: CreateDomainInput): Promise<ResearchDomain> {
+export async function createCustomResearchDomain(
+  input: CreateDomainInput
+): Promise<ResearchDomain> {
   if (!isTauriEnvironment()) {
     return {
       id: `dom_${Date.now()}`,
@@ -2455,7 +2652,9 @@ export async function createCustomResearchDomain(input: CreateDomainInput): Prom
   return invokeCommand<ResearchDomain>("create_custom_research_domain", { input });
 }
 
-export async function createResearchProject(input: CreateProjectInput): Promise<ResearchProject> {
+export async function createResearchProject(
+  input: CreateProjectInput
+): Promise<ResearchProject> {
   if (!isTauriEnvironment()) {
     return {
       id: `proj_${Date.now()}`,
@@ -2484,7 +2683,9 @@ export async function createResearchProject(input: CreateProjectInput): Promise<
   return invokeCommand<ResearchProject>("create_research_project", { input });
 }
 
-export async function updateResearchProject(input: UpdateProjectInput): Promise<ResearchProject> {
+export async function updateResearchProject(
+  input: UpdateProjectInput
+): Promise<ResearchProject> {
   if (!isTauriEnvironment()) {
     return {
       id: input.id,
@@ -2512,7 +2713,9 @@ export async function updateResearchProject(input: UpdateProjectInput): Promise<
   return invokeCommand<ResearchProject>("update_research_project", { input });
 }
 
-export async function getResearchProject(projectId: string): Promise<ProjectWithDetails | null> {
+export async function getResearchProject(
+  projectId: string
+): Promise<ProjectWithDetails | null> {
   if (!isTauriEnvironment()) return null;
   return invokeCommand<ProjectWithDetails | null>("get_research_project", { projectId });
 }
@@ -2544,7 +2747,9 @@ export async function deleteResearchProject(projectId: string): Promise<void> {
 // Milestones
 // -----------------------------------------------------------------------------
 
-export async function createProjectMilestone(input: CreateMilestoneInput): Promise<ProjectMilestone> {
+export async function createProjectMilestone(
+  input: CreateMilestoneInput
+): Promise<ProjectMilestone> {
   if (!isTauriEnvironment()) {
     return {
       id: `ms_${Date.now()}`,
@@ -2562,7 +2767,9 @@ export async function createProjectMilestone(input: CreateMilestoneInput): Promi
   return invokeCommand<ProjectMilestone>("create_project_milestone", { input });
 }
 
-export async function updateProjectMilestone(input: UpdateMilestoneInput): Promise<ProjectMilestone> {
+export async function updateProjectMilestone(
+  input: UpdateMilestoneInput
+): Promise<ProjectMilestone> {
   if (!isTauriEnvironment()) {
     return {
       id: input.id,
@@ -2585,7 +2792,9 @@ export async function deleteProjectMilestone(milestoneId: string): Promise<void>
   return invokeCommand<void>("delete_project_milestone", { milestoneId });
 }
 
-export async function listProjectMilestones(projectId: string): Promise<ProjectMilestone[]> {
+export async function listProjectMilestones(
+  projectId: string
+): Promise<ProjectMilestone[]> {
   if (!isTauriEnvironment()) return [];
   return invokeCommand<ProjectMilestone[]>("list_project_milestones", { projectId });
 }
@@ -2648,7 +2857,10 @@ export async function updateProjectTask(input: UpdateTaskInput): Promise<Project
   return invokeCommand<ProjectTask>("update_project_task", { input });
 }
 
-export async function updateProjectTaskStatus(taskId: string, status: string): Promise<ProjectTask> {
+export async function updateProjectTaskStatus(
+  taskId: string,
+  status: string
+): Promise<ProjectTask> {
   if (!isTauriEnvironment()) {
     return {
       id: taskId,
@@ -2685,12 +2897,18 @@ export async function listProjectTasks(
   });
 }
 
-export async function addTaskDependency(taskId: string, dependsOnTaskId: string): Promise<void> {
+export async function addTaskDependency(
+  taskId: string,
+  dependsOnTaskId: string
+): Promise<void> {
   if (!isTauriEnvironment()) return;
   return invokeCommand<void>("add_task_dependency", { taskId, dependsOnTaskId });
 }
 
-export async function removeTaskDependency(taskId: string, dependsOnTaskId: string): Promise<void> {
+export async function removeTaskDependency(
+  taskId: string,
+  dependsOnTaskId: string
+): Promise<void> {
   if (!isTauriEnvironment()) return;
   return invokeCommand<void>("remove_task_dependency", { taskId, dependsOnTaskId });
 }
@@ -2725,7 +2943,10 @@ export async function linkPaperToProject(
   });
 }
 
-export async function unlinkPaperFromProject(projectId: string, paperId: string): Promise<void> {
+export async function unlinkPaperFromProject(
+  projectId: string,
+  paperId: string
+): Promise<void> {
   if (!isTauriEnvironment()) return;
   return invokeCommand<void>("unlink_paper_from_project", { projectId, paperId });
 }
@@ -2735,7 +2956,11 @@ export async function listProjectPapers(projectId: string): Promise<ProjectPaper
   return invokeCommand<ProjectPaper[]>("list_project_papers", { projectId });
 }
 
-export async function linkPaperToTask(taskId: string, paperId: string, notes?: string): Promise<TaskPaper> {
+export async function linkPaperToTask(
+  taskId: string,
+  paperId: string,
+  notes?: string
+): Promise<TaskPaper> {
   if (!isTauriEnvironment()) {
     return {
       id: `tp_${Date.now()}`,
@@ -2753,12 +2978,18 @@ export async function linkPaperToTask(taskId: string, paperId: string, notes?: s
   });
 }
 
-export async function unlinkPaperFromTask(taskId: string, paperId: string): Promise<void> {
+export async function unlinkPaperFromTask(
+  taskId: string,
+  paperId: string
+): Promise<void> {
   if (!isTauriEnvironment()) return;
   return invokeCommand<void>("unlink_paper_from_task", { taskId, paperId });
 }
 
-export async function listProjectActivity(projectId: string, limit?: number): Promise<ProjectActivityEvent[]> {
+export async function listProjectActivity(
+  projectId: string,
+  limit?: number
+): Promise<ProjectActivityEvent[]> {
   if (!isTauriEnvironment()) return [];
   return invokeCommand<ProjectActivityEvent[]>("list_project_activity", {
     projectId,
@@ -2770,7 +3001,9 @@ export async function listProjectActivity(projectId: string, limit?: number): Pr
 // AI Project Plan Generation & Grounded Assistant
 // -----------------------------------------------------------------------------
 
-export async function generateAiProjectPlan(projectId: string): Promise<AiProjectPlanProposal> {
+export async function generateAiProjectPlan(
+  projectId: string
+): Promise<AiProjectPlanProposal> {
   if (!isTauriEnvironment()) {
     return {
       project_title: "Simulated AI Project Roadmap",
@@ -2789,7 +3022,10 @@ export async function applyAiProjectPlan(input: ApplyPlanInput): Promise<number>
   return invokeCommand<number>("apply_ai_project_plan", { input });
 }
 
-export async function askProjectAiAssistant(projectId: string, question: string): Promise<string> {
+export async function askProjectAiAssistant(
+  projectId: string,
+  question: string
+): Promise<string> {
   if (!isTauriEnvironment()) {
     return `[Simulation] Advice for project query: "${question}". Based on your active milestones, consider completing your literature review matrix extractions before finalizing baseline experiments.`;
   }
@@ -2891,14 +3127,3 @@ export async function getAiEngineStatus(): Promise<LocalAiStatus> {
 
 export * from "./auth";
 export * from "./types";
-
-
-
-
-
-
-
-
-
-
-

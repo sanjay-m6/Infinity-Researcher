@@ -32,9 +32,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
         {(label || description) && (
           <div className="space-y-0.5">
             {label && (
-              <span className="text-xs font-semibold text-foreground block">
-                {label}
-              </span>
+              <span className="text-xs font-semibold text-foreground block">{label}</span>
             )}
             {description && (
               <span className="text-[11px] text-muted-foreground block leading-relaxed">
@@ -71,4 +69,3 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
 
 Switch.displayName = "Switch";
 export default Switch;
-

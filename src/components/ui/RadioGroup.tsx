@@ -67,15 +67,28 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
 );
 RadioGroup.displayName = "RadioGroup";
 
-export interface RadioGroupItemProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onChange"> {
+export interface RadioGroupItemProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "onChange"
+> {
   value: string;
   label?: string;
   description?: string;
 }
 
 export const RadioGroupItem = forwardRef<HTMLButtonElement, RadioGroupItemProps>(
-  ({ value, label, description, disabled = false, className = "", id: customId, ...props }, ref) => {
+  (
+    {
+      value,
+      label,
+      description,
+      disabled = false,
+      className = "",
+      id: customId,
+      ...props
+    },
+    ref
+  ) => {
     const context = useContext(RadioGroupContext);
     if (!context) {
       throw new Error("RadioGroupItem must be used within a RadioGroup");

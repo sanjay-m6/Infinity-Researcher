@@ -90,7 +90,10 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
 
   // Import/Export Modal State
   const [importJsonText, setImportJsonText] = useState<string>("");
-  const [importStatus, setImportStatus] = useState<{ success: boolean; message: string } | null>(null);
+  const [importStatus, setImportStatus] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const [showImportModal, setShowImportModal] = useState<boolean>(false);
   const [copiedExport, setCopiedExport] = useState<boolean>(false);
 
@@ -148,14 +151,20 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
 
     const res = importThemesJson(importJsonText);
     if (res.success) {
-      setImportStatus({ success: true, message: `Successfully imported ${res.count} custom themes!` });
+      setImportStatus({
+        success: true,
+        message: `Successfully imported ${res.count} custom themes!`,
+      });
       setImportJsonText("");
       setTimeout(() => {
         setShowImportModal(false);
         setImportStatus(null);
       }, 1500);
     } else {
-      setImportStatus({ success: false, message: res.error || "Failed to import themes." });
+      setImportStatus({
+        success: false,
+        message: res.error || "Failed to import themes.",
+      });
     }
   };
 
@@ -171,7 +180,8 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
             Appearance & Visual Theme
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Personalize your research environment with 12 handcrafted color palettes, custom accents, interface density, and surface contrast.
+            Personalize your research environment with 12 handcrafted color palettes,
+            custom accents, interface density, and surface contrast.
           </p>
         </div>
 
@@ -394,7 +404,8 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
               {PRESET_THEME_LIST.map((preset) => {
                 const isSelected =
                   currentSettings.preset === preset.id && !currentSettings.customAccent;
-                const [primaryColor, secondaryColor, bgColor, textColor] = preset.previewColors;
+                const [primaryColor, secondaryColor, bgColor, textColor] =
+                  preset.previewColors;
 
                 return (
                   <button
@@ -410,7 +421,10 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                   >
                     {/* Top Row: Palette Name & Badge */}
                     <div className="flex items-center justify-between gap-1.5 mb-2 min-w-0">
-                      <span className="text-xs font-semibold text-foreground truncate" title={preset.name}>
+                      <span
+                        className="text-xs font-semibold text-foreground truncate"
+                        title={preset.name}
+                      >
                         {preset.name}
                       </span>
                       {isSelected && (
@@ -462,7 +476,8 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                   Custom Accent Colour & Contrast Validation
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Pick any custom brand or personal accent. Evaluates WCAG 2.1 AA & AAA compliance in real time.
+                  Pick any custom brand or personal accent. Evaluates WCAG 2.1 AA & AAA
+                  compliance in real time.
                 </p>
               </div>
 
@@ -527,20 +542,31 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
               {/* Contrast Analysis Badge */}
               {contrastAnalysis && (
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted border border-border text-xs shrink-0 max-w-full">
-                  <span className="text-muted-foreground whitespace-nowrap">WCAG Contrast:</span>
+                  <span className="text-muted-foreground whitespace-nowrap">
+                    WCAG Contrast:
+                  </span>
                   <span className="font-bold text-foreground font-mono whitespace-nowrap">
                     {contrastAnalysis.ratio}:1
                   </span>
                   {contrastAnalysis.level === "AAA" ? (
-                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] whitespace-nowrap">
+                    <Badge
+                      variant="outline"
+                      className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] whitespace-nowrap"
+                    >
                       <ShieldCheck className="w-3 h-3 mr-1" /> AAA Compliant
                     </Badge>
                   ) : contrastAnalysis.level === "AA" ? (
-                    <Badge variant="outline" className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 text-[10px] whitespace-nowrap">
+                    <Badge
+                      variant="outline"
+                      className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 text-[10px] whitespace-nowrap"
+                    >
                       <CheckCircle2 className="w-3 h-3 mr-1" /> AA Compliant
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] whitespace-nowrap">
+                    <Badge
+                      variant="outline"
+                      className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] whitespace-nowrap"
+                    >
                       <AlertCircle className="w-3 h-3 mr-1" /> Low Contrast
                     </Badge>
                   )}
@@ -589,7 +615,8 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                 Interface Information Density
               </h3>
               <p className="text-xs text-muted-foreground">
-                Adjust table cell height, card padding, and navigation item spacing across all views.
+                Adjust table cell height, card padding, and navigation item spacing across
+                all views.
               </p>
             </div>
 
@@ -639,13 +666,21 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                       <div
                         className={cn(
                           "w-3/4 rounded bg-primary/60",
-                          opt.id === "compact" ? "h-1.5" : opt.id === "spacious" ? "h-3" : "h-2"
+                          opt.id === "compact"
+                            ? "h-1.5"
+                            : opt.id === "spacious"
+                              ? "h-3"
+                              : "h-2"
                         )}
                       />
                       <div
                         className={cn(
                           "w-1/2 rounded bg-muted-foreground/30",
-                          opt.id === "compact" ? "h-1" : opt.id === "spacious" ? "h-2" : "h-1.5"
+                          opt.id === "compact"
+                            ? "h-1"
+                            : opt.id === "spacious"
+                              ? "h-2"
+                              : "h-1.5"
                         )}
                       />
                     </div>
@@ -662,7 +697,8 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                 Surface Background Tone & Contrast
               </h3>
               <p className="text-xs text-muted-foreground">
-                Fine-tune background temperature and contrast without changing your primary accent palette.
+                Fine-tune background temperature and contrast without changing your
+                primary accent palette.
               </p>
             </div>
 
@@ -734,7 +770,8 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                 Motion & Transition Behavior
               </h3>
               <p className="text-xs text-muted-foreground">
-                Control interface transitions, drawer animations, and circular ripple splashes.
+                Control interface transitions, drawer animations, and circular ripple
+                splashes.
               </p>
             </div>
 
@@ -789,7 +826,8 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                 Ambient Background Particle Field
               </h3>
               <p className="text-xs text-muted-foreground">
-                Configures the subtle animated node-link particle canvas rendered in the application background.
+                Configures the subtle animated node-link particle canvas rendered in the
+                application background.
               </p>
             </div>
 
@@ -833,7 +871,8 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                 Saved Custom Themes
               </h3>
               <p className="text-xs text-muted-foreground">
-                Create, export, and share personalized themes with customized colors and surfaces.
+                Create, export, and share personalized themes with customized colors and
+                surfaces.
               </p>
             </div>
 
@@ -874,9 +913,12 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
           {currentSettings.customThemes.length === 0 ? (
             <div className="p-8 rounded-xl border border-dashed border-border text-center space-y-2">
               <Sparkles className="w-6 h-6 text-muted-foreground mx-auto" />
-              <h4 className="text-xs font-bold text-foreground">No Custom Themes Saved Yet</h4>
+              <h4 className="text-xs font-bold text-foreground">
+                No Custom Themes Saved Yet
+              </h4>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                Customize your accent colour or background preset, then click &ldquo;Save Current Look&rdquo; to save it as a reusable theme preset.
+                Customize your accent colour or background preset, then click &ldquo;Save
+                Current Look&rdquo; to save it as a reusable theme preset.
               </p>
             </div>
           ) : (
@@ -912,7 +954,9 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                         />
                         <span className="font-mono">{ct.accentColor}</span>
                         <span>•</span>
-                        <span className="capitalize">{ct.basePreset.replace("_", " ")}</span>
+                        <span className="capitalize">
+                          {ct.basePreset.replace("_", " ")}
+                        </span>
                       </div>
                     </div>
 
@@ -988,7 +1032,10 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="custom-theme-name" className="text-xs font-semibold text-foreground">
+                  <label
+                    htmlFor="custom-theme-name"
+                    className="text-xs font-semibold text-foreground"
+                  >
                     Theme Name
                   </label>
                   <input
@@ -1005,13 +1052,22 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
 
                 <div className="p-3 rounded-lg bg-muted/40 border border-border/80 text-[11px] text-muted-foreground space-y-1">
                   <div>
-                    Accent: <strong className="text-foreground">{currentSettings.customAccent || "Palette default"}</strong>
+                    Accent:{" "}
+                    <strong className="text-foreground">
+                      {currentSettings.customAccent || "Palette default"}
+                    </strong>
                   </div>
                   <div>
-                    Base Preset: <strong className="text-foreground capitalize">{currentSettings.preset.replace("_", " ")}</strong>
+                    Base Preset:{" "}
+                    <strong className="text-foreground capitalize">
+                      {currentSettings.preset.replace("_", " ")}
+                    </strong>
                   </div>
                   <div>
-                    Surface: <strong className="text-foreground capitalize">{currentSettings.backgroundPreset}</strong>
+                    Surface:{" "}
+                    <strong className="text-foreground capitalize">
+                      {currentSettings.backgroundPreset}
+                    </strong>
                   </div>
                 </div>
 
@@ -1062,7 +1118,10 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="import-json-area" className="text-xs font-semibold text-foreground">
+                  <label
+                    htmlFor="import-json-area"
+                    className="text-xs font-semibold text-foreground"
+                  >
                     Paste Themes JSON Array
                   </label>
                   <textarea
@@ -1070,7 +1129,7 @@ export const AppearanceSettingsView: React.FC<AppearanceSettingsViewProps> = ({
                     rows={6}
                     value={importJsonText}
                     onChange={(e) => setImportJsonText(e.target.value)}
-                    placeholder="[{ &quot;name&quot;: &quot;My Theme&quot;, &quot;accentColor&quot;: &quot;#06B6D4&quot; }]"
+                    placeholder='[{ "name": "My Theme", "accentColor": "#06B6D4" }]'
                     className="w-full font-mono text-[11px] p-2.5 rounded-lg bg-muted/60 border border-border text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
                   />
                 </div>

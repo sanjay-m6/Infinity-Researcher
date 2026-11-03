@@ -5,12 +5,12 @@ interface CitationSummaryCardsProps {
   summary: CitationAuditSummary;
 }
 
-export const CitationSummaryCards: React.FC<CitationSummaryCardsProps> = ({ summary }) => {
+export const CitationSummaryCards: React.FC<CitationSummaryCardsProps> = ({
+  summary,
+}) => {
   const matchRate =
     summary.totalInTextCitations > 0
-      ? Math.round(
-          (summary.matchedCitationsCount / summary.totalInTextCitations) * 100
-        )
+      ? Math.round((summary.matchedCitationsCount / summary.totalInTextCitations) * 100)
       : 100;
 
   return (
@@ -26,8 +26,8 @@ export const CitationSummaryCards: React.FC<CitationSummaryCardsProps> = ({ summ
               summary.overallHealthScore >= 80
                 ? "text-emerald-600 dark:text-emerald-400"
                 : summary.overallHealthScore >= 50
-                ? "text-amber-600 dark:text-amber-400"
-                : "text-rose-600 dark:text-rose-400"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-rose-600 dark:text-rose-400"
             }`}
           >
             {summary.overallHealthScore}
@@ -38,8 +38,8 @@ export const CitationSummaryCards: React.FC<CitationSummaryCardsProps> = ({ summ
           {summary.overallHealthScore >= 80
             ? "High Compliance"
             : summary.overallHealthScore >= 50
-            ? "Issues Require Review"
-            : "Critical Fixes Needed"}
+              ? "Issues Require Review"
+              : "Critical Fixes Needed"}
         </span>
       </div>
 

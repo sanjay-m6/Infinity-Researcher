@@ -4,4 +4,3 @@ export * from "./AppIcon";
 export * from "./AnimatedIcon";
 export * from "./IconButton";
 export * from "./IconRegistry";
-

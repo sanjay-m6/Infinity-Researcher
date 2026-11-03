@@ -49,4 +49,3 @@ export const TruncatedText: React.FC<TruncatedTextProps> = ({
 };
 
 export default TruncatedText;
-

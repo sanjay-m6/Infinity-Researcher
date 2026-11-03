@@ -87,9 +87,7 @@ function stripQuotes(str: string): string {
  * - ">=2020" or ">2019"
  * - "<=2024" or "<2025"
  */
-function parseYearExpression(
-  expr: string
-): {
+function parseYearExpression(expr: string): {
   year?: number;
   yearStart?: number;
   yearEnd?: number;
@@ -103,7 +101,9 @@ function parseYearExpression(
     const start = parseInt(rangeMatch[1], 10);
     const end = parseInt(rangeMatch[2], 10);
     if (start > end) {
-      return { error: `Invalid year range: start year (${start}) cannot exceed end year (${end}).` };
+      return {
+        error: `Invalid year range: start year (${start}) cannot exceed end year (${end}).`,
+      };
     }
     return { yearStart: start, yearEnd: end };
   }
@@ -135,7 +135,9 @@ function parseYearExpression(
     return { year: y, yearStart: y, yearEnd: y };
   }
 
-  return { error: `Invalid year specification "${clean}". Use a 4-digit year, range (2020..2024), or inequality (>=2020).` };
+  return {
+    error: `Invalid year specification "${clean}". Use a 4-digit year, range (2020..2024), or inequality (>=2020).`,
+  };
 }
 
 /**
@@ -200,7 +202,10 @@ export function parseStructuredQuery(rawInput: string): StructuredQuery {
             fields.author = val;
             // Split comma-separated author list if present
             if (val.includes(",")) {
-              fields.authors = val.split(",").map((a) => a.trim()).filter(Boolean);
+              fields.authors = val
+                .split(",")
+                .map((a) => a.trim())
+                .filter(Boolean);
             } else {
               fields.authors = [val];
             }
@@ -252,7 +257,9 @@ export function parseStructuredQuery(rawInput: string): StructuredQuery {
             if (b !== undefined) {
               fields.openAccess = b;
             } else {
-              warnings.push(`Unrecognized open_access value "${val}". Expected true or false.`);
+              warnings.push(
+                `Unrecognized open_access value "${val}". Expected true or false.`
+              );
             }
             break;
           }
@@ -266,7 +273,9 @@ export function parseStructuredQuery(rawInput: string): StructuredQuery {
             if (b !== undefined) {
               fields.peerReviewed = b;
             } else {
-              warnings.push(`Unrecognized peer_reviewed value "${val}". Expected true or false.`);
+              warnings.push(
+                `Unrecognized peer_reviewed value "${val}". Expected true or false.`
+              );
             }
             break;
           }
@@ -283,7 +292,9 @@ export function parseStructuredQuery(rawInput: string): StructuredQuery {
 
         // If it looks like an unsupported field prefix (alphabetic letters followed by colon)
         if (/^[a-z_]{2,15}$/.test(prefix)) {
-          warnings.push(`Field "${prefix}:" is not a recognized filter field; treated as search keyword.`);
+          warnings.push(
+            `Field "${prefix}:" is not a recognized filter field; treated as search keyword.`
+          );
         }
       }
     }
@@ -368,4 +379,3 @@ export function serializeStructuredQuery(
 
   return parts.join(" ");
 }
-

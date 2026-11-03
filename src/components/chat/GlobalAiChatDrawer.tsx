@@ -27,7 +27,9 @@ export const GlobalAiChatDrawer: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [mode, setMode] = useState<"general" | "library">(() => {
-    return (localStorage.getItem("global_chat_mode") as "general" | "library") || "general";
+    return (
+      (localStorage.getItem("global_chat_mode") as "general" | "library") || "general"
+    );
   });
 
   const [messages, setMessages] = useState<AiChatMessage[]>(() => {
@@ -189,9 +191,19 @@ export const GlobalAiChatDrawer: React.FC = () => {
 
   const quickPrompts = [
     { label: "💡 What can you do?", query: "What can you do?" },
-    { label: "📖 Structure a literature review", query: "How do I systematically structure an academic literature review?" },
-    { label: "🔬 Explain p-value vs effect size", query: "Explain the difference between p-value and effect size in empirical research." },
-    { label: "📑 Summarize library papers", query: "Summarize the primary topics and papers available in my research library." },
+    {
+      label: "📖 Structure a literature review",
+      query: "How do I systematically structure an academic literature review?",
+    },
+    {
+      label: "🔬 Explain p-value vs effect size",
+      query:
+        "Explain the difference between p-value and effect size in empirical research.",
+    },
+    {
+      label: "📑 Summarize library papers",
+      query: "Summarize the primary topics and papers available in my research library.",
+    },
   ];
 
   return (
@@ -254,7 +266,9 @@ export const GlobalAiChatDrawer: React.FC = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                  {mode === "general" ? "General Scientific Intelligence" : "Library Grounded RAG"}
+                  {mode === "general"
+                    ? "General Scientific Intelligence"
+                    : "Library Grounded RAG"}
                 </p>
               </div>
             </div>
@@ -335,7 +349,8 @@ export const GlobalAiChatDrawer: React.FC = () => {
                   ) : (
                     providers.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.is_local ? "🔒 " : "⚡ "} {p.display_name} ({p.is_local ? "Local LLM" : "Cloud API"})
+                        {p.is_local ? "🔒 " : "⚡ "} {p.display_name} (
+                        {p.is_local ? "Local LLM" : "Cloud API"})
                       </option>
                     ))
                   )}
@@ -415,14 +430,20 @@ export const GlobalAiChatDrawer: React.FC = () => {
                                     <button
                                       key={cIdx}
                                       onClick={() => {
-                                        const found = papers.find((p) => p.id === c.paper_id);
+                                        const found = papers.find(
+                                          (p) => p.id === c.paper_id
+                                        );
                                         if (found) setReadingPaper(found);
                                       }}
                                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline border border-slate-200 dark:border-slate-700"
                                     >
                                       <FileText className="w-2.5 h-2.5" />
-                                      <span className="truncate max-w-[140px]">{c.paper_title}</span>
-                                      <span className="opacity-60">p.{c.page_number}</span>
+                                      <span className="truncate max-w-[140px]">
+                                        {c.paper_title}
+                                      </span>
+                                      <span className="opacity-60">
+                                        p.{c.page_number}
+                                      </span>
                                     </button>
                                   ))}
                                 </div>

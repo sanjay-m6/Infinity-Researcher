@@ -19,9 +19,7 @@ export function countWordSyllables(word: string): number {
   if (clean.length <= 3) return 1;
 
   // Remove common non-pronounced endings
-  const text = clean
-    .replace(/(?:[^laeiouy]|ed|es|e)$/, "")
-    .replace(/^y/, "");
+  const text = clean.replace(/(?:[^laeiouy]|ed|es|e)$/, "").replace(/^y/, "");
 
   // Match vowel sequences
   const vowelMatches = text.match(/[aeiouy]{1,2}/g);
@@ -40,19 +38,166 @@ export function countWordSyllables(word: string): number {
 // ---------------------------------------------------------------------------
 
 const ENGLISH_STOPWORDS = new Set([
-  "the", "be", "to", "of", "and", "a", "in", "that", "have", "i", "it", "for", "not", "on", "with",
-  "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her",
-  "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up",
-  "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time",
-  "no", "just", "him", "know", "take", "people", "into", "year", "your", "good", "some", "could",
-  "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think",
-  "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even",
-  "new", "want", "because", "any", "these", "give", "day", "most", "us", "is", "are", "was", "were"
+  "the",
+  "be",
+  "to",
+  "of",
+  "and",
+  "a",
+  "in",
+  "that",
+  "have",
+  "i",
+  "it",
+  "for",
+  "not",
+  "on",
+  "with",
+  "he",
+  "as",
+  "you",
+  "do",
+  "at",
+  "this",
+  "but",
+  "his",
+  "by",
+  "from",
+  "they",
+  "we",
+  "say",
+  "her",
+  "she",
+  "or",
+  "an",
+  "will",
+  "my",
+  "one",
+  "all",
+  "would",
+  "there",
+  "their",
+  "what",
+  "so",
+  "up",
+  "out",
+  "if",
+  "about",
+  "who",
+  "get",
+  "which",
+  "go",
+  "me",
+  "when",
+  "make",
+  "can",
+  "like",
+  "time",
+  "no",
+  "just",
+  "him",
+  "know",
+  "take",
+  "people",
+  "into",
+  "year",
+  "your",
+  "good",
+  "some",
+  "could",
+  "them",
+  "see",
+  "other",
+  "than",
+  "then",
+  "now",
+  "look",
+  "only",
+  "come",
+  "its",
+  "over",
+  "think",
+  "also",
+  "back",
+  "after",
+  "use",
+  "two",
+  "how",
+  "our",
+  "work",
+  "first",
+  "well",
+  "way",
+  "even",
+  "new",
+  "want",
+  "because",
+  "any",
+  "these",
+  "give",
+  "day",
+  "most",
+  "us",
+  "is",
+  "are",
+  "was",
+  "were",
 ]);
 
-const SPANISH_STOPWORDS = new Set(["el", "la", "de", "que", "en", "los", "del", "las", "por", "un", "para", "con", "no", "una", "su", "al", "lo"]);
-const GERMAN_STOPWORDS = new Set(["der", "die", "und", "in", "den", "von", "zu", "das", "mit", "sich", "des", "auf", "für", "ist", "im", "dem"]);
-const FRENCH_STOPWORDS = new Set(["le", "la", "de", "des", "et", "un", "une", "les", "du", "en", "pour", "dans", "par", "qui", "est"]);
+const SPANISH_STOPWORDS = new Set([
+  "el",
+  "la",
+  "de",
+  "que",
+  "en",
+  "los",
+  "del",
+  "las",
+  "por",
+  "un",
+  "para",
+  "con",
+  "no",
+  "una",
+  "su",
+  "al",
+  "lo",
+]);
+const GERMAN_STOPWORDS = new Set([
+  "der",
+  "die",
+  "und",
+  "in",
+  "den",
+  "von",
+  "zu",
+  "das",
+  "mit",
+  "sich",
+  "des",
+  "auf",
+  "für",
+  "ist",
+  "im",
+  "dem",
+]);
+const FRENCH_STOPWORDS = new Set([
+  "le",
+  "la",
+  "de",
+  "des",
+  "et",
+  "un",
+  "une",
+  "les",
+  "du",
+  "en",
+  "pour",
+  "dans",
+  "par",
+  "qui",
+  "est",
+]);
 
 export function detectTextLanguage(text: string): LanguageDetection {
   const words = text.toLowerCase().match(/\b[a-záéíóúüñäößàâçèêëîïôûù]+\b/g) || [];
@@ -116,7 +261,10 @@ export function detectTextLanguage(text: string): LanguageDetection {
     detectedCode: "en",
     languageName: "English",
     isEnglish: true,
-    confidence: Math.min(1.0, Math.round((enCount / Math.max(1, words.length * 0.4)) * 100) / 100),
+    confidence: Math.min(
+      1.0,
+      Math.round((enCount / Math.max(1, words.length * 0.4)) * 100) / 100
+    ),
   };
 }
 
@@ -124,7 +272,8 @@ export function detectTextLanguage(text: string): LanguageDetection {
 // PASSIVE VOICE & CLARITY DETECTORS
 // ---------------------------------------------------------------------------
 
-const PASSIVE_REGEX = /\b(am|is|are|was|were|been|being|be)\s+(\w+ed|shown|given|seen|written|taken|made|found|done|chosen|known|held|observed|evaluated|calculated|measured|conducted|established|demonstrated)\b(?:\s+by\b)?/i;
+const PASSIVE_REGEX =
+  /\b(am|is|are|was|were|been|being|be)\s+(\w+ed|shown|given|seen|written|taken|made|found|done|chosen|known|held|observed|evaluated|calculated|measured|conducted|established|demonstrated)\b(?:\s+by\b)?/i;
 
 const NOMINALIZATION_REPLACEMENTS: [RegExp, string][] = [
   [/\bconduct an investigation of\b/gi, "investigate"],
@@ -142,7 +291,10 @@ const NOMINALIZATION_REPLACEMENTS: [RegExp, string][] = [
   [/\bat the present time\b/gi, "currently"],
 ];
 
-export function detectPassiveVoice(sentence: string): { isPassive: boolean; match?: string } {
+export function detectPassiveVoice(sentence: string): {
+  isPassive: boolean;
+  match?: string;
+} {
   const m = PASSIVE_REGEX.exec(sentence);
   return {
     isPassive: Boolean(m),
@@ -154,7 +306,11 @@ export function detectPassiveVoice(sentence: string): { isPassive: boolean; matc
 // REPEATED PHRASES EXTRACTOR
 // ---------------------------------------------------------------------------
 
-export function findRepeatedPhrases(text: string, minLength = 3, maxWords = 4): RepeatedPhrase[] {
+export function findRepeatedPhrases(
+  text: string,
+  minLength = 3,
+  maxWords = 4
+): RepeatedPhrase[] {
   const words = text.toLowerCase().match(/\b[a-z0-9'-]+\b/g) || [];
   const phraseCounts = new Map<string, number>();
 
@@ -198,8 +354,10 @@ export function getReadabilityBand(fleschEase: number): ReadabilityScoreBand {
 }
 
 export function getAcademicSuitability(fleschEase: number): string {
-  if (fleschEase >= 60) return "Casual / Introductory (Simpler than standard peer-reviewed prose)";
-  if (fleschEase >= 30) return "Target Peer-Review Band (Standard academic and scientific discourse)";
+  if (fleschEase >= 60)
+    return "Casual / Introductory (Simpler than standard peer-reviewed prose)";
+  if (fleschEase >= 30)
+    return "Target Peer-Review Band (Standard academic and scientific discourse)";
   return "Dense Technical (High cognitive load; may benefit from clause shortening)";
 }
 
@@ -207,7 +365,10 @@ export function getAcademicSuitability(fleschEase: number): string {
 // FULL READABILITY ANALYZER WORKFLOW
 // ---------------------------------------------------------------------------
 
-export function analyzeReadability(text: string, title = "Manuscript"): ReadabilityReport {
+export function analyzeReadability(
+  text: string,
+  title = "Manuscript"
+): ReadabilityReport {
   const trimmed = text.trim();
   const language = detectTextLanguage(trimmed);
 
@@ -217,7 +378,9 @@ export function analyzeReadability(text: string, title = "Manuscript"): Readabil
 
   // Split Sentences with academic abbreviation protections
   const sentencesText = trimmed
-    .replace(/(?:et\s+al\.|i\.e\.|e\.g\.|Fig\.|Dr\.|Prof\.|vs\.)/gi, (m) => m.replace(/\./g, "§"))
+    .replace(/(?:et\s+al\.|i\.e\.|e\.g\.|Fig\.|Dr\.|Prof\.|vs\.)/gi, (m) =>
+      m.replace(/\./g, "§")
+    )
     .split(/(?<=[.!?])\s+(?=[A-Z0-9[(])/);
 
   const sentenceAnalyses: SentenceAnalysis[] = [];
@@ -305,13 +468,18 @@ export function analyzeReadability(text: string, title = "Manuscript"): Readabil
       Math.min(
         100,
         Math.round(
-          (206.835 - 1.015 * (pWordCount / pSentCount) - 84.6 * (pSyllables / pWordCount)) * 10
+          (206.835 -
+            1.015 * (pWordCount / pSentCount) -
+            84.6 * (pSyllables / pWordCount)) *
+            10
         ) / 10
       )
     );
 
     // Gunning Fog for paragraph
-    const pFog = Math.round((0.4 * (pWordCount / pSentCount + 100 * (pComplex / pWordCount))) * 10) / 10;
+    const pFog =
+      Math.round(0.4 * (pWordCount / pSentCount + 100 * (pComplex / pWordCount)) * 10) /
+      10;
 
     paragraphAnalyses.push({
       index: pIdx + 1,
@@ -330,7 +498,8 @@ export function analyzeReadability(text: string, title = "Manuscript"): Readabil
   const avgSentLen = Math.round((totalWords / totalSentences) * 10) / 10;
   const avgSyllablesPerWord = Math.round((totalSyllablesCount / totalWords) * 100) / 100;
   const complexWordPct = Math.round((totalComplexWordsCount / totalWords) * 1000) / 10;
-  const passiveVoiceRatio = Math.round((passiveSentencesCount / totalSentences) * 1000) / 10;
+  const passiveVoiceRatio =
+    Math.round((passiveSentencesCount / totalSentences) * 1000) / 10;
 
   // ---------------------------------------------------------------------------
   // CLASSICAL READABILITY METRICS COMPUTATION
@@ -341,38 +510,51 @@ export function analyzeReadability(text: string, title = "Manuscript"): Readabil
     0,
     Math.min(
       100,
-      Math.round((206.835 - 1.015 * (totalWords / totalSentences) - 84.6 * avgSyllablesPerWord) * 10) / 10
+      Math.round(
+        (206.835 - 1.015 * (totalWords / totalSentences) - 84.6 * avgSyllablesPerWord) *
+          10
+      ) / 10
     )
   );
 
   // 2. Flesch-Kincaid Grade Level
   const fleschKincaidGrade = Math.max(
     1,
-    Math.round((0.39 * (totalWords / totalSentences) + 11.8 * avgSyllablesPerWord - 15.59) * 10) / 10
+    Math.round(
+      (0.39 * (totalWords / totalSentences) + 11.8 * avgSyllablesPerWord - 15.59) * 10
+    ) / 10
   );
 
   // 3. Gunning Fog Index
   const gunningFogIndex = Math.max(
     1,
-    Math.round((0.4 * (totalWords / totalSentences + complexWordPct)) * 10) / 10
+    Math.round(0.4 * (totalWords / totalSentences + complexWordPct) * 10) / 10
   );
 
   // 4. Coleman-Liau Index (L = letters/100 words, S = sentences/100 words)
   const lettersCount = trimmed.replace(/[^A-Za-z0-9]/g, "").length;
   const L = (lettersCount / totalWords) * 100;
   const S = (totalSentences / totalWords) * 100;
-  const colemanLiauIndex = Math.max(1, Math.round((0.0588 * L - 0.296 * S - 15.8) * 10) / 10);
+  const colemanLiauIndex = Math.max(
+    1,
+    Math.round((0.0588 * L - 0.296 * S - 15.8) * 10) / 10
+  );
 
   // 5. SMOG Index (Simple Measure of Gobbledygook)
   const smogIndex = Math.max(
     1,
-    Math.round((1.043 * Math.sqrt(totalComplexWordsCount * (30 / totalSentences)) + 3.1291) * 10) / 10
+    Math.round(
+      (1.043 * Math.sqrt(totalComplexWordsCount * (30 / totalSentences)) + 3.1291) * 10
+    ) / 10
   );
 
   // 6. Automated Readability Index (ARI)
   const automatedReadabilityIndex = Math.max(
     1,
-    Math.round((4.71 * (lettersCount / totalWords) + 0.5 * (totalWords / totalSentences) - 21.43) * 10) / 10
+    Math.round(
+      (4.71 * (lettersCount / totalWords) + 0.5 * (totalWords / totalSentences) - 21.43) *
+        10
+    ) / 10
   );
 
   const scoreBand = getReadabilityBand(fleschReadingEase);
@@ -410,7 +592,9 @@ export function analyzeReadability(text: string, title = "Manuscript"): Readabil
     recommendations.push(...claritySuggestions.slice(0, 5));
   }
   if (recommendations.length === 0) {
-    recommendations.push("Document demonstrates well-calibrated academic prose cadence within standard peer-review bands.");
+    recommendations.push(
+      "Document demonstrates well-calibrated academic prose cadence within standard peer-review bands."
+    );
   }
 
   const vocabulary: VocabularyComplexity = {

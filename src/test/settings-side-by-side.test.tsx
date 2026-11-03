@@ -69,7 +69,9 @@ describe("SettingsView — Side-by-Side Master-Detail Panel Modernization", () =
 
     // Initially in side-by-side mode, both Appearance and Database are visible
     expect(screen.getByText(/Appearance & Visual Theme/i)).toBeInTheDocument();
-    expect(screen.getByText(/Local-First SQLite Database & Storage/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Local-First SQLite Database & Storage/i)
+    ).toBeInTheDocument();
 
     // Click on Appearance & Theme category
     act(() => {
@@ -78,7 +80,9 @@ describe("SettingsView — Side-by-Side Master-Detail Panel Modernization", () =
 
     // Appearance is visible, but Database is filtered out
     expect(screen.getByText(/Appearance & Visual Theme/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Local-First SQLite Database & Storage/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Local-First SQLite Database & Storage/i)
+    ).not.toBeInTheDocument();
 
     // Click on "View All Side-by-Side"
     act(() => {
@@ -87,7 +91,9 @@ describe("SettingsView — Side-by-Side Master-Detail Panel Modernization", () =
 
     // Both are visible again
     expect(screen.getByText(/Appearance & Visual Theme/i)).toBeInTheDocument();
-    expect(screen.getByText(/Local-First SQLite Database & Storage/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Local-First SQLite Database & Storage/i)
+    ).toBeInTheDocument();
   });
 
   it("filters settings cards live using the search input", () => {
@@ -105,7 +111,9 @@ describe("SettingsView — Side-by-Side Master-Detail Panel Modernization", () =
     });
 
     // Database is visible, Appearance is filtered out
-    expect(screen.getByText(/Local-First SQLite Database & Storage/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Local-First SQLite Database & Storage/i)
+    ).toBeInTheDocument();
     expect(screen.queryByText(/Appearance & Visual Theme/i)).not.toBeInTheDocument();
 
     // Clear search
@@ -114,7 +122,8 @@ describe("SettingsView — Side-by-Side Master-Detail Panel Modernization", () =
     });
 
     expect(screen.getByText(/Appearance & Visual Theme/i)).toBeInTheDocument();
-    expect(screen.getByText(/Local-First SQLite Database & Storage/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Local-First SQLite Database & Storage/i)
+    ).toBeInTheDocument();
   });
 });
-

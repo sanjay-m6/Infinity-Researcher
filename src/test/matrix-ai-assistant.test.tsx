@@ -26,9 +26,27 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
     total_papers: 2,
     total_extractions: 4,
     columns: [
-      { key: "research_question", label: "Research Question", col_type: "text", required: true, width: 220 },
-      { key: "methodology", label: "Methodology", col_type: "text", required: true, width: 240 },
-      { key: "main_findings", label: "Main Findings", col_type: "text", required: true, width: 260 },
+      {
+        key: "research_question",
+        label: "Research Question",
+        col_type: "text",
+        required: true,
+        width: 220,
+      },
+      {
+        key: "methodology",
+        label: "Methodology",
+        col_type: "text",
+        required: true,
+        width: 240,
+      },
+      {
+        key: "main_findings",
+        label: "Main Findings",
+        col_type: "text",
+        required: true,
+        width: 260,
+      },
     ],
     rows: [
       {
@@ -46,12 +64,14 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
             workspace_id: "ws_default",
             paper_id: "paper_zhang_2023",
             field_key: "main_findings",
-            extracted_value: "Achieves 28% lower transaction latency and 15% cost reduction compared to baseline methods.",
+            extracted_value:
+              "Achieves 28% lower transaction latency and 15% cost reduction compared to baseline methods.",
             confidence: 0.92,
             page_number: 12,
             char_offset_start: 100,
             char_offset_end: 200,
-            source_passage: "Our results show that the proposed blockchain-based trading framework achieves a 28% lower transaction latency and 15% cost reduction compared to baseline methods.",
+            source_passage:
+              "Our results show that the proposed blockchain-based trading framework achieves a 28% lower transaction latency and 15% cost reduction compared to baseline methods.",
             status: "user_verified",
             created_at: "2026-01-14T10:32:00Z",
             updated_at: "2026-01-14T10:32:00Z",
@@ -73,12 +93,14 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
             workspace_id: "ws_default",
             paper_id: "paper_kim_2022",
             field_key: "main_findings",
-            extracted_value: "Reduces peak load by 21% and improves grid stability compared to rule-based methods.",
+            extracted_value:
+              "Reduces peak load by 21% and improves grid stability compared to rule-based methods.",
             confidence: 0.88,
             page_number: 11,
             char_offset_start: 50,
             char_offset_end: 150,
-            source_passage: "Simulations reveal that the multi-agent DQN architecture reduces peak load by 21% under high renewable intermittency.",
+            source_passage:
+              "Simulations reveal that the multi-agent DQN architecture reduces peak load by 21% under high renewable intermittency.",
             status: "extracted",
             created_at: "2026-01-15T09:15:00Z",
             updated_at: "2026-01-15T09:15:00Z",
@@ -93,7 +115,8 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
       id: "msg_init",
       session_id: "session_matrix_ws_default",
       role: "assistant",
-      content: "I am your AI Research Assistant grounded in this Literature Review Matrix (2 papers loaded).",
+      content:
+        "I am your AI Research Assistant grounded in this Literature Review Matrix (2 papers loaded).",
       evidence_sources_json: "[]",
       created_at: "2026-01-15T10:00:00Z",
     },
@@ -112,12 +135,15 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
 
     vi.spyOn(desktopApi, "listMatrixWorkspaces").mockResolvedValue(mockWorkspaces);
     vi.spyOn(desktopApi, "getMatrixWorkspaceDetail").mockResolvedValue(mockDetail);
-    vi.spyOn(desktopApi, "getEvidenceCopilotMessages").mockResolvedValue(mockWelcomeHistory);
+    vi.spyOn(desktopApi, "getEvidenceCopilotMessages").mockResolvedValue(
+      mockWelcomeHistory
+    );
     vi.spyOn(desktopApi, "askEvidenceCopilot").mockResolvedValue({
       id: "msg_ans_1",
       session_id: "session_matrix_ws_default",
       role: "assistant",
-      content: "Comparative analysis indicates Zhang et al. (2023) focuses on 28% lower transaction latency, whereas Kim and Lee (2022) focuses on 21% peak load reduction.",
+      content:
+        "Comparative analysis indicates Zhang et al. (2023) focuses on 28% lower transaction latency, whereas Kim and Lee (2022) focuses on 21% peak load reduction.",
       evidence_sources_json: JSON.stringify([
         {
           paper_id: "paper_zhang_2023",
@@ -152,11 +178,17 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
     render(<ReviewMatrixView />);
 
     expect(await screen.findByText("Literature Review Matrix")).toBeInTheDocument();
-    expect(screen.getByText(/Compare papers side-by-side with page-linked evidence/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Compare papers side-by-side with page-linked evidence/i)
+    ).toBeInTheDocument();
 
     // Check papers in table asynchronously
-    expect(await screen.findByText("Blockchain-Based Energy Trading in Smart Grids")).toBeInTheDocument();
-    expect(await screen.findByText("Deep Reinforcement Learning for Energy Management")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Blockchain-Based Energy Trading in Smart Grids")
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Deep Reinforcement Learning for Energy Management")
+    ).toBeInTheDocument();
 
     // Toolbar AI Assistant button
     const aiButton = screen.getByTestId("toolbar-ai-assistant");
@@ -232,7 +264,9 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
     await user.click(aiButton);
 
     // Ask a question
-    const textarea = screen.getByPlaceholderText(/Ask about research questions, methods, datasets/i);
+    const textarea = screen.getByPlaceholderText(
+      /Ask about research questions, methods, datasets/i
+    );
     await user.type(textarea, "Compare the findings between Zhang and Kim");
 
     const askButton = screen.getByRole("button", { name: /Ask AI/i });
@@ -266,7 +300,9 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
 
   it("copies response and saves response as research note", async () => {
     const user = userEvent.setup();
-    const writeSpy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined);
+    const writeSpy = vi
+      .spyOn(navigator.clipboard, "writeText")
+      .mockResolvedValue(undefined);
     render(<ReviewMatrixView />);
 
     // Open AI Assistant
@@ -274,7 +310,9 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
     await user.click(aiButton);
 
     // Trigger a suggested query
-    const compareBtn = screen.getByText("Compare the experimental results and key metrics across papers");
+    const compareBtn = screen.getByText(
+      "Compare the experimental results and key metrics across papers"
+    );
     await user.click(compareBtn);
 
     expect(
@@ -311,7 +349,9 @@ describe("Literature Review Matrix — Dedicated AI Research Assistant & Side-by
     const confirmClearBtn = screen.getByRole("button", { name: /^Clear$/i });
     await user.click(confirmClearBtn);
 
-    expect(desktopApi.clearEvidenceCopilotMessages).toHaveBeenCalledWith("session_matrix_ws_default");
+    expect(desktopApi.clearEvidenceCopilotMessages).toHaveBeenCalledWith(
+      "session_matrix_ws_default"
+    );
     expect(await screen.findByText(/Conversation cleared/i)).toBeInTheDocument();
   });
 });

@@ -21,7 +21,12 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 }) => {
   if (variant === "inline") {
     return (
-      <div className={cn("inline-flex items-center gap-2 text-xs text-muted-foreground", className)}>
+      <div
+        className={cn(
+          "inline-flex items-center gap-2 text-xs text-muted-foreground",
+          className
+        )}
+      >
         <span className="inline-flex gap-1 items-center">
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse [animation-delay:150ms]" />
@@ -62,13 +67,13 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
           />
         </div>
         <div className="space-y-1">
-          <p className={cn("font-medium text-foreground", compact ? "text-xs" : "text-sm")}>
+          <p
+            className={cn("font-medium text-foreground", compact ? "text-xs" : "text-sm")}
+          >
             {message}
           </p>
           {subMessage && (
-            <p className="text-xs text-muted-foreground max-w-sm">
-              {subMessage}
-            </p>
+            <p className="text-xs text-muted-foreground max-w-sm">{subMessage}</p>
           )}
         </div>
       </div>
@@ -92,4 +97,3 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 };
 
 export default LoadingState;
-

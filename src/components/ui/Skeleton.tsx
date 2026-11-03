@@ -145,7 +145,10 @@ export const TableSkeleton: React.FC<{
       </div>
       {/* Rows */}
       {Array.from({ length: rows }).map((_, r) => (
-        <div key={r} className="flex items-center gap-4 p-3 bg-white/40 dark:bg-[#0e1524]/40">
+        <div
+          key={r}
+          className="flex items-center gap-4 p-3 bg-white/40 dark:bg-[#0e1524]/40"
+        >
           {Array.from({ length: cols }).map((_, c) => (
             <Skeleton
               key={c}

@@ -29,28 +29,35 @@ const TEMPLATE_PRESETS = [
     type: "literature_review",
     title: "Literature Review & Synthesis",
     desc: "Systematic literature survey, matrix synthesis, and gap analysis.",
-    defaultObjective: "Conduct a comprehensive systematic review of literature, synthesize methodologies, and identify key research gaps.",
-    defaultQuestions: "What are the primary methodologies used in recent studies?\nWhat are the common limitations identified in literature?",
+    defaultObjective:
+      "Conduct a comprehensive systematic review of literature, synthesize methodologies, and identify key research gaps.",
+    defaultQuestions:
+      "What are the primary methodologies used in recent studies?\nWhat are the common limitations identified in literature?",
   },
   {
     type: "empirical_ml",
     title: "Empirical ML / Benchmark",
     desc: "Dataset curation, baseline models, experimental evaluation, and ablation studies.",
-    defaultObjective: "Design and evaluate a novel machine learning pipeline against standard benchmark datasets.",
-    defaultQuestions: "How does our proposed architecture compare to SOTA baselines?\nWhat are the computational trade-offs?",
+    defaultObjective:
+      "Design and evaluate a novel machine learning pipeline against standard benchmark datasets.",
+    defaultQuestions:
+      "How does our proposed architecture compare to SOTA baselines?\nWhat are the computational trade-offs?",
   },
   {
     type: "thesis_dissertation",
     title: "Thesis / Dissertation",
     desc: "Structured multi-chapter dissertation planning from proposal to defense.",
-    defaultObjective: "Complete a graduate-level thesis addressing fundamental open questions in the domain.",
-    defaultQuestions: "What novel theoretical or practical contribution does this research offer?",
+    defaultObjective:
+      "Complete a graduate-level thesis addressing fundamental open questions in the domain.",
+    defaultQuestions:
+      "What novel theoretical or practical contribution does this research offer?",
   },
   {
     type: "comparative_study",
     title: "Comparative Analysis",
     desc: "Side-by-side empirical or theoretical comparison across models and algorithms.",
-    defaultObjective: "Perform a rigorous empirical comparison across competing algorithms under identical constraints.",
+    defaultObjective:
+      "Perform a rigorous empirical comparison across competing algorithms under identical constraints.",
     defaultQuestions: "Under what conditions does algorithm A outperform algorithm B?",
   },
   {
@@ -74,7 +81,9 @@ export const ProjectCreateModal: React.FC<ProjectCreateModalProps> = ({
   const [hypotheses, setHypotheses] = useState("");
   const [expectedOutcomes, setExpectedOutcomes] = useState("");
   const [targetDeadline, setTargetDeadline] = useState("");
-  const [priority, setPriority] = useState<"low" | "medium" | "high" | "critical">("medium");
+  const [priority, setPriority] = useState<"low" | "medium" | "high" | "critical">(
+    "medium"
+  );
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
   const [selectedSubdomainId, setSelectedSubdomainId] = useState<string | null>(null);
   const [customDomainText, setCustomDomainText] = useState("");
@@ -125,7 +134,9 @@ export const ProjectCreateModal: React.FC<ProjectCreateModalProps> = ({
         subdomain_id: selectedSubdomainId || undefined,
         custom_domain_text: customDomainText.trim() || undefined,
         priority,
-        target_deadline: targetDeadline ? new Date(targetDeadline).toISOString() : undefined,
+        target_deadline: targetDeadline
+          ? new Date(targetDeadline).toISOString()
+          : undefined,
         template_type: selectedTemplate,
         tags,
       };
@@ -217,7 +228,9 @@ export const ProjectCreateModal: React.FC<ProjectCreateModalProps> = ({
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-foreground">Priority</label>
+              <label className="block text-xs font-semibold text-foreground">
+                Priority
+              </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as any)}

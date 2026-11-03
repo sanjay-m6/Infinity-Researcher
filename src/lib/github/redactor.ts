@@ -28,7 +28,10 @@ export function redactDiagnostics(raw: string): string {
 
   // 3. Redact Bearer tokens & Authorization headers
   sanitized = sanitized.replace(BEARER_AUTH_REGEX, "Bearer [REDACTED_AUTH_TOKEN]");
-  sanitized = sanitized.replace(AUTH_HEADER_REGEX, "Authorization: [REDACTED_AUTH_HEADER]");
+  sanitized = sanitized.replace(
+    AUTH_HEADER_REGEX,
+    "Authorization: [REDACTED_AUTH_HEADER]"
+  );
 
   // 4. Sanitize user profile directories in paths
   sanitized = sanitized.replace(WINDOWS_USER_DIR_REGEX, "C:\\Users\\<user>");
@@ -45,7 +48,8 @@ export function redactDiagnostics(raw: string): string {
   }
 
   if (sanitized.length > MAX_DIAGNOSTIC_BYTES) {
-    sanitized = sanitized.slice(0, MAX_DIAGNOSTIC_BYTES) + "\n[... truncated at byte limit ...]";
+    sanitized =
+      sanitized.slice(0, MAX_DIAGNOSTIC_BYTES) + "\n[... truncated at byte limit ...]";
   }
 
   return sanitized.trim();

@@ -118,7 +118,8 @@ export const Panel1Collection: React.FC = () => {
         title: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
         authors: ["Uploaded Researcher Document"],
         publicationYear: new Date().getFullYear(),
-        abstract: "Document uploaded to workspace. Text and structural metadata extracted.",
+        abstract:
+          "Document uploaded to workspace. Text and structural metadata extracted.",
         hasFullText: true,
         isOpenAccess: true,
         extractionStatus: "extracting",
@@ -155,14 +156,20 @@ export const Panel1Collection: React.FC = () => {
         );
       case "ocr_required":
         return (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md" title="Scanned PDF requires OCR">
+          <span
+            className="inline-flex items-center gap-1.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md"
+            title="Scanned PDF requires OCR"
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             OCR required
           </span>
         );
       case "partially_extracted":
         return (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md" title={warning || "Metadata only"}>
+          <span
+            className="inline-flex items-center gap-1.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md"
+            title={warning || "Metadata only"}
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             Metadata only
           </span>
@@ -285,7 +292,11 @@ export const Panel1Collection: React.FC = () => {
               onClick={handleRunOnlineDiscovery}
               className="h-7 text-xs px-2.5"
             >
-              {isSearchingOnline ? <RefreshCw className="w-3 h-3 animate-spin" /> : "Search"}
+              {isSearchingOnline ? (
+                <RefreshCw className="w-3 h-3 animate-spin" />
+              ) : (
+                "Search"
+              )}
             </Button>
           </div>
         )}
@@ -372,7 +383,8 @@ export const Panel1Collection: React.FC = () => {
                       {getStatusBadge(paper.extractionStatus, paper.extractionWarning)}
                       {surveyRows.some((r) => r.paperId === paper.id) && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md">
-                          <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" /> In matrix
+                          <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" /> In
+                          matrix
                         </span>
                       )}
                       {paper.isOpenAccess && (
@@ -394,8 +406,8 @@ export const Panel1Collection: React.FC = () => {
                           reviewingPaperId === paper.id
                             ? "bg-slate-100 text-slate-400 dark:bg-slate-800 cursor-not-allowed"
                             : surveyRows.some((r) => r.paperId === paper.id)
-                            ? "bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
-                            : "bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 shadow-2xs"
+                              ? "bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                              : "bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 shadow-2xs"
                         }`}
                         title={
                           surveyRows.some((r) => r.paperId === paper.id)
@@ -411,8 +423,8 @@ export const Panel1Collection: React.FC = () => {
                         {reviewingPaperId === paper.id
                           ? "Reviewing..."
                           : surveyRows.some((r) => r.paperId === paper.id)
-                          ? "Re-Review"
-                          : "AI Review"}
+                            ? "Re-Review"
+                            : "AI Review"}
                       </button>
 
                       <button
@@ -458,7 +470,9 @@ export const Panel1Collection: React.FC = () => {
               </div>
             ) : (
               onlineResults.map((result) => {
-                const alreadyCollected = papers.some((p) => p.doi && p.doi === result.doi);
+                const alreadyCollected = papers.some(
+                  (p) => p.doi && p.doi === result.doi
+                );
                 return (
                   <div
                     key={result.id}

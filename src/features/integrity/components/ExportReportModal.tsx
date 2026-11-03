@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import { UnifiedIntegrityReport } from "../types";
-import {
-  Download,
-  Copy,
-  Check,
-  FileCode,
-  FileText,
-  X,
-  Printer,
-} from "lucide-react";
+import { Download, Copy, Check, FileCode, FileText, X, Printer } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 
 interface ExportReportModalProps {
@@ -40,10 +32,10 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
               f.status === "verified"
                 ? "#dcfce7; color: #166534;"
                 : f.status === "concern"
-                ? "#ffe4e6; color: #9f1239;"
-                : f.status === "technical_error"
-                ? "#e0f2fe; color: #075985;"
-                : "#f1f5f9; color: #334155;"
+                  ? "#ffe4e6; color: #9f1239;"
+                  : f.status === "technical_error"
+                    ? "#e0f2fe; color: #075985;"
+                    : "#f1f5f9; color: #334155;"
             }">${f.status.replace("_", " ")}</span>
           </td>
           <td style="padding: 10px;">
@@ -75,7 +67,11 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div style="font-weight: 700; font-size: 12px; color: #0f172a;">${d.label}</div>
             <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: ${
-              d.status === "pass" ? "#dcfce7; color: #166534;" : d.status === "attention_needed" ? "#fef3c7; color: #92400e;" : "#ffe4e6; color: #9f1239;"
+              d.status === "pass"
+                ? "#dcfce7; color: #166534;"
+                : d.status === "attention_needed"
+                  ? "#fef3c7; color: #92400e;"
+                  : "#ffe4e6; color: #9f1239;"
             }">${d.statusLabel}</span>
           </div>
           <div style="font-size: 11px; color: #64748b; line-height: 1.4;">${d.summaryText}</div>
@@ -253,7 +249,9 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                 <p className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
                   Ready-to-Print Self-Contained Document
                 </p>
-                Includes all 7 audited integrity dimensions, transparent status badges, primary evidence excerpts, auditor reviewer notes, and ethical disclaimers with zero external dependencies.
+                Includes all 7 audited integrity dimensions, transparent status badges,
+                primary evidence excerpts, auditor reviewer notes, and ethical disclaimers
+                with zero external dependencies.
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2">
@@ -273,7 +271,8 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                 <p className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
                   Compliance and Archival Schema
                 </p>
-                Provides a structured JSON format containing full dimensional breakdown, finding identifiers, confidence levels, timestamps, and reviewer notes.
+                Provides a structured JSON format containing full dimensional breakdown,
+                finding identifiers, confidence levels, timestamps, and reviewer notes.
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2">

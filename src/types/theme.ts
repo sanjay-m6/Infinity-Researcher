@@ -30,12 +30,7 @@ export type PresetThemeId =
 /**
  * Surface Background Tone Presets
  */
-export type BackgroundPreset =
-  | "default"
-  | "neutral"
-  | "cool"
-  | "warm"
-  | "high_contrast";
+export type BackgroundPreset = "default" | "neutral" | "cool" | "warm" | "high_contrast";
 
 /**
  * Workspace UI Information Density
@@ -147,7 +142,10 @@ export interface ThemeContextValue {
   /** Toggles between light and dark modes with optional splash transition */
   toggleTheme: (origin?: ThemeSplashOrigin) => void;
   /** Explicitly triggers a circular splash transition to the given theme */
-  setThemeWithSplash: (theme: ThemePreference, origin?: ThemeSplashOrigin) => Promise<void>;
+  setThemeWithSplash: (
+    theme: ThemePreference,
+    origin?: ThemeSplashOrigin
+  ) => Promise<void>;
   /** Whether the theme system has finished initializing from storage/system */
   isInitialized: boolean;
 

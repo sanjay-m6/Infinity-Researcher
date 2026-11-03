@@ -19,19 +19,32 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
   describe("Sidebar Navigation Rail & Category Sub-Navigation", () => {
     it("renders the primary rail with all 4 navigation categories and brand button", () => {
       render(
-        <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+        <AppProvider
+          initialPapers={INITIAL_DEMO_PAPERS}
+          initialCollections={INITIAL_DEMO_COLLECTIONS}
+        >
           <Sidebar />
         </AppProvider>
       );
 
       // Brand about button
-      expect(screen.getByRole("button", { name: /About Infinity Researcher/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /About Infinity Researcher/i })
+      ).toBeInTheDocument();
 
       // Primary rail category buttons with aria-label and titles
-      expect(screen.getByRole("button", { name: /Research navigation group/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /AI Tools navigation group/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /Workspace navigation group/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /System navigation group/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Research navigation group/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /AI Tools navigation group/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Workspace navigation group/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /System navigation group/i })
+      ).toBeInTheDocument();
     });
 
     it("displays active indicator line and aria-current='page' on the active category rail button", () => {
@@ -41,10 +54,14 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
         </AppProvider>
       );
 
-      const researchCatBtn = screen.getByRole("button", { name: /Research navigation group/i });
+      const researchCatBtn = screen.getByRole("button", {
+        name: /Research navigation group/i,
+      });
       expect(researchCatBtn).toHaveAttribute("aria-current", "page");
 
-      const aiToolsCatBtn = screen.getByRole("button", { name: /AI Tools navigation group/i });
+      const aiToolsCatBtn = screen.getByRole("button", {
+        name: /AI Tools navigation group/i,
+      });
       expect(aiToolsCatBtn).not.toHaveAttribute("aria-current");
     });
 
@@ -58,15 +75,21 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
 
       // Default shows RESEARCH subnav
       expect(screen.getByText("RESEARCH")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /Discover Papers/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Discover Papers/i })
+      ).toBeInTheDocument();
 
       // Click AI Tools category in primary rail
-      const aiToolsBtn = screen.getByRole("button", { name: /AI Tools navigation group/i });
+      const aiToolsBtn = screen.getByRole("button", {
+        name: /AI Tools navigation group/i,
+      });
       await user.click(aiToolsBtn);
 
       expect(screen.getAllByText("AI TOOLS").length).toBeGreaterThanOrEqual(1);
       expect(screen.getByRole("button", { name: /AI Tools Hub/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /Citation Checker/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Citation Checker/i })
+      ).toBeInTheDocument();
     });
 
     it("supports keyboard arrow navigation (ArrowDown / ArrowUp) across sub-navigation buttons", async () => {
@@ -82,7 +105,9 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
 
       // Arrow down should focus the next subnav item
       fireEvent.keyDown(discoverBtn, { key: "ArrowDown" });
-      const litWorkspaceBtn = screen.getByRole("button", { name: /Literature Workspace/i });
+      const litWorkspaceBtn = screen.getByRole("button", {
+        name: /Literature Workspace/i,
+      });
       expect(litWorkspaceBtn).toHaveFocus();
 
       // Arrow up should wrap back to the previous item
@@ -98,19 +123,25 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
         </AppProvider>
       );
 
-      const collapseBtn = screen.getByRole("button", { name: /Collapse category panel/i });
+      const collapseBtn = screen.getByRole("button", {
+        name: /Collapse category panel/i,
+      });
       expect(collapseBtn).toBeInTheDocument();
 
       await user.click(collapseBtn);
 
       // Panel collapsed: localStorage updated and expand button available on rail
-      expect(localStorage.getItem("infinity_sidebar_v3_secondary_collapsed")).toBe("true");
+      expect(localStorage.getItem("infinity_sidebar_v3_secondary_collapsed")).toBe(
+        "true"
+      );
       const expandBtn = screen.getByRole("button", { name: /Expand sidebar panel/i });
       expect(expandBtn).toBeInTheDocument();
 
       // Clicking expand restores panel
       await user.click(expandBtn);
-      expect(localStorage.getItem("infinity_sidebar_v3_secondary_collapsed")).toBe("false");
+      expect(localStorage.getItem("infinity_sidebar_v3_secondary_collapsed")).toBe(
+        "false"
+      );
       expect(screen.getByText("RESEARCH")).toBeInTheDocument();
     });
   });
@@ -126,7 +157,9 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
       const breadcrumbNav = screen.getByRole("navigation", { name: /Breadcrumbs/i });
       expect(breadcrumbNav).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Research" })).toBeInTheDocument();
-      expect(screen.getByRole("heading", { name: "Discover & Query Papers" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Discover & Query Papers" })
+      ).toBeInTheDocument();
     });
 
     it("renders search bar with input, keyboard shortcut badge, and clear button", async () => {
@@ -137,11 +170,15 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
         </AppProvider>
       );
 
-      const searchInput = screen.getByRole("searchbox", { name: /Search papers across all sources/i });
+      const searchInput = screen.getByRole("searchbox", {
+        name: /Search papers across all sources/i,
+      });
       expect(searchInput).toBeInTheDocument();
 
       // Shortcut badge exists
-      expect(screen.getByRole("button", { name: /Open command palette/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Open command palette/i })
+      ).toBeInTheDocument();
 
       // Type in search input
       await user.type(searchInput, "Machine learning");
@@ -163,7 +200,9 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
         </AppProvider>
       );
 
-      const searchInput = screen.getByRole("searchbox", { name: /Search papers across all sources/i });
+      const searchInput = screen.getByRole("searchbox", {
+        name: /Search papers across all sources/i,
+      });
       await user.type(searchInput, "Quantum computing{enter}");
 
       // Input clears after submit
@@ -189,7 +228,9 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
         </AppProvider>
       );
 
-      expect(screen.getByRole("button", { name: /1 active download jobs/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /1 active download jobs/i })
+      ).toBeInTheDocument();
     });
 
     it("renders segmented theme selector with light, dark, and system options", () => {
@@ -199,7 +240,9 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
         </AppProvider>
       );
 
-      expect(screen.getByRole("radiogroup", { name: /Theme mode selector/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("radiogroup", { name: /Theme mode selector/i })
+      ).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /Light mode/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /Dark mode/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /System theme/i })).toBeInTheDocument();
@@ -214,9 +257,15 @@ describe("Phase 7 — App Shell & Navigation Modernization Suite", () => {
         </AppProvider>
       );
 
-      expect(screen.getByRole("banner", { name: /Window title bar/i })).toBeInTheDocument();
-      expect(screen.getByRole("complementary", { name: /Main Sidebar/i })).toBeInTheDocument();
-      expect(screen.getByRole("navigation", { name: /Breadcrumbs/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("banner", { name: /Window title bar/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("complementary", { name: /Main Sidebar/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("navigation", { name: /Breadcrumbs/i })
+      ).toBeInTheDocument();
       expect(container.querySelector("main#main-content")).toBeInTheDocument();
       expect(screen.getByRole("contentinfo")).toBeInTheDocument();
     });

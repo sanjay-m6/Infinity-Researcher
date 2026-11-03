@@ -82,7 +82,9 @@ export function updateFindingReviewStatus(
   Object.keys(report.dimensions).forEach((dimKey) => {
     const dim = dimKey as keyof typeof report.dimensions;
     const dimFindings = report.findings.filter((f) => f.dimension === dim);
-    report.dimensions[dim].unreviewedCount = dimFindings.filter((f) => !f.isReviewed).length;
+    report.dimensions[dim].unreviewedCount = dimFindings.filter(
+      (f) => !f.isReviewed
+    ).length;
   });
 
   saveReportToStorage(report);

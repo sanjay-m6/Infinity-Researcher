@@ -114,9 +114,7 @@ export const AnimatedIcon = forwardRef<HTMLSpanElement, AnimatedIconProps>(
 
         case "error-shake":
           animateProps = {
-            animate: isAnimating
-              ? { x: [-2, 2, -2, 2, 0] }
-              : { x: 0 },
+            animate: isAnimating ? { x: [-2, 2, -2, 2, 0] } : { x: 0 },
             transition: { duration: 0.35, ease: "easeInOut" },
           };
           break;
@@ -136,7 +134,10 @@ export const AnimatedIcon = forwardRef<HTMLSpanElement, AnimatedIconProps>(
     return (
       <motion.span
         ref={ref}
-        className={cn("inline-flex items-center justify-center shrink-0 origin-center", className)}
+        className={cn(
+          "inline-flex items-center justify-center shrink-0 origin-center",
+          className
+        )}
         {...animateProps}
       >
         <AppIcon

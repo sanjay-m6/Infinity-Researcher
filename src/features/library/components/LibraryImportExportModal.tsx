@@ -9,7 +9,10 @@ interface LibraryImportExportModalProps {
   onClose: () => void;
   papers: Paper[];
   collections: Collection[];
-  onImportLibrary?: (importedData: { papers: Partial<Paper>[]; collections?: Partial<Collection>[] }) => Promise<void>;
+  onImportLibrary?: (importedData: {
+    papers: Partial<Paper>[];
+    collections?: Partial<Collection>[];
+  }) => Promise<void>;
   showToast: (message: string, type?: "success" | "info" | "warning" | "error") => void;
 }
 
@@ -175,20 +178,22 @@ ER  - `;
           <button
             type="button"
             onClick={() => setActiveTab("export")}
-            className={`pb-2 px-3 text-xs font-semibold border-b-2 transition-colors ${activeTab === "export"
-              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
-              : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-              }`}
+            className={`pb-2 px-3 text-xs font-semibold border-b-2 transition-colors ${
+              activeTab === "export"
+                ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+                : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+            }`}
           >
             Export Library
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("import")}
-            className={`pb-2 px-3 text-xs font-semibold border-b-2 transition-colors ${activeTab === "import"
-              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
-              : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-              }`}
+            className={`pb-2 px-3 text-xs font-semibold border-b-2 transition-colors ${
+              activeTab === "import"
+                ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+                : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+            }`}
           >
             Import JSON Backup
           </button>
@@ -206,10 +211,11 @@ ER  - `;
                     key={fmt}
                     type="button"
                     onClick={() => setExportFormat(fmt)}
-                    className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${exportFormat === fmt
-                      ? "bg-indigo-600 text-white"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
-                      }`}
+                    className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${
+                      exportFormat === fmt
+                        ? "bg-indigo-600 text-white"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                    }`}
                   >
                     {fmt.toUpperCase()}
                   </button>
@@ -260,7 +266,8 @@ ER  - `;
         {activeTab === "import" && (
           <form onSubmit={handleImportSubmit} className="space-y-3">
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Paste a previously exported Infinity Researcher JSON backup below to restore or merge papers.
+              Paste a previously exported Infinity Researcher JSON backup below to restore
+              or merge papers.
             </p>
 
             <textarea

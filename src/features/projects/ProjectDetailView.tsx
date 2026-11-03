@@ -76,7 +76,9 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskPhase, setNewTaskPhase] = useState("literature_review");
-  const [newTaskPriority, setNewTaskPriority] = useState<"low" | "medium" | "high" | "critical">("medium");
+  const [newTaskPriority, setNewTaskPriority] = useState<
+    "low" | "medium" | "high" | "critical"
+  >("medium");
   const [isNewMilestoneOpen, setIsNewMilestoneOpen] = useState(false);
   const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
   const [newMilestoneDate, setNewMilestoneDate] = useState("");
@@ -84,8 +86,13 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const [selectedPaperToLink, setSelectedPaperToLink] = useState("");
 
   // Confirmation dialog states
-  const [taskToDelete, setTaskToDelete] = useState<{ id: string; title: string } | null>(null);
-  const [milestoneToDelete, setMilestoneToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<{ id: string; title: string } | null>(
+    null
+  );
+  const [milestoneToDelete, setMilestoneToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
   const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
   const [isDeleteProjectConfirmOpen, setIsDeleteProjectConfirmOpen] = useState(false);
 
@@ -109,12 +116,13 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         setEditNotes(proj.project.notes || "");
       }
 
-      const [loadedTasks, loadedMilestones, loadedPapers, papersPaged] = await Promise.all([
-        listProjectTasks(projectId),
-        listProjectMilestones(projectId),
-        listProjectPapers(projectId),
-        listPapers(),
-      ]);
+      const [loadedTasks, loadedMilestones, loadedPapers, papersPaged] =
+        await Promise.all([
+          listProjectTasks(projectId),
+          listProjectMilestones(projectId),
+          listProjectPapers(projectId),
+          listPapers(),
+        ]);
 
       setTasks(loadedTasks);
       setMilestones(loadedMilestones);
@@ -299,14 +307,19 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     return (
       <div className="py-24 text-center space-y-3">
         <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
-        <p className="text-sm text-muted-foreground">Loading research project workspace...</p>
+        <p className="text-sm text-muted-foreground">
+          Loading research project workspace...
+        </p>
       </div>
     );
   }
 
   const p = project.project;
   const completedTasks = tasks.filter((t) => t.task.status === "completed").length;
-  const progressPercent = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : p.progress_percent;
+  const progressPercent =
+    tasks.length > 0
+      ? Math.round((completedTasks / tasks.length) * 100)
+      : p.progress_percent;
 
   return (
     <div className="space-y-6">
@@ -329,8 +342,8 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                   p.status === "active"
                     ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                     : p.status === "completed"
-                    ? "bg-blue-500/10 text-blue-600 border border-blue-500/20"
-                    : "bg-muted text-muted-foreground"
+                      ? "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                      : "bg-muted text-muted-foreground"
                 }`}
               >
                 {p.status}
@@ -340,8 +353,8 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                   p.priority === "critical"
                     ? "bg-red-500/10 text-red-600"
                     : p.priority === "high"
-                    ? "bg-amber-500/10 text-amber-600"
-                    : "bg-slate-500/10 text-slate-600"
+                      ? "bg-amber-500/10 text-amber-600"
+                      : "bg-slate-500/10 text-slate-600"
                 }`}
               >
                 {p.priority}
@@ -481,7 +494,8 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                 Research Objective
               </h3>
               <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap">
-                {p.objective || "No research objective documented yet. Add one in Settings or generate with AI."}
+                {p.objective ||
+                  "No research objective documented yet. Add one in Settings or generate with AI."}
               </p>
             </div>
 
@@ -540,7 +554,9 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                         />
                         <span
                           className={`font-medium ${
-                            m.is_completed ? "line-through text-muted-foreground" : "text-foreground"
+                            m.is_completed
+                              ? "line-through text-muted-foreground"
+                              : "text-foreground"
                           }`}
                         >
                           {m.title}
@@ -566,7 +582,8 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                 AI Planning & Intelligence
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Need to decompose complex methodologies into scheduled tasks or check if any steps are blocked?
+                Need to decompose complex methodologies into scheduled tasks or check if
+                any steps are blocked?
               </p>
               <div className="pt-2 space-y-2">
                 <Button
@@ -649,9 +666,12 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           {tasks.length === 0 ? (
             <div className="text-center py-16 border border-dashed border-border rounded-2xl p-6">
               <Clock className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-              <div className="text-sm font-semibold text-foreground">No Tasks Created Yet</div>
+              <div className="text-sm font-semibold text-foreground">
+                No Tasks Created Yet
+              </div>
               <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                Create tasks manually or use the AI Project Planner to automatically generate milestones and tasks.
+                Create tasks manually or use the AI Project Planner to automatically
+                generate milestones and tasks.
               </p>
               <div className="mt-4 flex items-center justify-center gap-3">
                 <Button
@@ -700,7 +720,9 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                       <div className="min-w-0">
                         <div
                           className={`text-sm font-semibold ${
-                            isCompleted ? "line-through text-muted-foreground" : "text-foreground"
+                            isCompleted
+                              ? "line-through text-muted-foreground"
+                              : "text-foreground"
                           }`}
                         >
                           {t.title}
@@ -719,8 +741,8 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                               t.priority === "critical"
                                 ? "bg-red-500/10 text-red-600"
                                 : t.priority === "high"
-                                ? "bg-amber-500/10 text-amber-600"
-                                : "bg-blue-500/10 text-blue-600"
+                                  ? "bg-amber-500/10 text-amber-600"
+                                  : "bg-blue-500/10 text-blue-600"
                             }`}
                           >
                             {t.priority}
@@ -762,7 +784,9 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
       {activeTab === "timeline" && (
         <div className="space-y-6">
           <div className="p-5 rounded-2xl border border-border bg-card">
-            <h3 className="text-sm font-bold text-foreground mb-4">Chronological Road Map</h3>
+            <h3 className="text-sm font-bold text-foreground mb-4">
+              Chronological Road Map
+            </h3>
             <div className="relative border-l-2 border-primary/30 pl-6 ml-3 space-y-6">
               {milestones.map((m) => (
                 <div key={m.id} className="relative">
@@ -814,9 +838,12 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           {papers.length === 0 ? (
             <div className="text-center py-12 border border-dashed border-border rounded-2xl p-6">
               <BookOpen className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-              <div className="text-sm font-semibold text-foreground">No Research Papers Linked</div>
+              <div className="text-sm font-semibold text-foreground">
+                No Research Papers Linked
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Link relevant papers from your local library to ground AI summaries and plan literature extraction.
+                Link relevant papers from your local library to ground AI summaries and
+                plan literature extraction.
               </p>
             </div>
           ) : (
@@ -893,13 +920,17 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                   <div>
                     <div
                       className={`text-sm font-semibold ${
-                        m.is_completed ? "line-through text-muted-foreground" : "text-foreground"
+                        m.is_completed
+                          ? "line-through text-muted-foreground"
+                          : "text-foreground"
                       }`}
                     >
                       {m.title}
                     </div>
                     {m.description && (
-                      <div className="text-xs text-muted-foreground mt-0.5">{m.description}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {m.description}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -928,7 +959,9 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
       {activeTab === "notes" && (
         <div className="space-y-4">
           <div className="p-5 rounded-2xl border border-border bg-card space-y-3">
-            <h3 className="text-sm font-bold text-foreground">Project Notes & Scratchpad</h3>
+            <h3 className="text-sm font-bold text-foreground">
+              Project Notes & Scratchpad
+            </h3>
             <textarea
               rows={8}
               value={editNotes}
@@ -937,7 +970,12 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               className="w-full p-3.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
             />
             <div className="flex justify-end">
-              <Button type="button" size="sm" onClick={handleSaveSettings} className="text-xs">
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSaveSettings}
+                className="text-xs"
+              >
                 Save Notes
               </Button>
             </div>
@@ -957,7 +995,9 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             <h3 className="text-sm font-bold text-foreground">Edit Project Details</h3>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Project Title</label>
+              <label className="text-xs font-semibold text-foreground">
+                Project Title
+              </label>
               <input
                 type="text"
                 value={editTitle}
@@ -967,7 +1007,9 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Research Objective</label>
+              <label className="text-xs font-semibold text-foreground">
+                Research Objective
+              </label>
               <textarea
                 rows={3}
                 value={editObjective}
@@ -976,7 +1018,12 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               />
             </div>
 
-            <Button type="button" size="sm" onClick={handleSaveSettings} className="text-xs">
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSaveSettings}
+              className="text-xs"
+            >
               Save Changes
             </Button>
           </div>
@@ -984,7 +1031,8 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           <div className="p-5 rounded-2xl border border-destructive/20 bg-destructive/5 space-y-3">
             <h3 className="text-sm font-bold text-destructive">Danger Zone</h3>
             <p className="text-xs text-muted-foreground">
-              Archive this project to hide it from active dashboards, or permanently delete all associated milestones and tasks.
+              Archive this project to hide it from active dashboards, or permanently
+              delete all associated milestones and tasks.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <Button
@@ -1156,7 +1204,8 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                 <option value="">Select paper...</option>
                 {libraryPapers.map((lp) => (
                   <option key={lp.id} value={lp.id}>
-                    {lp.title} {lp.publication_date ? `(${lp.publication_date.slice(0, 4)})` : ""}
+                    {lp.title}{" "}
+                    {lp.publication_date ? `(${lp.publication_date.slice(0, 4)})` : ""}
                   </option>
                 ))}
               </select>

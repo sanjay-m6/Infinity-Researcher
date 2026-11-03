@@ -157,10 +157,9 @@ export type IconDomain = keyof typeof IconRegistry;
 /**
  * Helper to retrieve a semantic icon safely from the registry.
  */
-export function getRegisteredIcon<D extends IconDomain, K extends keyof (typeof IconRegistry)[D]>(
-  domain: D,
-  key: K
-): React.ComponentType<LucideProps> {
+export function getRegisteredIcon<
+  D extends IconDomain,
+  K extends keyof (typeof IconRegistry)[D],
+>(domain: D, key: K): React.ComponentType<LucideProps> {
   return IconRegistry[domain][key] as unknown as React.ComponentType<LucideProps>;
 }
-

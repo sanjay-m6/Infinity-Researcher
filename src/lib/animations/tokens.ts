@@ -66,4 +66,3 @@ export const motionSpring = {
     damping: 24,
   },
 } as const;
-

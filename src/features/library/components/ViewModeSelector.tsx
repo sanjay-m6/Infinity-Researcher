@@ -67,4 +67,3 @@ export const ViewModeSelector: React.FC<ViewModeSelectorProps> = ({
     </div>
   );
 };
-

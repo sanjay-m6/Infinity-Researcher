@@ -92,4 +92,3 @@ pub struct UpdatePreferencesRequest {
     pub remember_me: bool,
     pub theme: Option<String>,
 }
-

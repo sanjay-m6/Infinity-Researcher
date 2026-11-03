@@ -36,7 +36,6 @@ export type NavSection =
   | "settings"
   | "privacy_security";
 
-
 export type AccessStatus = "open_access" | "restricted" | "preprint";
 export type DocumentStatus =
   "available" | "downloading" | "unavailable" | "not_downloaded";
@@ -75,7 +74,6 @@ export interface Paper {
   readingProgress?: number;
   lastOpenedAt?: string | null;
 }
-
 
 export interface Collection {
   id: string;

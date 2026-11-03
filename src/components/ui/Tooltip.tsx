@@ -68,13 +68,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
   );
 };
 
-export const TooltipTrigger = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ children, ...props }, ref) => (
-    <div ref={ref} {...props}>
-      {children}
-    </div>
-  )
-);
+export const TooltipTrigger = forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ children, ...props }, ref) => (
+  <div ref={ref} {...props}>
+    {children}
+  </div>
+));
 TooltipTrigger.displayName = "TooltipTrigger";
 
 export default Tooltip;

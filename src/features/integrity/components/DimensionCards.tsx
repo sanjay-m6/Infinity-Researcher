@@ -133,4 +133,3 @@ export const DimensionCards: React.FC<DimensionCardsProps> = ({
     </div>
   );
 };
-

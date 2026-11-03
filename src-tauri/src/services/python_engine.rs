@@ -803,16 +803,14 @@ impl PythonEngineService {
             EngineExecutionPlan::PythonModule {
                 python_cmd,
                 engine_dir,
-            } => {
-                Command::new(python_cmd)
-                    .arg("-m")
-                    .arg("paper_scraper")
-                    .current_dir(engine_dir)
-                    .stdin(Stdio::piped())
-                    .stdout(Stdio::piped())
-                    .stderr(Stdio::piped())
-                    .spawn()
-            }
+            } => Command::new(python_cmd)
+                .arg("-m")
+                .arg("paper_scraper")
+                .current_dir(engine_dir)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn(),
         }
         .map_err(|e| {
             CommandError::new(
@@ -950,7 +948,10 @@ impl PythonEngineService {
         {
             Ok(res) => Ok(res),
             Err(err) => {
-                warn!("Python AI signal detection RPC failed: {:?}; fallback to local heuristic", err);
+                warn!(
+                    "Python AI signal detection RPC failed: {:?}; fallback to local heuristic",
+                    err
+                );
                 let words: Vec<&str> = text.split_whitespace().collect();
                 let word_count = words.len();
                 let sentences: Vec<&str> = text
@@ -978,10 +979,7 @@ impl PythonEngineService {
                     .map(|s| s.split_whitespace().count() as f64)
                     .collect();
                 let mean_len: f64 = lengths.iter().sum::<f64>() / lengths.len() as f64;
-                let var: f64 = lengths
-                    .iter()
-                    .map(|l| (l - mean_len).powi(2))
-                    .sum::<f64>()
+                let var: f64 = lengths.iter().map(|l| (l - mean_len).powi(2)).sum::<f64>()
                     / lengths.len() as f64;
                 let std_dev = var.sqrt();
                 let burstiness = if mean_len + std_dev > 0.0 {

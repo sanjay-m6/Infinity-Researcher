@@ -42,4 +42,3 @@ export function useReducedMotionPreference(): boolean {
 }
 
 export default useReducedMotionPreference;
-

@@ -54,7 +54,7 @@ export function Tour({
       onIndexChange?.(i);
       setIndexState(i);
     },
-    [onIndexChange],
+    [onIndexChange]
   );
 
   const rootRef = React.useRef<HTMLDivElement>(null);
@@ -109,8 +109,14 @@ export function Tour({
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
     };
 
-    const el = step?.target ? (document.querySelector(step.target) as HTMLElement | null) : null;
-    el?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center", inline: "center" });
+    const el = step?.target
+      ? (document.querySelector(step.target) as HTMLElement | null)
+      : null;
+    el?.scrollIntoView({
+      behavior: reduce ? "auto" : "smooth",
+      block: "center",
+      inline: "center",
+    });
 
     measure();
     const settle = window.setTimeout(measure, reduce ? 0 : 320);
@@ -144,7 +150,7 @@ export function Tour({
         back();
       } else if (e.key === "Tab") {
         const focusables = cardRef.current?.querySelectorAll<HTMLElement>(
-          "button, [href], input, [tabindex]:not([tabindex='-1'])",
+          "button, [href], input, [tabindex]:not([tabindex='-1'])"
         );
         if (!focusables || focusables.length === 0) return;
         const first = focusables[0];
@@ -238,11 +244,18 @@ export function Tour({
             <motion.div
               className="pointer-events-none absolute rounded-xl"
               initial={false}
-              animate={{ top: spot.top, left: spot.left, width: spot.width, height: spot.height }}
+              animate={{
+                top: spot.top,
+                left: spot.left,
+                width: spot.width,
+                height: spot.height,
+              }}
               transition={reduce ? { duration: 0 } : SPRING}
               style={{
                 boxShadow: `0 0 0 9999px ${overlayInk}`,
-                outline: isDark ? "1px solid rgba(255,255,255,0.14)" : "1px solid rgba(255,255,255,0.85)",
+                outline: isDark
+                  ? "1px solid rgba(255,255,255,0.14)"
+                  : "1px solid rgba(255,255,255,0.85)",
                 outlineOffset: 2,
               }}
             >
@@ -337,7 +350,7 @@ export function Tour({
         </motion.div>
       </AnimatePresence>
     </div>,
-    document.body,
+    document.body
   );
 }
 
@@ -373,7 +386,14 @@ export function useTour(storageKey?: string) {
 
 function IconX() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" className="h-4 w-4">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      className="h-4 w-4"
+    >
       <path d="M6 6l12 12M18 6L6 18" />
     </svg>
   );
@@ -381,9 +401,16 @@ function IconX() {
 
 function IconArrow({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" className={`h-3.5 w-3.5 ${className}`}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`h-3.5 w-3.5 ${className}`}
+    >
       <path d="M5 12h14M13 6l6 6-6 6" />
     </svg>
   );
 }
-

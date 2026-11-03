@@ -60,7 +60,8 @@ ${references.map((r, i) => `${i + 1}. [${r.key}] ${r.rawText} (Cited: ${r.inText
   };
 
   const handleDownload = (format: "md" | "txt" | "json") => {
-    const content = format === "json" ? JSON.stringify(report, null, 2) : generateMarkdownReport();
+    const content =
+      format === "json" ? JSON.stringify(report, null, 2) : generateMarkdownReport();
     const mimeType = format === "json" ? "application/json" : "text/plain";
     const extension = format === "json" ? "json" : format === "txt" ? "txt" : "md";
 
@@ -100,7 +101,11 @@ Critical Issues: ${issues.filter((i) => i.severity === "critical").length} | War
             onClick={handleCopySummary}
             className="text-xs"
           >
-            {hasCopied ? <Check className="w-3.5 h-3.5 text-emerald-500 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+            {hasCopied ? (
+              <Check className="w-3.5 h-3.5 text-emerald-500 mr-1" />
+            ) : (
+              <Copy className="w-3.5 h-3.5 mr-1" />
+            )}
             <span>{hasCopied ? "Copied Summary" : "Copy Summary"}</span>
           </Button>
 
@@ -132,25 +137,37 @@ Critical Issues: ${issues.filter((i) => i.severity === "critical").length} | War
         {/* Header KPI Grid */}
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Health Score</span>
+            <span className="text-[10px] text-slate-400 uppercase font-bold block">
+              Health Score
+            </span>
             <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">
               {summary.overallHealthScore}/100
             </span>
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Orphan Citations</span>
-            <span className={`text-xl font-black ${summary.orphanCitationsCount > 0 ? "text-rose-600" : "text-emerald-600"}`}>
+            <span className="text-[10px] text-slate-400 uppercase font-bold block">
+              Orphan Citations
+            </span>
+            <span
+              className={`text-xl font-black ${summary.orphanCitationsCount > 0 ? "text-rose-600" : "text-emerald-600"}`}
+            >
               {summary.orphanCitationsCount}
             </span>
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Uncited References</span>
-            <span className={`text-xl font-black ${summary.uncitedReferencesCount > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+            <span className="text-[10px] text-slate-400 uppercase font-bold block">
+              Uncited References
+            </span>
+            <span
+              className={`text-xl font-black ${summary.uncitedReferencesCount > 0 ? "text-amber-600" : "text-emerald-600"}`}
+            >
               {summary.uncitedReferencesCount}
             </span>
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Verified DOIs</span>
+            <span className="text-[10px] text-slate-400 uppercase font-bold block">
+              Verified DOIs
+            </span>
             <span className="text-xl font-black text-emerald-600">
               {summary.verifiedDoiCount}
             </span>
@@ -175,8 +192,8 @@ Critical Issues: ${issues.filter((i) => i.severity === "critical").length} | War
                 issue.severity === "critical"
                   ? "bg-rose-50/50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/60"
                   : issue.severity === "warning"
-                  ? "bg-amber-50/50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/60"
-                  : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800"
+                    ? "bg-amber-50/50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/60"
+                    : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -188,14 +205,16 @@ Critical Issues: ${issues.filter((i) => i.severity === "critical").length} | War
                     issue.severity === "critical"
                       ? "bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200"
                       : issue.severity === "warning"
-                      ? "bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200"
-                      : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                        ? "bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200"
+                        : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
                   }`}
                 >
                   {issue.severity}
                 </span>
               </div>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{issue.description}</p>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                {issue.description}
+              </p>
               {issue.suggestedFix && (
                 <div className="text-indigo-600 dark:text-indigo-400 font-semibold pt-0.5">
                   Action: {issue.suggestedFix}

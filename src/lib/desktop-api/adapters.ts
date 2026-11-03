@@ -22,15 +22,26 @@ export function dbPaperToPaper(db: DbPaper): Paper {
   return {
     id: db.id,
     title: db.title,
-    authors: db.authors && db.authors.length > 0 ? db.authors.map((a) => a.full_name) : ["Unknown Author"],
+    authors:
+      db.authors && db.authors.length > 0
+        ? db.authors.map((a) => a.full_name)
+        : ["Unknown Author"],
     abstract: db.abstract_text || "No abstract text recorded for this paper.",
-    publicationDate: db.publication_date || (db.publication_year ? `${db.publication_year}-01-01` : "Recent"),
-    year: db.publication_year ?? (db.publication_date ? parseInt(db.publication_date.slice(0, 4), 10) || 2024 : 2024),
+    publicationDate:
+      db.publication_date ||
+      (db.publication_year ? `${db.publication_year}-01-01` : "Recent"),
+    year:
+      db.publication_year ??
+      (db.publication_date
+        ? parseInt(db.publication_date.slice(0, 4), 10) || 2024
+        : 2024),
     venue: db.venue || "Scholarly Publication",
     doi: db.canonical_doi,
     sourceId,
     sourceName: primarySource,
-    landingUrl: db.primary_landing_url || (db.canonical_doi ? `https://doi.org/${db.canonical_doi}` : ""),
+    landingUrl:
+      db.primary_landing_url ||
+      (db.canonical_doi ? `https://doi.org/${db.canonical_doi}` : ""),
     pdfUrl: db.pdf_url,
     accessStatus,
     documentStatus,
@@ -56,11 +67,13 @@ export function dbPaperToPaper(db: DbPaper): Paper {
   };
 }
 
-
 /**
  * Transforms a raw SQLite Collection entity into the UI-friendly Collection representation.
  */
-export function dbCollectionToCollection(db: DbCollection, paperIds: string[] = []): Collection {
+export function dbCollectionToCollection(
+  db: DbCollection,
+  paperIds: string[] = []
+): Collection {
   return {
     id: db.id,
     name: db.name,

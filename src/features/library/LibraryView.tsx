@@ -43,7 +43,12 @@ import {
   getErrorMessage,
 } from "../../lib/desktop-api";
 import { Paper } from "../../types/domain";
-import { LibraryViewMode, ReadingStatus, READING_STATUS_CONFIG, getSemanticTagColor } from "./types";
+import {
+  LibraryViewMode,
+  ReadingStatus,
+  READING_STATUS_CONFIG,
+  getSemanticTagColor,
+} from "./types";
 import { ViewModeSelector } from "./components/ViewModeSelector";
 import { PaperGridView } from "./components/PaperGridView";
 import { PaperCompactView } from "./components/PaperCompactView";
@@ -75,12 +80,16 @@ export const LibraryView: React.FC = () => {
   } = useApp();
 
   // Active Tab: "papers" | "duplicates" | "integrity"
-  const [activeTab, setActiveTab] = useState<"papers" | "duplicates" | "integrity">("papers");
+  const [activeTab, setActiveTab] = useState<"papers" | "duplicates" | "integrity">(
+    "papers"
+  );
 
   // Persistent Display Mode
   const [viewMode, setViewMode] = useState<LibraryViewMode>(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("infinity_library_view_mode") as LibraryViewMode;
+      const stored = localStorage.getItem(
+        "infinity_library_view_mode"
+      ) as LibraryViewMode;
       if (stored === "table" || stored === "grid" || stored === "compact") {
         return stored;
       }
@@ -99,8 +108,11 @@ export const LibraryView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCollectionFilter, setSelectedCollectionFilter] = useState<string>("all");
   const [selectedSourceFilter, setSelectedSourceFilter] = useState<string>("all");
-  const [selectedOaFilter, setSelectedOaFilter] = useState<"all" | "oa_only" | "ieee_only">("all");
-  const [selectedReadingStatusFilter, setSelectedReadingStatusFilter] = useState<string>("all");
+  const [selectedOaFilter, setSelectedOaFilter] = useState<
+    "all" | "oa_only" | "ieee_only"
+  >("all");
+  const [selectedReadingStatusFilter, setSelectedReadingStatusFilter] =
+    useState<string>("all");
   const [selectedTagFilter, setSelectedTagFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<
     "added_desc" | "year_desc" | "citations_desc" | "title" | "recently_opened"
@@ -120,9 +132,13 @@ export const LibraryView: React.FC = () => {
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
 
   // Phase 7 States: Duplicates & Document Integrity
-  const [duplicateCandidates, setDuplicateCandidates] = useState<DuplicateComparisonView[]>([]);
+  const [duplicateCandidates, setDuplicateCandidates] = useState<
+    DuplicateComparisonView[]
+  >([]);
   const [paperFiles, setPaperFiles] = useState<PaperFile[]>([]);
-  const [processingOverview, setProcessingOverview] = useState<ProcessingOverview | null>(null);
+  const [processingOverview, setProcessingOverview] = useState<ProcessingOverview | null>(
+    null
+  );
   const [isLoadingProcessing, setIsLoadingProcessing] = useState(false);
   const [isProcessingActionRunning, setIsProcessingActionRunning] = useState(false);
 
@@ -309,7 +325,10 @@ export const LibraryView: React.FC = () => {
       await removeTagFromPaper(p.id, oldName);
       await assignTagToPaper(p.id, newName);
     }
-    showToast(`Renamed tag "${oldName}" to "${newName}" across ${affected.length} papers.`, "success");
+    showToast(
+      `Renamed tag "${oldName}" to "${newName}" across ${affected.length} papers.`,
+      "success"
+    );
   };
 
   const handleDeleteTag = async (tagName: string) => {
@@ -421,7 +440,9 @@ export const LibraryView: React.FC = () => {
   ) => {
     try {
       await resolveDuplicateCandidate(candidateId, decision);
-      setDuplicateCandidates((prev) => prev.filter((c) => c.candidate_id !== candidateId));
+      setDuplicateCandidates((prev) =>
+        prev.filter((c) => c.candidate_id !== candidateId)
+      );
       showToast(
         decision === "kept_separate"
           ? "Papers marked as distinct records."
@@ -524,10 +545,11 @@ export const LibraryView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab("papers")}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === "papers"
-            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
-            : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
+          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === "papers"
+              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
+              : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+          }`}
         >
           <BookOpen className="w-4 h-4" />
           <span>Library Papers ({savedPapers.length})</span>
@@ -536,10 +558,11 @@ export const LibraryView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab("duplicates")}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === "duplicates"
-            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
-            : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
+          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === "duplicates"
+              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
+              : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+          }`}
         >
           <GitMerge className="w-4 h-4" />
           <span>Duplicate Review</span>
@@ -553,10 +576,11 @@ export const LibraryView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab("integrity")}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === "integrity"
-            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
-            : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
+          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === "integrity"
+              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
+              : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+          }`}
         >
           <ShieldCheck className="w-4 h-4" />
           <span>Document Integrity & Pipeline</span>
@@ -670,11 +694,11 @@ export const LibraryView: React.FC = () => {
                 onChange={(e) =>
                   setSortBy(
                     e.target.value as
-                    | "added_desc"
-                    | "year_desc"
-                    | "citations_desc"
-                    | "title"
-                    | "recently_opened"
+                      | "added_desc"
+                      | "year_desc"
+                      | "citations_desc"
+                      | "title"
+                      | "recently_opened"
                   )
                 }
                 className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-hidden ml-auto"
@@ -796,7 +820,9 @@ export const LibraryView: React.FC = () => {
                     <div className="flex-1 min-w-0 pr-4">Title & Authors</div>
                     <div className="w-28 text-center hidden md:block">Status</div>
                     <div className="w-20 text-center hidden md:block">Year</div>
-                    <div className="w-36 text-center hidden sm:block">Source & Access</div>
+                    <div className="w-36 text-center hidden sm:block">
+                      Source & Access
+                    </div>
                     <div className="w-24 text-right hidden lg:block">Citations</div>
                     <div className="w-24 text-right">Actions</div>
                   </div>
@@ -811,8 +837,9 @@ export const LibraryView: React.FC = () => {
                       return (
                         <div
                           key={paper.id}
-                          className={`flex items-center px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-sm ${isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/20" : ""
-                            }`}
+                          className={`flex items-center px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-sm ${
+                            isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/20" : ""
+                          }`}
                         >
                           <div
                             className="w-8 shrink-0 flex items-center justify-center"
@@ -985,7 +1012,8 @@ export const LibraryView: React.FC = () => {
                 Explainable Duplicate Detection
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Multi-stage candidate matching protects your library from premature or destructive merges.
+                Multi-stage candidate matching protects your library from premature or
+                destructive merges.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -996,8 +1024,9 @@ export const LibraryView: React.FC = () => {
                 disabled={isProcessingActionRunning}
               >
                 <RefreshCw
-                  className={`w-3.5 h-3.5 mr-1 ${isProcessingActionRunning ? "animate-spin" : ""
-                    }`}
+                  className={`w-3.5 h-3.5 mr-1 ${
+                    isProcessingActionRunning ? "animate-spin" : ""
+                  }`}
                 />
                 <span>Scan for Duplicates</span>
               </Button>
@@ -1126,7 +1155,8 @@ export const LibraryView: React.FC = () => {
                 Persistent Processing Pipeline
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Verify PDF integrity hashes and normalize academic metadata across repositories.
+                Verify PDF integrity hashes and normalize academic metadata across
+                repositories.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -1387,7 +1417,8 @@ export const LibraryView: React.FC = () => {
         {selectedCandidateForMerge && (
           <div className="space-y-4 text-xs">
             <p className="text-slate-500">
-              Merging consolidates citations, files, and provenance under the canonical record without data loss.
+              Merging consolidates citations, files, and provenance under the canonical
+              record without data loss.
             </p>
 
             <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800">
@@ -1452,11 +1483,7 @@ export const LibraryView: React.FC = () => {
               >
                 Cancel
               </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleExecuteMerge}
-              >
+              <Button variant="primary" size="sm" onClick={handleExecuteMerge}>
                 <GitMerge className="w-3.5 h-3.5 mr-1" />
                 Confirm & Execute Merge
               </Button>

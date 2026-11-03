@@ -503,12 +503,11 @@ impl AiRepository {
             .collect();
 
         const STOPWORDS: &[&str] = &[
-            "a", "an", "the", "in", "on", "at", "to", "for", "of", "with", "by", "from",
-            "is", "are", "was", "were", "be", "been", "being",
-            "have", "has", "had", "do", "does", "did",
-            "what", "which", "who", "whom", "this", "that", "these", "those",
-            "it", "its", "they", "them", "their",
-            "and", "or", "but", "if", "so", "as", "than", "too", "very", "can", "will", "just",
+            "a", "an", "the", "in", "on", "at", "to", "for", "of", "with", "by", "from", "is",
+            "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did",
+            "what", "which", "who", "whom", "this", "that", "these", "those", "it", "its", "they",
+            "them", "their", "and", "or", "but", "if", "so", "as", "than", "too", "very", "can",
+            "will", "just",
         ];
 
         let all_tokens: Vec<&str> = sanitized
@@ -612,7 +611,10 @@ impl AiRepository {
         // Combine: Page-targeted chunks come first, followed by relevant BM25 hits
         let mut final_results = targeted_page_citations;
         for c in search_results {
-            if !final_results.iter().any(|existing| existing.chunk_id == c.chunk_id) {
+            if !final_results
+                .iter()
+                .any(|existing| existing.chunk_id == c.chunk_id)
+            {
                 final_results.push(c);
             }
         }
@@ -700,7 +702,13 @@ impl AiRepository {
 
         let sanitized: String = query
             .chars()
-            .map(|c| if c.is_alphanumeric() || c == ' ' { c } else { ' ' })
+            .map(|c| {
+                if c.is_alphanumeric() || c == ' ' {
+                    c
+                } else {
+                    ' '
+                }
+            })
             .collect();
         let tokens: Vec<&str> = sanitized
             .split_whitespace()
@@ -712,7 +720,9 @@ impl AiRepository {
         }
 
         let fts_query = tokens.join(" OR ");
-        let placeholders: Vec<String> = (0..paper_ids.len()).map(|i| format!("?{}", i + 2)).collect();
+        let placeholders: Vec<String> = (0..paper_ids.len())
+            .map(|i| format!("?{}", i + 2))
+            .collect();
         let in_clause = placeholders.join(",");
 
         let sql = format!(
@@ -800,8 +810,10 @@ impl AiRepository {
                     confidence: 1.0,
                 })
             } else {
-                let snip_words: std::collections::HashSet<&str> = clean_snip.split_whitespace().collect();
-                let content_words: std::collections::HashSet<&str> = clean_content.split_whitespace().collect();
+                let snip_words: std::collections::HashSet<&str> =
+                    clean_snip.split_whitespace().collect();
+                let content_words: std::collections::HashSet<&str> =
+                    clean_content.split_whitespace().collect();
                 let overlap_count = snip_words.intersection(&content_words).count();
                 let overlap_ratio = if !snip_words.is_empty() {
                     overlap_count as f64 / snip_words.len() as f64
@@ -851,7 +863,9 @@ impl AiRepository {
         let valid_paper_id = match &session.paper_id {
             Some(pid) if !pid.trim().is_empty() => {
                 let exists: bool = conn
-                    .query_row("SELECT 1 FROM papers WHERE id = ?1", params![pid], |_| Ok(()))
+                    .query_row("SELECT 1 FROM papers WHERE id = ?1", params![pid], |_| {
+                        Ok(())
+                    })
                     .is_ok();
                 if exists {
                     Some(pid.clone())
@@ -875,7 +889,13 @@ impl AiRepository {
         conn.execute(
             "INSERT INTO ai_chat_sessions (id, paper_id, title, created_at, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![session.id, valid_paper_id, session.title, created_at, updated_at],
+            params![
+                session.id,
+                valid_paper_id,
+                session.title,
+                created_at,
+                updated_at
+            ],
         )?;
         Ok(())
     }
@@ -954,7 +974,9 @@ impl AiRepository {
             let valid_paper_id = match paper_id {
                 Some(pid) if !pid.trim().is_empty() => {
                     let p_exists: bool = conn
-                        .query_row("SELECT 1 FROM papers WHERE id = ?1", params![pid], |_| Ok(()))
+                        .query_row("SELECT 1 FROM papers WHERE id = ?1", params![pid], |_| {
+                            Ok(())
+                        })
                         .is_ok();
                     if p_exists {
                         Some(pid)
@@ -1025,7 +1047,9 @@ impl AiRepository {
         let valid_paper_id = match &msg.paper_id {
             Some(pid) if !pid.trim().is_empty() => {
                 let exists: bool = conn
-                    .query_row("SELECT 1 FROM papers WHERE id = ?1", params![pid], |_| Ok(()))
+                    .query_row("SELECT 1 FROM papers WHERE id = ?1", params![pid], |_| {
+                        Ok(())
+                    })
                     .is_ok();
                 if exists {
                     Some(pid.clone())

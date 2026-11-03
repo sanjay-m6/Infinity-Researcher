@@ -32,10 +32,7 @@ import {
   Coffee,
 } from "lucide-react";
 import { ActivityType } from "../../types/domain";
-import {
-  ProjectWithDetails,
-  listResearchProjects,
-} from "../../lib/desktop-api";
+import { ProjectWithDetails, listResearchProjects } from "../../lib/desktop-api";
 import { DashboardTasksModule } from "./components/DashboardTasksModule";
 import { DashboardAnalyticsCharts } from "./components/DashboardAnalyticsCharts";
 import { DashboardQuickActions } from "./components/DashboardQuickActions";
@@ -138,18 +135,26 @@ export const DashboardView: React.FC = () => {
   }, []);
 
   const handleCopyCitation = (paper: (typeof papers)[0]) => {
-    const authorsStr = paper.authors && paper.authors.length > 0 ? paper.authors.join(", ") : "Unknown authors";
+    const authorsStr =
+      paper.authors && paper.authors.length > 0
+        ? paper.authors.join(", ")
+        : "Unknown authors";
     const citation = `${authorsStr} (${paper.year || "n.d."}). ${paper.title}. ${paper.venue || ""}${paper.doi ? ` https://doi.org/${paper.doi}` : ""}`;
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(citation).then(() => {
-        setCopiedCitationId(paper.id);
-        setTimeout(() => setCopiedCitationId(null), 2000);
-      }).catch(() => {});
+      navigator.clipboard
+        .writeText(citation)
+        .then(() => {
+          setCopiedCitationId(paper.id);
+          setTimeout(() => setCopiedCitationId(null), 2000);
+        })
+        .catch(() => {});
     }
   };
 
   const handleToggleReadingStatus = async (paperId: string, currentStatus?: string) => {
-    const isCompleted = (currentStatus || "").toLowerCase() === "completed" || (currentStatus || "").toLowerCase() === "read";
+    const isCompleted =
+      (currentStatus || "").toLowerCase() === "completed" ||
+      (currentStatus || "").toLowerCase() === "read";
     const newStatus = isCompleted ? "unread" : "completed";
     try {
       if (updatePaperReadingStatus) {
@@ -163,7 +168,10 @@ export const DashboardView: React.FC = () => {
   // Loading skeleton state during initial database synchronization
   if (isDbLoading) {
     return (
-      <div className="space-y-8 animate-in fade-in duration-150" data-testid="dashboard-loading">
+      <div
+        className="space-y-8 animate-in fade-in duration-150"
+        data-testid="dashboard-loading"
+      >
         <PageHeader
           title="Scholarly Workspace"
           description="Synchronizing local database and research assets..."
@@ -210,7 +218,10 @@ export const DashboardView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200" data-testid="dashboard-view">
+    <div
+      className="space-y-6 animate-in fade-in duration-200"
+      data-testid="dashboard-view"
+    >
       {/* 3.1. Dashboard Header */}
       <PageHeader
         title="Scholarly Workspace"
@@ -324,7 +335,8 @@ export const DashboardView: React.FC = () => {
                 {savedPapers.length}
               </span>
               <span className="text-[10px] text-slate-400 font-medium">
-                across {collections.length} {collections.length === 1 ? "collection" : "collections"}
+                across {collections.length}{" "}
+                {collections.length === 1 ? "collection" : "collections"}
               </span>
             </div>
             <div className="mt-3 flex items-center text-xs text-emerald-600 dark:text-emerald-400 font-medium group-hover:translate-x-0.5 transition-transform">
@@ -395,7 +407,9 @@ export const DashboardView: React.FC = () => {
               <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums">
                 {supportedSources.length} / {sources.length}
               </span>
-              <span className="text-[10px] text-slate-400 font-medium">Verified feeds</span>
+              <span className="text-[10px] text-slate-400 font-medium">
+                Verified feeds
+              </span>
             </div>
             <div className="mt-3 flex items-center text-xs text-amber-600 dark:text-amber-400 font-medium group-hover:translate-x-0.5 transition-transform">
               <span>Manage sources</span>
@@ -420,14 +434,18 @@ export const DashboardView: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <AppIcon icon={Compass} size="sm" className="text-slate-500 dark:text-slate-400" />
+                <AppIcon
+                  icon={Compass}
+                  size="sm"
+                  className="text-slate-500 dark:text-slate-400"
+                />
                 <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Explore Research Literature
                 </h2>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">
-                Query millions of preprint and open-access articles across arXiv, OpenAlex,
-                Semantic Scholar, and PubMed with structured metadata.
+                Query millions of preprint and open-access articles across arXiv,
+                OpenAlex, Semantic Scholar, and PubMed with structured metadata.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -480,7 +498,11 @@ export const DashboardView: React.FC = () => {
           <section aria-labelledby="recent-papers-heading" className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AppIcon icon={BookOpen} size="sm" className="text-indigo-600 dark:text-indigo-400" />
+                <AppIcon
+                  icon={BookOpen}
+                  size="sm"
+                  className="text-indigo-600 dark:text-indigo-400"
+                />
                 <h2
                   id="recent-papers-heading"
                   className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100"
@@ -512,7 +534,9 @@ export const DashboardView: React.FC = () => {
                 />
               ) : (
                 recentPapers.map((paper) => {
-                  const isCompleted = (paper.readingStatus || "").toLowerCase() === "completed" || (paper.readingStatus || "").toLowerCase() === "read";
+                  const isCompleted =
+                    (paper.readingStatus || "").toLowerCase() === "completed" ||
+                    (paper.readingStatus || "").toLowerCase() === "read";
 
                   return (
                     <div
@@ -536,7 +560,9 @@ export const DashboardView: React.FC = () => {
                           <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-slate-400">
                             {paper.venue && <span>{paper.venue}</span>}
                             {paper.venue && paper.year && <span>•</span>}
-                            {paper.year && <span className="font-mono">{paper.year}</span>}
+                            {paper.year && (
+                              <span className="font-mono">{paper.year}</span>
+                            )}
                             <span>•</span>
                             <SourceBadge sourceName={paper.sourceName} size="sm" />
                             {paper.accessStatus === "open_access" && (
@@ -564,7 +590,9 @@ export const DashboardView: React.FC = () => {
                           {/* Quick Toggle Reading Status */}
                           <button
                             type="button"
-                            onClick={() => handleToggleReadingStatus(paper.id, paper.readingStatus)}
+                            onClick={() =>
+                              handleToggleReadingStatus(paper.id, paper.readingStatus)
+                            }
                             title={isCompleted ? "Mark Unread" : "Mark as Completed"}
                             aria-label={`Toggle read status for ${paper.title}`}
                             className={`p-1.5 rounded-md border transition-all ${
@@ -573,7 +601,10 @@ export const DashboardView: React.FC = () => {
                                 : "border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                             }`}
                           >
-                            <AppIcon icon={isCompleted ? Check : CheckCircle2} size="xs" />
+                            <AppIcon
+                              icon={isCompleted ? Check : CheckCircle2}
+                              size="xs"
+                            />
                           </button>
 
                           {/* Quick Copy Citation */}
@@ -588,7 +619,10 @@ export const DashboardView: React.FC = () => {
                                 : "border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                             }`}
                           >
-                            <AppIcon icon={copiedCitationId === paper.id ? Check : Copy} size="xs" />
+                            <AppIcon
+                              icon={copiedCitationId === paper.id ? Check : Copy}
+                              size="xs"
+                            />
                           </button>
 
                           {(paper.pdfUrl || paper.landingUrl) && (
@@ -632,7 +666,11 @@ export const DashboardView: React.FC = () => {
           <section aria-labelledby="active-tasks-heading" className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AppIcon icon={DownloadCloud} size="sm" className="text-sky-600 dark:text-sky-400" />
+                <AppIcon
+                  icon={DownloadCloud}
+                  size="sm"
+                  className="text-sky-600 dark:text-sky-400"
+                />
                 <h2
                   id="active-tasks-heading"
                   className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100"
@@ -701,7 +739,8 @@ export const DashboardView: React.FC = () => {
                   <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     <AppIcon icon={CheckCircle2} size="xs" className="text-emerald-500" />
                     <span>
-                      Queue is currently idle. All {jobs.length} background tasks have finished.
+                      Queue is currently idle. All {jobs.length} background tasks have
+                      finished.
                     </span>
                   </div>
                   {completedJobs.slice(0, 2).map((job) => (
@@ -721,7 +760,9 @@ export const DashboardView: React.FC = () => {
               ) : (
                 <EmptyState
                   compact
-                  icon={<AppIcon icon={DownloadCloud} size="sm" className="text-slate-400" />}
+                  icon={
+                    <AppIcon icon={DownloadCloud} size="sm" className="text-slate-400" />
+                  }
                   title="Task queue is idle"
                   description="No background downloads or text extractions are currently running."
                   actionLabel="Search Papers"
@@ -739,7 +780,11 @@ export const DashboardView: React.FC = () => {
           <section aria-labelledby="collections-heading" className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AppIcon icon={Folder} size="sm" className="text-emerald-600 dark:text-emerald-400" />
+                <AppIcon
+                  icon={Folder}
+                  size="sm"
+                  className="text-emerald-600 dark:text-emerald-400"
+                />
                 <h2
                   id="collections-heading"
                   className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100"
@@ -848,7 +893,9 @@ export const DashboardView: React.FC = () => {
                       <span className="font-bold text-slate-800 dark:text-slate-200 truncate">
                         {item.project.title}
                       </span>
-                      <span className="font-semibold text-primary">{item.project.progress_percent}%</span>
+                      <span className="font-semibold text-primary">
+                        {item.project.progress_percent}%
+                      </span>
                     </div>
                     <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                       <div
@@ -1037,10 +1084,13 @@ export const DashboardView: React.FC = () => {
               </Badge>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate font-mono">
-              {databaseInfo?.path ? databaseInfo.path.split(/[/\\]/).pop() : "rps_academic.db"}
+              {databaseInfo?.path
+                ? databaseInfo.path.split(/[/\\]/).pop()
+                : "rps_academic.db"}
             </p>
             <div className="text-[10px] text-slate-400 pt-0.5">
-              <span>{papers.length} cached papers</span> • <span>{collections.length} collections</span>
+              <span>{papers.length} cached papers</span> •{" "}
+              <span>{collections.length} collections</span>
             </div>
           </div>
 
@@ -1048,7 +1098,11 @@ export const DashboardView: React.FC = () => {
           <div className="p-4 rounded-xl border border-rose-200/80 dark:border-rose-900/60 bg-gradient-to-br from-rose-50/70 via-purple-50/40 to-indigo-50/70 dark:from-rose-950/30 dark:via-purple-950/20 dark:to-indigo-950/30 shadow-xs space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 text-xs">
-                <AppIcon icon={Heart} size="xs" className="text-rose-500 fill-current animate-pulse" />
+                <AppIcon
+                  icon={Heart}
+                  size="xs"
+                  className="text-rose-500 fill-current animate-pulse"
+                />
                 <span>Support Sovereign Research</span>
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300">
@@ -1056,7 +1110,8 @@ export const DashboardView: React.FC = () => {
               </span>
             </div>
             <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-              Back <strong>Sanjay</strong> to keep Infinity Researcher free, private, and local-first for scholars worldwide.
+              Back <strong>Sanjay</strong> to keep Infinity Researcher free, private, and
+              local-first for scholars worldwide.
             </p>
             <div className="flex items-center gap-2 pt-0.5">
               <button
@@ -1069,7 +1124,13 @@ export const DashboardView: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => window.open("https://ko-fi.com/infinity86", "_blank", "noopener,noreferrer")}
+                onClick={() =>
+                  window.open(
+                    "https://ko-fi.com/infinity86",
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
                 className="py-1.5 px-2.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 shadow-2xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                 title="Ko-fi Support"
               >

@@ -121,7 +121,10 @@ export function cleanRepeatedContent(text: string): string {
  * Formats headers, lists, bold/italic, code, and blockquotes with
  * shadcn & Tailwind styling without heavyweight external runtime dependencies.
  */
-export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, className = "" }) => {
+export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
+  content,
+  className = "",
+}) => {
   if (!content) return null;
 
   const dedupedContent = cleanRepeatedContent(content);
@@ -275,10 +278,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, class
       const italicMatch = remaining.match(/^(\*|_)(.+?)\1/);
       if (italicMatch) {
         tokens.push(
-          <em
-            key={`i-${keyIdx++}`}
-            className="italic text-slate-600 dark:text-slate-400"
-          >
+          <em key={`i-${keyIdx++}`} className="italic text-slate-600 dark:text-slate-400">
             {italicMatch[2]}
           </em>
         );
@@ -356,10 +356,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, class
             );
           case "hr":
             return (
-              <hr
-                key={idx}
-                className="my-2 border-slate-200 dark:border-slate-700/60"
-              />
+              <hr key={idx} className="my-2 border-slate-200 dark:border-slate-700/60" />
             );
           case "ul":
             return (
@@ -370,7 +367,9 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, class
                     style={{ paddingLeft: `${it.indent * 12}px` }}
                     className="flex items-start gap-1.5"
                   >
-                    <span className="text-cyan-500 font-bold shrink-0 leading-relaxed">•</span>
+                    <span className="text-cyan-500 font-bold shrink-0 leading-relaxed">
+                      •
+                    </span>
                     <span className="flex-1">{renderInline(it.text)}</span>
                   </li>
                 ))}
@@ -407,4 +406,3 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, class
 };
 
 export default MarkdownMessage;
-

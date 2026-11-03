@@ -9,7 +9,10 @@ if (typeof window !== "undefined") {
   const showFallback = (msg: string) => {
     console.error("Global startup error:", msg);
     const root = document.getElementById("root");
-    if (root && (!root.firstElementChild || root.firstElementChild.children.length === 0)) {
+    if (
+      root &&
+      (!root.firstElementChild || root.firstElementChild.children.length === 0)
+    ) {
       root.innerHTML = `
         <div style="min-height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; background: #070b12; color: #f1f5f9; font-family: system-ui, sans-serif; padding: 24px;">
           <div style="max-width: 440px; width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
@@ -24,7 +27,11 @@ if (typeof window !== "undefined") {
   };
 
   window.addEventListener("error", (event) => {
-    showFallback((event.error && event.error.message) || event.message || "An unexpected startup error occurred.");
+    showFallback(
+      (event.error && event.error.message) ||
+        event.message ||
+        "An unexpected startup error occurred."
+    );
   });
 
   window.addEventListener("unhandledrejection", (event) => {

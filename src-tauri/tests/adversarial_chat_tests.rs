@@ -190,13 +190,17 @@ fn test_sql_injection_resilience() {
     assert_eq!(papers_count, 0);
 
     let sessions_count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM ai_chat_sessions", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM ai_chat_sessions", [], |row| {
+            row.get(0)
+        })
         .expect("sessions table must exist");
     assert_eq!(sessions_count, 1);
 
     // 4. Test delete_session with injection payload
     AiRepository::delete_session(&conn, malicious_session_id).expect("delete session");
-    assert!(AiRepository::get_session(&conn, malicious_session_id).expect("get").is_none());
+    assert!(AiRepository::get_session(&conn, malicious_session_id)
+        .expect("get")
+        .is_none());
 
     // 5. Test clear_session_messages with injection payload
     AiRepository::clear_session_messages(&conn, "' OR '1'='1").expect("clear messages");
@@ -216,15 +220,24 @@ fn test_non_existent_ids_and_boundary_safety() {
 
     // List messages for non-existent session
     let msgs = AiRepository::list_messages(&conn, ghost_id).expect("list_messages must not error");
-    assert!(msgs.is_empty(), "non-existent session messages should be empty vector");
+    assert!(
+        msgs.is_empty(),
+        "non-existent session messages should be empty vector"
+    );
 
     // Delete non-existent session (should be a safe no-op)
     let del_res = AiRepository::delete_session(&conn, ghost_id);
-    assert!(del_res.is_ok(), "deleting non-existent session must succeed without error");
+    assert!(
+        del_res.is_ok(),
+        "deleting non-existent session must succeed without error"
+    );
 
     // Clear non-existent session messages (should be a safe no-op)
     let clear_res = AiRepository::clear_session_messages(&conn, ghost_id);
-    assert!(clear_res.is_ok(), "clearing non-existent session must succeed without error");
+    assert!(
+        clear_res.is_ok(),
+        "clearing non-existent session must succeed without error"
+    );
 
     // Ensure session exists with empty default title & timestamps
     AiRepository::ensure_session_exists(&conn, "auto_fallback_sess", None, "   ")
@@ -233,7 +246,10 @@ fn test_non_existent_ids_and_boundary_safety() {
     let auto_sess = AiRepository::get_session(&conn, "auto_fallback_sess")
         .expect("get session")
         .expect("must exist");
-    assert_eq!(auto_sess.title, "Chat Session", "Blank title must fallback to 'Chat Session'");
+    assert_eq!(
+        auto_sess.title, "Chat Session",
+        "Blank title must fallback to 'Chat Session'"
+    );
     assert!(!auto_sess.created_at.is_empty());
     assert!(!auto_sess.updated_at.is_empty());
 
@@ -254,8 +270,14 @@ fn test_non_existent_ids_and_boundary_safety() {
 
     let msgs_after = AiRepository::list_messages(&conn, "auto_fallback_sess").expect("list");
     assert_eq!(msgs_after.len(), 1);
-    assert!(!msgs_after[0].id.trim().is_empty(), "Blank message id must be populated with a generated ID");
-    assert!(!msgs_after[0].created_at.is_empty(), "Blank created_at must be populated with current UTC timestamp");
+    assert!(
+        !msgs_after[0].id.trim().is_empty(),
+        "Blank message id must be populated with a generated ID"
+    );
+    assert!(
+        !msgs_after[0].created_at.is_empty(),
+        "Blank created_at must be populated with current UTC timestamp"
+    );
 }
 
 /// 5. Duplicate ID handling: primary key collision behavior and idempotency
@@ -277,7 +299,10 @@ fn test_duplicate_ids_and_idempotency() {
 
     // Second insertion with identical ID must fail with UNIQUE constraint
     let err = AiRepository::create_session(&conn, &session);
-    assert!(err.is_err(), "second create_session with same ID must error");
+    assert!(
+        err.is_err(),
+        "second create_session with same ID must error"
+    );
     let err_str = err.unwrap_err().to_string();
     assert!(
         err_str.contains("UNIQUE constraint failed"),
@@ -287,11 +312,18 @@ fn test_duplicate_ids_and_idempotency() {
 
     // By contrast, ensure_session_exists must be idempotent (no error on repeated calls)
     for _ in 0..10 {
-        AiRepository::ensure_session_exists(&conn, "duplicate_session_check", None, "Another Title")
-            .expect("ensure_session_exists must be idempotent");
+        AiRepository::ensure_session_exists(
+            &conn,
+            "duplicate_session_check",
+            None,
+            "Another Title",
+        )
+        .expect("ensure_session_exists must be idempotent");
     }
     // Verify title was not overwritten by ensure_session_exists
-    let curr_sess = AiRepository::get_session(&conn, "duplicate_session_check").unwrap().unwrap();
+    let curr_sess = AiRepository::get_session(&conn, "duplicate_session_check")
+        .unwrap()
+        .unwrap();
     assert_eq!(curr_sess.title, "Session First Pass");
 
     // Test duplicate message IDs
@@ -323,7 +355,10 @@ fn test_duplicate_ids_and_idempotency() {
         created_at: "2026-11-03T04:06:00Z".to_string(),
     };
     let save_err = AiRepository::save_message(&conn, &msg_dup);
-    assert!(save_err.is_err(), "saving message with duplicate ID must fail");
+    assert!(
+        save_err.is_err(),
+        "saving message with duplicate ID must fail"
+    );
 
     // Verify original content preserved
     let msgs = AiRepository::list_messages(&conn, "duplicate_session_check").unwrap();
@@ -385,16 +420,21 @@ fn test_foreign_key_enforcement_and_set_null_semantics() {
     AiRepository::save_message(&conn, &msg).expect("save message with valid paper");
 
     // Verify paper_id is linked
-    let s_before = AiRepository::get_session(&conn, "sess_with_paper_victim").unwrap().unwrap();
+    let s_before = AiRepository::get_session(&conn, "sess_with_paper_victim")
+        .unwrap()
+        .unwrap();
     assert_eq!(s_before.paper_id.as_deref(), Some("paper_fk_victim"));
     let m_before = AiRepository::list_messages(&conn, "sess_with_paper_victim").unwrap();
     assert_eq!(m_before[0].paper_id.as_deref(), Some("paper_fk_victim"));
 
     // Now DELETE the paper from papers table
-    conn.execute("DELETE FROM papers WHERE id = 'paper_fk_victim'", []).expect("delete victim paper");
+    conn.execute("DELETE FROM papers WHERE id = 'paper_fk_victim'", [])
+        .expect("delete victim paper");
 
     // Verify SET NULL: session and messages survive, paper_id becomes NULL
-    let s_after = AiRepository::get_session(&conn, "sess_with_paper_victim").unwrap().unwrap();
+    let s_after = AiRepository::get_session(&conn, "sess_with_paper_victim")
+        .unwrap()
+        .unwrap();
     assert_eq!(
         s_after.paper_id, None,
         "ai_chat_sessions.paper_id must be set to NULL when referenced paper is deleted"
@@ -438,7 +478,11 @@ fn test_multithreaded_concurrency_stress() {
                             id: format!("msg_t{}_op{}", thread_idx, op),
                             session_id: session_name.clone(),
                             paper_id: None,
-                            role: if op % 2 == 0 { "user".to_string() } else { "assistant".to_string() },
+                            role: if op % 2 == 0 {
+                                "user".to_string()
+                            } else {
+                                "assistant".to_string()
+                            },
                             content: format!("Thread {} op {} message payload", thread_idx, op),
                             citations: vec![],
                             provider_id: None,
@@ -477,7 +521,10 @@ fn test_multithreaded_concurrency_stress() {
 
     let conn = db.lock().expect("final lock");
     let all_sessions = AiRepository::list_sessions(&conn).expect("list sessions after concurrency");
-    assert!(!all_sessions.is_empty(), "sessions must persist after concurrent load");
+    assert!(
+        !all_sessions.is_empty(),
+        "sessions must persist after concurrent load"
+    );
 }
 
 /// 8. Session deleted while messages are being actively queried and inserted
@@ -517,7 +564,10 @@ fn test_session_deleted_while_messages_queried() {
         while !reader_stop.load(Ordering::Relaxed) {
             let conn = reader_db.lock().unwrap();
             let msgs = AiRepository::list_messages(&conn, target_session);
-            assert!(msgs.is_ok(), "querying messages during concurrent delete must never error");
+            assert!(
+                msgs.is_ok(),
+                "querying messages during concurrent delete must never error"
+            );
             reader_qc.fetch_add(1, Ordering::Relaxed);
             drop(conn);
             thread::sleep(Duration::from_millis(1));
@@ -539,8 +589,15 @@ fn test_session_deleted_while_messages_queried() {
 
     // Verify final state: session and all messages are completely gone
     let conn = db.lock().unwrap();
-    assert!(AiRepository::get_session(&conn, target_session).unwrap().is_none());
-    assert_eq!(AiRepository::list_messages(&conn, target_session).unwrap().len(), 0);
+    assert!(AiRepository::get_session(&conn, target_session)
+        .unwrap()
+        .is_none());
+    assert_eq!(
+        AiRepository::list_messages(&conn, target_session)
+            .unwrap()
+            .len(),
+        0
+    );
     assert!(query_count.load(Ordering::Relaxed) > 0);
 }
 
@@ -562,8 +619,12 @@ fn test_corrupted_citations_json_recovery() {
     ).expect("raw insert bad JSON");
 
     // list_messages should safely handle the unparseable JSON by returning empty citations vec
-    let msgs = AiRepository::list_messages(&conn, session_id).expect("list_messages should not fail on malformed JSON");
+    let msgs = AiRepository::list_messages(&conn, session_id)
+        .expect("list_messages should not fail on malformed JSON");
     assert_eq!(msgs.len(), 1);
     assert_eq!(msgs[0].id, "msg_corrupt_cits");
-    assert!(msgs[0].citations.is_empty(), "Malformed citations_json must fall back to empty vector without crashing");
+    assert!(
+        msgs[0].citations.is_empty(),
+        "Malformed citations_json must fall back to empty vector without crashing"
+    );
 }

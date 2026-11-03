@@ -103,7 +103,10 @@ export const PaperDetailDrawer: React.FC = () => {
     if (!paper) return;
     const targetUrl = pdfInfo?.download_url || paper.pdfUrl;
     if (!targetUrl) {
-      showToast("No download URL available. Try finding open-access PDF first.", "warning");
+      showToast(
+        "No download URL available. Try finding open-access PDF first.",
+        "warning"
+      );
       return;
     }
     setIsDownloading(true);
@@ -125,7 +128,9 @@ export const PaperDetailDrawer: React.FC = () => {
     }
   };
 
-  const hasLocalPdf = Boolean(pdfInfo?.has_local_file || paper.documentStatus === "available");
+  const hasLocalPdf = Boolean(
+    pdfInfo?.has_local_file || paper.documentStatus === "available"
+  );
 
   return (
     <Drawer
@@ -202,10 +207,7 @@ export const PaperDetailDrawer: React.FC = () => {
               {paper.citationCount.toLocaleString()} Citations
             </Badge>
 
-            <Badge
-              variant={hasLocalPdf ? "success" : "default"}
-              size="sm"
-            >
+            <Badge variant={hasLocalPdf ? "success" : "default"} size="sm">
               Document: {hasLocalPdf ? "Verified Local PDF" : "Not Downloaded"}
             </Badge>
           </div>

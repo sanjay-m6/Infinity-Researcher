@@ -20,9 +20,15 @@ export const ClaimSupportNotice: React.FC = () => {
           </div>
 
           <p className="text-amber-900/90 dark:text-amber-300/90 leading-relaxed">
-            A DOI that resolves successfully confirms that the publication exists in formal registries (such as Crossref, IDF, or publisher repositories). 
-            <strong> DOI resolution does NOT prove that the cited paper supports the author's scientific claim.</strong> 
-            Always cross-check empirical claims against the actual full-text passages and data using our Literature Review Matrix or Embedded PDF Reader.
+            A DOI that resolves successfully confirms that the publication exists in
+            formal registries (such as Crossref, IDF, or publisher repositories).
+            <strong>
+              {" "}
+              DOI resolution does NOT prove that the cited paper supports the author's
+              scientific claim.
+            </strong>
+            Always cross-check empirical claims against the actual full-text passages and
+            data using our Literature Review Matrix or Embedded PDF Reader.
           </p>
         </div>
       </div>

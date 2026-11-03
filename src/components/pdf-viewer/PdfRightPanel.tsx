@@ -75,7 +75,9 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
   // -------------------------------------------------------------------------
   // 1. AI Assistant State
   // -------------------------------------------------------------------------
-  const [groundingScope, setGroundingScope] = useState<"selection" | "page" | "paper">("page");
+  const [groundingScope, setGroundingScope] = useState<"selection" | "page" | "paper">(
+    "page"
+  );
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -165,7 +167,8 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
       }
 
       try {
-        const preferredProvider = localStorage.getItem("ai_hub_chat_provider_id") || undefined;
+        const preferredProvider =
+          localStorage.getItem("ai_hub_chat_provider_id") || undefined;
         const preferredModel = localStorage.getItem("ai_hub_chat_model_id") || undefined;
 
         const res = await generateAiResponse({
@@ -201,7 +204,9 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
           paper_id: paperId || null,
           role: "assistant",
           content: `I've analyzed the query regarding Page ${currentPage} of "${paperTitle}". ${
-            selectedText ? `Based on selected text ("${selectedText.slice(0, 80)}..."): ` : ""
+            selectedText
+              ? `Based on selected text ("${selectedText.slice(0, 80)}..."): `
+              : ""
           }Please configure your LLM provider in Settings for live model generation. (Offline fallback: ${msg})`,
           citations: [],
           retrieval_mode: groundingScope,
@@ -215,15 +220,36 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
         setIsGenerating(false);
       }
     },
-    [chatInput, isGenerating, currentPage, numPages, paperTitle, groundingScope, selectedText, paperId]
+    [
+      chatInput,
+      isGenerating,
+      currentPage,
+      numPages,
+      paperTitle,
+      groundingScope,
+      selectedText,
+      paperId,
+    ]
   );
 
   // Quick preset chips
   const quickChips = [
-    { label: "ELI5", prompt: `Explain the core concepts on Page ${currentPage} in simple, jargon-free language.` },
-    { label: "Summarize Page", prompt: `Summarize the primary claims and findings on Page ${currentPage}.` },
-    { label: "Methodology", prompt: `Analyze the technical methodology and equations presented on Page ${currentPage}.` },
-    { label: "Limitations", prompt: `What are the critical limitations or potential weaknesses on Page ${currentPage}?` },
+    {
+      label: "ELI5",
+      prompt: `Explain the core concepts on Page ${currentPage} in simple, jargon-free language.`,
+    },
+    {
+      label: "Summarize Page",
+      prompt: `Summarize the primary claims and findings on Page ${currentPage}.`,
+    },
+    {
+      label: "Methodology",
+      prompt: `Analyze the technical methodology and equations presented on Page ${currentPage}.`,
+    },
+    {
+      label: "Limitations",
+      prompt: `What are the critical limitations or potential weaknesses on Page ${currentPage}?`,
+    },
   ];
 
   // -------------------------------------------------------------------------
@@ -241,7 +267,10 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
   }`;
 
   // Formatted BibTeX Citation
-  const firstAuthorLast = authors.length > 0 ? authors[0].split(" ").pop()?.toLowerCase() || "author" : "author";
+  const firstAuthorLast =
+    authors.length > 0
+      ? authors[0].split(" ").pop()?.toLowerCase() || "author"
+      : "author";
   const bibtexKey = `${firstAuthorLast}${yearString !== "n.d." ? yearString : "undated"}`;
   const bibtexCitation = `@article{${bibtexKey},
   title = {${paperTitle}},
@@ -400,8 +429,8 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
                   {groundingScope === "selection"
                     ? "Selected Text"
                     : groundingScope === "page"
-                    ? `Page ${currentPage}`
-                    : "Entire Document"}
+                      ? `Page ${currentPage}`
+                      : "Entire Document"}
                 </span>
               </div>
 
@@ -430,10 +459,14 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
                   groundingScope === "selection"
                     ? "bg-indigo-600 text-white border-indigo-600"
                     : !selectedText
-                    ? "opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400"
-                    : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300"
+                      ? "opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400"
+                      : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300"
                 }`}
-                title={selectedText ? "Ground strictly on highlighted text snippet" : "Highlight text on page to enable"}
+                title={
+                  selectedText
+                    ? "Ground strictly on highlighted text snippet"
+                    : "Highlight text on page to enable"
+                }
               >
                 Selection
               </button>
@@ -480,7 +513,8 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
                     Grounded Research Copilot
                   </p>
                   <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
-                    Ask questions grounded in Page {currentPage} or highlight any formula, quote, or claim.
+                    Ask questions grounded in Page {currentPage} or highlight any formula,
+                    quote, or claim.
                   </p>
                 </div>
 
@@ -519,7 +553,10 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
                           try {
                             const d = new Date(msg.created_at);
                             if (!isNaN(d.getTime())) {
-                              return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                              return d.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              });
                             }
                           } catch {}
                         }
@@ -529,7 +566,9 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
                     {(() => {
                       const pageNum =
                         (msg as any).page ||
-                        (msg.citations && msg.citations.length > 0 ? msg.citations[0].page_number : undefined);
+                        (msg.citations && msg.citations.length > 0
+                          ? msg.citations[0].page_number
+                          : undefined);
                       return pageNum ? (
                         <button
                           type="button"
@@ -678,7 +717,9 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
                   {copiedApa ? (
                     <>
                       <Check className="w-3 h-3 text-emerald-500" />
-                      <span className="text-emerald-600 dark:text-emerald-400">Copied</span>
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        Copied
+                      </span>
                     </>
                   ) : (
                     <>
@@ -707,7 +748,9 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
                   {copiedBibtex ? (
                     <>
                       <Check className="w-3 h-3 text-emerald-500" />
-                      <span className="text-emerald-600 dark:text-emerald-400">Copied</span>
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        Copied
+                      </span>
                     </>
                   ) : (
                     <>
@@ -731,7 +774,10 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
       {activeTab === "notes" && (
         <div className="flex-1 flex flex-col min-h-0 bg-slate-50/50 dark:bg-slate-900/50">
           {/* Note Input Form */}
-          <form onSubmit={handleCreateNote} className="p-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
+          <form
+            onSubmit={handleCreateNote}
+            className="p-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2"
+          >
             <textarea
               value={newNoteText}
               onChange={(e) => setNewNoteText(e.target.value)}
@@ -784,7 +830,8 @@ export const PdfRightPanel: React.FC<PdfRightPanelProps> = ({
                   No Notes for This Paper Yet
                 </p>
                 <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
-                  Take reading notes, log hypothesis thoughts, or save text selections directly into your local database.
+                  Take reading notes, log hypothesis thoughts, or save text selections
+                  directly into your local database.
                 </p>
               </div>
             ) : (

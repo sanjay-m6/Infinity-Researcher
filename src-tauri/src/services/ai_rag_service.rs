@@ -163,7 +163,9 @@ impl AiRagService {
         // Determine all target IDs: if this paper has a DOI, also mirror chunks to the imported paper ID if different
         let mut target_ids = vec![paper_id.to_string()];
         if let Some(doi) = canonical_doi {
-            if let Ok(Some(existing_p)) = crate::repositories::PaperRepository::get_by_doi(&conn, doi) {
+            if let Ok(Some(existing_p)) =
+                crate::repositories::PaperRepository::get_by_doi(&conn, doi)
+            {
                 if existing_p.id != paper_id && !target_ids.contains(&existing_p.id) {
                     target_ids.push(existing_p.id);
                 }
@@ -284,7 +286,9 @@ impl AiRagService {
                     for i in (0..slice.len().saturating_sub(1)).rev() {
                         let c = slice[i];
                         let next = slice[i + 1];
-                        if (c == '.' || c == '!' || c == '?') && (next == ' ' || next == '\n' || next == '\t') {
+                        if (c == '.' || c == '!' || c == '?')
+                            && (next == ' ' || next == '\n' || next == '\t')
+                        {
                             found_break = Some(search_window_start + i + 1);
                             break;
                         }
@@ -406,7 +410,10 @@ impl AiRagService {
                 scope: "multi_paper".to_string(),
                 paper_id: None,
                 passages: Vec::new(),
-                warnings: vec![format!("No relevant passages found across the {} selected papers.", paper_ids.len())],
+                warnings: vec![format!(
+                    "No relevant passages found across the {} selected papers.",
+                    paper_ids.len()
+                )],
                 is_grounded: false,
             });
         }

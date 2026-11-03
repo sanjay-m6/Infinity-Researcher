@@ -41,9 +41,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         <h3 className={cn("font-bold text-foreground", compact ? "text-xs" : "text-sm")}>
           {title}
         </h3>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          {description}
-        </p>
+        <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
       </div>
 
       {details && (
@@ -53,7 +51,11 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
             onClick={() => setShowDetails(!showDetails)}
             className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
-            {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {showDetails ? (
+              <ChevronUp className="w-3 h-3" />
+            ) : (
+              <ChevronDown className="w-3 h-3" />
+            )}
             {showDetails ? "Hide technical details" : "View technical details"}
           </button>
           {showDetails && (
@@ -65,12 +67,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       )}
 
       {onRetry && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRetry}
-          className="gap-1.5"
-        >
+        <Button variant="outline" size="sm" onClick={onRetry} className="gap-1.5">
           <RefreshCw className="w-3.5 h-3.5" />
           <span>{retryLabel}</span>
         </Button>
@@ -80,4 +77,3 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
 };
 
 export default ErrorState;
-

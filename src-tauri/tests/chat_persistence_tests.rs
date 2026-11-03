@@ -31,8 +31,8 @@ fn test_session_lifecycle_crud() {
 
     // 4. Delete session
     AiRepository::delete_session(&conn, "session_lifecycle_1").expect("delete session");
-    let after_delete = AiRepository::get_session(&conn, "session_lifecycle_1")
-        .expect("query session");
+    let after_delete =
+        AiRepository::get_session(&conn, "session_lifecycle_1").expect("query session");
     assert!(after_delete.is_none(), "deleted session should be None");
 }
 
@@ -123,7 +123,8 @@ fn test_unimported_paper_id_does_not_trigger_fk_violation() {
         session_id: session_id.to_string(),
         paper_id: Some("real_paper_001".to_string()),
         role: "assistant".to_string(),
-        content: "The Transformer architecture relies entirely on self-attention mechanisms.".to_string(),
+        content: "The Transformer architecture relies entirely on self-attention mechanisms."
+            .to_string(),
         citations: vec![],
         provider_id: None,
         model_id: None,
@@ -136,7 +137,10 @@ fn test_unimported_paper_id_does_not_trigger_fk_violation() {
 
     let all_msgs = AiRepository::list_messages(&conn, session_id).expect("list messages");
     assert_eq!(all_msgs.len(), 2);
-    let real_msg = all_msgs.iter().find(|m| m.id == "msg_real_paper_1").unwrap();
+    let real_msg = all_msgs
+        .iter()
+        .find(|m| m.id == "msg_real_paper_1")
+        .unwrap();
     assert_eq!(real_msg.paper_id, Some("real_paper_001".to_string()));
 }
 
@@ -211,7 +215,11 @@ fn test_clear_session_messages() {
             id: format!("msg_clear_{}", i),
             session_id: session_id.to_string(),
             paper_id: None,
-            role: if i % 2 == 1 { "user".to_string() } else { "assistant".to_string() },
+            role: if i % 2 == 1 {
+                "user".to_string()
+            } else {
+                "assistant".to_string()
+            },
             content: format!("Message content {}", i),
             citations: vec![],
             provider_id: None,
@@ -223,7 +231,9 @@ fn test_clear_session_messages() {
     }
 
     assert_eq!(
-        AiRepository::list_messages(&conn, session_id).expect("list").len(),
+        AiRepository::list_messages(&conn, session_id)
+            .expect("list")
+            .len(),
         4
     );
 
@@ -231,14 +241,19 @@ fn test_clear_session_messages() {
     AiRepository::clear_session_messages(&conn, session_id).expect("clear messages");
 
     assert_eq!(
-        AiRepository::list_messages(&conn, session_id).expect("list").len(),
+        AiRepository::list_messages(&conn, session_id)
+            .expect("list")
+            .len(),
         0,
         "All messages should be deleted after clearing"
     );
 
     // The session itself should remain intact
     let session = AiRepository::get_session(&conn, session_id).expect("get session");
-    assert!(session.is_some(), "Session record itself should not be deleted by clear_session_messages");
+    assert!(
+        session.is_some(),
+        "Session record itself should not be deleted by clear_session_messages"
+    );
 }
 
 #[test]
@@ -274,14 +289,23 @@ fn test_cascade_deletion_on_session_delete() {
         AiRepository::save_message(&conn, &msg).expect("save message");
     }
 
-    assert_eq!(AiRepository::list_messages(&conn, session_id).expect("list").len(), 3);
+    assert_eq!(
+        AiRepository::list_messages(&conn, session_id)
+            .expect("list")
+            .len(),
+        3
+    );
 
     // Deleting the session must cascade-delete all messages
     AiRepository::delete_session(&conn, session_id).expect("delete session");
 
-    assert!(AiRepository::get_session(&conn, session_id).expect("get").is_none());
+    assert!(AiRepository::get_session(&conn, session_id)
+        .expect("get")
+        .is_none());
     assert_eq!(
-        AiRepository::list_messages(&conn, session_id).expect("list").len(),
+        AiRepository::list_messages(&conn, session_id)
+            .expect("list")
+            .len(),
         0,
         "Messages must be cascade deleted when parent session is deleted"
     );
@@ -335,8 +359,18 @@ fn test_session_isolation() {
 
     // Clearing session A does not touch session B
     AiRepository::clear_session_messages(&conn, session_a).expect("clear a");
-    assert_eq!(AiRepository::list_messages(&conn, session_a).expect("list a").len(), 0);
-    assert_eq!(AiRepository::list_messages(&conn, session_b).expect("list b").len(), 1);
+    assert_eq!(
+        AiRepository::list_messages(&conn, session_a)
+            .expect("list a")
+            .len(),
+        0
+    );
+    assert_eq!(
+        AiRepository::list_messages(&conn, session_b)
+            .expect("list b")
+            .len(),
+        1
+    );
 }
 
 #[test]
@@ -361,7 +395,9 @@ fn test_citation_roundtrip_persistence() {
         session_id: session_id.to_string(),
         paper_id: None,
         role: "assistant".to_string(),
-        content: "According to the paper [Page 4], a novel attention layer achieves linear complexity.".to_string(),
+        content:
+            "According to the paper [Page 4], a novel attention layer achieves linear complexity."
+                .to_string(),
         citations: vec![citation],
         provider_id: Some("nvidia_nim".to_string()),
         model_id: Some("nemotron-3".to_string()),
@@ -376,7 +412,9 @@ fn test_citation_roundtrip_persistence() {
     assert_eq!(loaded[0].citations.len(), 1);
     assert_eq!(loaded[0].citations[0].chunk_id, "chk_101");
     assert_eq!(loaded[0].citations[0].page_number, 4);
-    assert_eq!(loaded[0].citations[0].section_heading, Some("Methodology".to_string()));
+    assert_eq!(
+        loaded[0].citations[0].section_heading,
+        Some("Methodology".to_string())
+    );
     assert_eq!(loaded[0].citations[0].score, 0.94);
 }
-

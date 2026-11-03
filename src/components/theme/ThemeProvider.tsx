@@ -223,7 +223,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           return { ...prev, customAccent: null, activeCustomThemeId: null };
         }
         const norm = isValidHex(hexColor) ? normalizeHex(hexColor) : hexColor;
-        const newHistory = [norm, ...prev.accentHistory.filter((c) => c !== norm)].slice(0, 8);
+        const newHistory = [norm, ...prev.accentHistory.filter((c) => c !== norm)].slice(
+          0,
+          8
+        );
         return {
           ...prev,
           customAccent: norm,
@@ -323,7 +326,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       await updateSettings((prev) => {
         const exists = prev.customThemes.some((t) => t.id === id);
         const updatedList = exists
-          ? prev.customThemes.map((t) => (t.id === id ? { ...newTheme, createdAt: t.createdAt } : t))
+          ? prev.customThemes.map((t) =>
+              t.id === id ? { ...newTheme, createdAt: t.createdAt } : t
+            )
           : [...prev.customThemes, newTheme];
 
         return {
@@ -347,7 +352,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       await updateSettings((prev) => ({
         ...prev,
         customThemes: prev.customThemes.filter((t) => t.id !== id),
-        activeCustomThemeId: prev.activeCustomThemeId === id ? null : prev.activeCustomThemeId,
+        activeCustomThemeId:
+          prev.activeCustomThemeId === id ? null : prev.activeCustomThemeId,
       }));
     },
     [updateSettings]
@@ -393,8 +399,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
               id: `custom-imported-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
               name: item.name.trim(),
               accentColor: normalizeHex(item.accentColor),
-              basePreset: item.basePreset in PRESET_THEMES ? item.basePreset : "midnight_blue",
-              mode: item.mode === "light" || item.mode === "dark" || item.mode === "system" ? item.mode : "dark",
+              basePreset:
+                item.basePreset in PRESET_THEMES ? item.basePreset : "midnight_blue",
+              mode:
+                item.mode === "light" || item.mode === "dark" || item.mode === "system"
+                  ? item.mode
+                  : "dark",
               backgroundPreset: item.backgroundPreset || "default",
               createdAt: Date.now(),
               updatedAt: Date.now(),
@@ -413,7 +423,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
         return { success: true, count: validThemes.length };
       } catch (err: any) {
-        return { success: false, count: 0, error: err?.message || "Invalid JSON syntax." };
+        return {
+          success: false,
+          count: 0,
+          error: err?.message || "Invalid JSON syntax.",
+        };
       }
     },
     [updateSettings]
@@ -482,11 +496,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     ]
   );
 
-  return (
-    <ThemeContext.Provider value={contextValue}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 };
 
 export function useThemeContext(): ThemeContextValue {

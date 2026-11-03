@@ -39,8 +39,8 @@ export const TokenGuardBanner: React.FC<TokenGuardBannerProps> = ({
         criticalIssuesCount > 0
           ? "bg-rose-50/60 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/60"
           : warningIssuesCount > 0
-          ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/60"
-          : "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/60"
+            ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/60"
+            : "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/60"
       } p-4 sm:p-5 space-y-3 shadow-xs`}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -51,8 +51,8 @@ export const TokenGuardBanner: React.FC<TokenGuardBannerProps> = ({
               criticalIssuesCount > 0
                 ? "bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300"
                 : warningIssuesCount > 0
-                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
-                : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
+                  ? "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
+                  : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
             }`}
           >
             {criticalIssuesCount > 0 ? (
@@ -70,23 +70,23 @@ export const TokenGuardBanner: React.FC<TokenGuardBannerProps> = ({
                 {criticalIssuesCount > 0
                   ? "Critical Semantic Drift or Missing Invariants Detected"
                   : warningIssuesCount > 0
-                  ? "Semantic Warnings: Hedges or Metrics Require Inspection"
-                  : "Token Preservation & Semantic Fidelity Verified"}
+                    ? "Semantic Warnings: Hedges or Metrics Require Inspection"
+                    : "Token Preservation & Semantic Fidelity Verified"}
               </h3>
               <Badge
                 variant={
                   criticalIssuesCount > 0
                     ? "destructive"
                     : warningIssuesCount > 0
-                    ? "warning"
-                    : "success"
+                      ? "warning"
+                      : "success"
                 }
               >
                 {criticalIssuesCount > 0
                   ? "Requires Author Confirmation"
                   : warningIssuesCount > 0
-                  ? "Inspect Warnings"
-                  : "High Fidelity"}
+                    ? "Inspect Warnings"
+                    : "High Fidelity"}
               </Badge>
             </div>
 
@@ -94,8 +94,8 @@ export const TokenGuardBanner: React.FC<TokenGuardBannerProps> = ({
               {criticalIssuesCount > 0
                 ? "Scientific certainty, statistical findings, or essential citations were altered. Inspect the items below before applying."
                 : warningIssuesCount > 0
-                ? `${warningIssuesCount} cautionary note(s) regarding altered quantities, hedging language, or technical descriptors.`
-                : `All ${preservedTokensCount} invariant tokens (citations, DOIs, equations, numbers, units) verified across original and revised text.`}
+                  ? `${warningIssuesCount} cautionary note(s) regarding altered quantities, hedging language, or technical descriptors.`
+                  : `All ${preservedTokensCount} invariant tokens (citations, DOIs, equations, numbers, units) verified across original and revised text.`}
             </p>
           </div>
         </div>
@@ -111,8 +111,8 @@ export const TokenGuardBanner: React.FC<TokenGuardBannerProps> = ({
                 score >= 85
                   ? "text-emerald-600 dark:text-emerald-400"
                   : score >= 60
-                  ? "text-amber-600 dark:text-amber-400"
-                  : "text-rose-600 dark:text-rose-400"
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-rose-600 dark:text-rose-400"
               }`}
             >
               {score}/100
@@ -125,8 +125,14 @@ export const TokenGuardBanner: React.FC<TokenGuardBannerProps> = ({
               onClick={() => setIsExpanded(!isExpanded)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 transition-colors shadow-2xs cursor-pointer"
             >
-              <span>{isExpanded ? "Hide Details" : `Inspect Issues (${issues.length})`}</span>
-              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <span>
+                {isExpanded ? "Hide Details" : `Inspect Issues (${issues.length})`}
+              </span>
+              {isExpanded ? (
+                <ChevronUp className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5" />
+              )}
             </button>
           )}
         </div>
@@ -147,8 +153,8 @@ export const TokenGuardBanner: React.FC<TokenGuardBannerProps> = ({
                   issue.severity === "critical"
                     ? "bg-rose-100/50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200"
                     : issue.severity === "warning"
-                    ? "bg-amber-100/50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200"
-                    : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"
+                      ? "bg-amber-100/50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200"
+                      : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -158,8 +164,8 @@ export const TokenGuardBanner: React.FC<TokenGuardBannerProps> = ({
                         issue.severity === "critical"
                           ? "bg-rose-500"
                           : issue.severity === "warning"
-                          ? "bg-amber-500"
-                          : "bg-blue-500"
+                            ? "bg-amber-500"
+                            : "bg-blue-500"
                       }`}
                     />
                     <strong className="font-bold">{issue.title}</strong>

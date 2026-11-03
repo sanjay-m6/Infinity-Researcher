@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import {
-  getSplashCoordinates,
-  executeThemeSplash,
-} from "../lib/theme-transition";
+import { getSplashCoordinates, executeThemeSplash } from "../lib/theme-transition";
 import { ThemeProvider } from "../components/theme/ThemeProvider";
 import { ThemeSelector } from "../components/theme/ThemeSelector";
 import { BottomBar } from "../components/layout/BottomBar";
@@ -210,4 +207,3 @@ describe("Theme Splash Transition & Circular Reveal System", () => {
     });
   });
 });
-

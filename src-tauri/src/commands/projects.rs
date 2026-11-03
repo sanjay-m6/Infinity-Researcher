@@ -352,13 +352,7 @@ pub async fn ask_project_ai_assistant(
     question: String,
 ) -> Result<String, CommandError> {
     let db = state.db()?;
-    ProjectService::ask_project_ai_assistant(
-        db,
-        &state.ai_provider_service,
-        &project_id,
-        &question,
-    )
-    .await
-    .map_err(CommandError::from)
+    ProjectService::ask_project_ai_assistant(db, &state.ai_provider_service, &project_id, &question)
+        .await
+        .map_err(CommandError::from)
 }
-

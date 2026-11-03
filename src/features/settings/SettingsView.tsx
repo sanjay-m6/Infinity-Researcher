@@ -129,8 +129,12 @@ export const SettingsView: React.FC = () => {
 
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [lockTimeout, setLockTimeout] = useState<number>(userPreferences?.auto_lock_timeout_minutes ?? 10);
-  const [rememberMePref, setRememberMePref] = useState<boolean>(userPreferences?.remember_me ?? false);
+  const [lockTimeout, setLockTimeout] = useState<number>(
+    userPreferences?.auto_lock_timeout_minutes ?? 10
+  );
+  const [rememberMePref, setRememberMePref] = useState<boolean>(
+    userPreferences?.remember_me ?? false
+  );
 
   useEffect(() => {
     if (userPreferences) {
@@ -188,7 +192,10 @@ export const SettingsView: React.FC = () => {
       if (providerId === "openalex") setOpenAlexKeyInput("");
       await loadProviderConfig();
     } catch (err: unknown) {
-      const msg = err && typeof err === "object" && "message" in err ? String((err as { message: unknown }).message) : "Failed to save API key.";
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Failed to save API key.";
       showToast(msg, "error");
     } finally {
       if (providerId === "semantic_scholar") setIsSavingS2Key(false);
@@ -197,17 +204,26 @@ export const SettingsView: React.FC = () => {
   };
 
   // Filter sections based on search query
-  const matchesSearch = useCallback((title: string, keywords: string[]) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return title.toLowerCase().includes(q) || keywords.some((k) => k.toLowerCase().includes(q));
-  }, [searchQuery]);
+  const matchesSearch = useCallback(
+    (title: string, keywords: string[]) => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        title.toLowerCase().includes(q) ||
+        keywords.some((k) => k.toLowerCase().includes(q))
+      );
+    },
+    [searchQuery]
+  );
 
-  const isSectionVisible = useCallback((category: SettingsCategory, title: string, keywords: string[]) => {
-    if (!matchesSearch(title, keywords)) return false;
-    if (activeCategory === "all") return true;
-    return activeCategory === category;
-  }, [activeCategory, matchesSearch]);
+  const isSectionVisible = useCallback(
+    (category: SettingsCategory, title: string, keywords: string[]) => {
+      if (!matchesSearch(title, keywords)) return false;
+      if (activeCategory === "all") return true;
+      return activeCategory === category;
+    },
+    [activeCategory, matchesSearch]
+  );
 
   return (
     <div className="space-y-6 w-full max-w-7xl mx-auto animate-in fade-in duration-200">
@@ -235,7 +251,9 @@ export const SettingsView: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => setActiveCategory(activeCategory === "all" ? "appearance" : activeCategory)}
+            onClick={() =>
+              setActiveCategory(activeCategory === "all" ? "appearance" : activeCategory)
+            }
             className={cn(
               "flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer",
               activeCategory !== "all"
@@ -334,8 +352,8 @@ export const SettingsView: React.FC = () => {
                 SQLite Engine
               </span>
               <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                v{databaseInfo?.schema_version || 14} (WAL)
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />v
+                {databaseInfo?.schema_version || 14} (WAL)
               </span>
             </div>
 
@@ -369,7 +387,9 @@ export const SettingsView: React.FC = () => {
           {activeCategory !== "all" && (
             <div className="flex items-center justify-between p-3.5 rounded-xl border border-indigo-100 dark:border-indigo-950/40 bg-indigo-50/40 dark:bg-indigo-950/20 text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-slate-500 dark:text-slate-400">Showing Category:</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  Showing Category:
+                </span>
                 <strong className="text-indigo-700 dark:text-indigo-300 font-semibold capitalize">
                   {SETTINGS_CATEGORIES.find((c) => c.id === activeCategory)?.label}
                 </strong>
@@ -395,7 +415,14 @@ export const SettingsView: React.FC = () => {
             {/* COLUMN 1: Workspace Appearance, Security, and Database */}
             <div className="space-y-6">
               {/* Section 1: Appearance & Visual Theme */}
-              {isSectionVisible("appearance", "Appearance & Visual Theme", ["theme", "light", "dark", "system", "colors", "styling"]) && (
+              {isSectionVisible("appearance", "Appearance & Visual Theme", [
+                "theme",
+                "light",
+                "dark",
+                "system",
+                "colors",
+                "styling",
+              ]) && (
                 <section className="p-6 rounded-xl border border-border bg-card shadow-2xs">
                   <ThemeSettingsControl
                     onThemeChanged={(newTheme) => {
@@ -411,7 +438,14 @@ export const SettingsView: React.FC = () => {
               )}
 
               {/* Section 2: Local Account & Security Configuration */}
-              {isSectionVisible("security", "Local Account & Application Lock", ["account", "security", "lock", "timeout", "password", "remember me"]) && (
+              {isSectionVisible("security", "Local Account & Application Lock", [
+                "account",
+                "security",
+                "lock",
+                "timeout",
+                "password",
+                "remember me",
+              ]) && (
                 <section className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-4">
                   <div>
                     <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
@@ -419,7 +453,8 @@ export const SettingsView: React.FC = () => {
                       Local Account & Application Lock
                     </h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      Configure inactivity timeout, secure OS Remember Me, and screen locking behavior.
+                      Configure inactivity timeout, secure OS Remember Me, and screen
+                      locking behavior.
                     </p>
                   </div>
 
@@ -431,13 +466,19 @@ export const SettingsView: React.FC = () => {
                       </div>
                       <div className="space-y-1">
                         <p className="text-xs font-mono font-medium text-slate-900 dark:text-white">
-                          User ID: <span className="text-indigo-600 dark:text-indigo-400">{user?.username || "admin"}</span>
+                          User ID:{" "}
+                          <span className="text-indigo-600 dark:text-indigo-400">
+                            {user?.username || "admin"}
+                          </span>
                         </p>
                         <p className="text-[11px] text-slate-500 truncate">
                           Email: {user?.email || "Offline User"}
                         </p>
                         <p className="text-[10px] text-slate-400">
-                          Created: {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "Local"}
+                          Created:{" "}
+                          {user?.created_at
+                            ? new Date(user.created_at).toLocaleDateString()
+                            : "Local"}
                         </p>
                       </div>
                     </div>
@@ -448,7 +489,11 @@ export const SettingsView: React.FC = () => {
                           Lock Application Now
                         </span>
                         <p className="text-[11px] text-slate-500">
-                          Manually lock the workspace right now (Shortcut: <kbd className="font-mono text-[10px] bg-slate-200 dark:bg-white/10 px-1 py-0.5 rounded">Ctrl+L</kbd>).
+                          Manually lock the workspace right now (Shortcut:{" "}
+                          <kbd className="font-mono text-[10px] bg-slate-200 dark:bg-white/10 px-1 py-0.5 rounded">
+                            Ctrl+L
+                          </kbd>
+                          ).
                         </p>
                       </div>
                       <div className="pt-3">
@@ -472,7 +517,8 @@ export const SettingsView: React.FC = () => {
                           Auto-Lock Inactivity Timeout
                         </span>
                         <span className="text-[11px] text-slate-500">
-                          Automatically lock screen and protect sensitive data after inactivity.
+                          Automatically lock screen and protect sensitive data after
+                          inactivity.
                         </span>
                       </div>
                       <select
@@ -495,7 +541,8 @@ export const SettingsView: React.FC = () => {
                           Remember Me (OS Credential Store)
                         </span>
                         <span className="text-[11px] text-slate-500">
-                          Securely persist session in Windows Credential Locker without plaintext tokens.
+                          Securely persist session in Windows Credential Locker without
+                          plaintext tokens.
                         </span>
                       </div>
                       <input
@@ -521,7 +568,17 @@ export const SettingsView: React.FC = () => {
               )}
 
               {/* Section 3: SQLite Database & Storage Management */}
-              {isSectionVisible("database", "Local-First SQLite Database & Storage", ["database", "sqlite", "storage", "path", "wal", "fts5", "seed", "clear", "export"]) && (
+              {isSectionVisible("database", "Local-First SQLite Database & Storage", [
+                "database",
+                "sqlite",
+                "storage",
+                "path",
+                "wal",
+                "fts5",
+                "seed",
+                "clear",
+                "export",
+              ]) && (
                 <section className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-4">
                   <div>
                     <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
@@ -529,7 +586,9 @@ export const SettingsView: React.FC = () => {
                       Local-First SQLite Database & Storage
                     </h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      Your entire scholarly research library, collections, notes, and tags are stored in a local SQLite 3 database with WAL mode and FTS5 search.
+                      Your entire scholarly research library, collections, notes, and tags
+                      are stored in a local SQLite 3 database with WAL mode and FTS5
+                      search.
                     </p>
                   </div>
 
@@ -539,8 +598,16 @@ export const SettingsView: React.FC = () => {
                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                           Database File Path:
                         </span>
-                        <Badge variant="outline" size="sm" className="font-mono text-[10px]">
-                          {databaseInfo ? `SQLite 3 · v${databaseInfo.schema_version}` : isTauri ? "Connected" : "Local Storage"}
+                        <Badge
+                          variant="outline"
+                          size="sm"
+                          className="font-mono text-[10px]"
+                        >
+                          {databaseInfo
+                            ? `SQLite 3 · v${databaseInfo.schema_version}`
+                            : isTauri
+                              ? "Connected"
+                              : "Local Storage"}
                         </Badge>
                       </div>
                       <p className="text-xs font-mono bg-white dark:bg-slate-900 px-3 py-2 rounded-md border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 truncate select-all">
@@ -553,19 +620,25 @@ export const SettingsView: React.FC = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                       <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Journal Mode</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                          Journal Mode
+                        </span>
                         <span className="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400 uppercase">
                           {databaseInfo?.journal_mode || "WAL"}
                         </span>
                       </div>
                       <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Foreign Keys</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                          Foreign Keys
+                        </span>
                         <span className="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400">
                           {databaseInfo?.foreign_keys ? "ENABLED (ON)" : "ACTIVE"}
                         </span>
                       </div>
                       <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Full-Text Search</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                          Full-Text Search
+                        </span>
                         <span className="text-xs font-mono font-semibold text-violet-600 dark:text-violet-400">
                           FTS5 (Unicode)
                         </span>
@@ -624,7 +697,14 @@ export const SettingsView: React.FC = () => {
             {/* COLUMN 2: API Keys, Rust Core Health, Updates, and About */}
             <div className="space-y-6">
               {/* Section 4: Academic Provider API Keys */}
-              {isSectionVisible("apikeys", "Academic Provider API Keys (Optional)", ["api", "keys", "openalex", "semantic scholar", "rate limit", "quota"]) && (
+              {isSectionVisible("apikeys", "Academic Provider API Keys (Optional)", [
+                "api",
+                "keys",
+                "openalex",
+                "semantic scholar",
+                "rate limit",
+                "quota",
+              ]) && (
                 <section className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-4">
                   <div>
                     <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
@@ -632,7 +712,9 @@ export const SettingsView: React.FC = () => {
                       Academic Provider API Keys (Optional)
                     </h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      OpenAlex, Crossref, Semantic Scholar, arXiv, and Europe PMC work without accounts. Providing optional keys unlocks increased rate limits.
+                      OpenAlex, Crossref, Semantic Scholar, arXiv, and Europe PMC work
+                      without accounts. Providing optional keys unlocks increased rate
+                      limits.
                     </p>
                   </div>
 
@@ -644,7 +726,9 @@ export const SettingsView: React.FC = () => {
                           <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                             Semantic Scholar Academic Graph
                           </span>
-                          {providerStatuses.find((p) => p.provider_id === "semantic_scholar")?.is_configured ? (
+                          {providerStatuses.find(
+                            (p) => p.provider_id === "semantic_scholar"
+                          )?.is_configured ? (
                             <Badge variant="success" size="sm">
                               <ShieldCheck className="w-3 h-3 mr-1" />
                               Key Configured (10 req/s)
@@ -655,18 +739,24 @@ export const SettingsView: React.FC = () => {
                             </Badge>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-400">Header: x-api-key</span>
+                        <span className="text-[10px] text-slate-400">
+                          Header: x-api-key
+                        </span>
                       </div>
 
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Provides citation graphs and open access PDF detection. Unauthenticated access is paced at 1 req/s; an API key unlocks 10 req/s.
+                        Provides citation graphs and open access PDF detection.
+                        Unauthenticated access is paced at 1 req/s; an API key unlocks 10
+                        req/s.
                       </p>
 
                       <div className="flex items-center gap-2 pt-1">
                         <input
                           type="password"
                           placeholder={
-                            providerStatuses.find((p) => p.provider_id === "semantic_scholar")?.is_configured
+                            providerStatuses.find(
+                              (p) => p.provider_id === "semantic_scholar"
+                            )?.is_configured
                               ? "•••••••••••••••••••••••• (configured)"
                               : "Enter Semantic Scholar API Key..."
                           }
@@ -677,7 +767,9 @@ export const SettingsView: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => void handleSaveApiKey("semantic_scholar", s2KeyInput)}
+                          onClick={() =>
+                            void handleSaveApiKey("semantic_scholar", s2KeyInput)
+                          }
                           disabled={isSavingS2Key || !s2KeyInput.trim()}
                           className="shrink-0 text-xs cursor-pointer"
                         >
@@ -693,7 +785,8 @@ export const SettingsView: React.FC = () => {
                           <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                             OpenAlex Global Scholarly Graph
                           </span>
-                          {providerStatuses.find((p) => p.provider_id === "openalex")?.is_configured ? (
+                          {providerStatuses.find((p) => p.provider_id === "openalex")
+                            ?.is_configured ? (
                             <Badge variant="success" size="sm">
                               <ShieldCheck className="w-3 h-3 mr-1" />
                               Key Configured (50 req/s)
@@ -704,18 +797,22 @@ export const SettingsView: React.FC = () => {
                             </Badge>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-400">Header: api_key</span>
+                        <span className="text-[10px] text-slate-400">
+                          Header: api_key
+                        </span>
                       </div>
 
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Provides 250M+ records. Default polite pool provides 10 req/s; an OpenAlex key unlocks 50 req/s.
+                        Provides 250M+ records. Default polite pool provides 10 req/s; an
+                        OpenAlex key unlocks 50 req/s.
                       </p>
 
                       <div className="flex items-center gap-2 pt-1">
                         <input
                           type="password"
                           placeholder={
-                            providerStatuses.find((p) => p.provider_id === "openalex")?.is_configured
+                            providerStatuses.find((p) => p.provider_id === "openalex")
+                              ?.is_configured
                               ? "•••••••••••••••••••••••• (configured)"
                               : "Enter OpenAlex API Key..."
                           }
@@ -726,7 +823,9 @@ export const SettingsView: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => void handleSaveApiKey("openalex", openAlexKeyInput)}
+                          onClick={() =>
+                            void handleSaveApiKey("openalex", openAlexKeyInput)
+                          }
                           disabled={isSavingOAKey || !openAlexKeyInput.trim()}
                           className="shrink-0 text-xs cursor-pointer"
                         >
@@ -739,7 +838,8 @@ export const SettingsView: React.FC = () => {
                     <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
                       <span>
-                        <strong>arXiv, Crossref, and Europe PMC</strong> are fully open with automated polite pacing.
+                        <strong>arXiv, Crossref, and Europe PMC</strong> are fully open
+                        with automated polite pacing.
                       </span>
                     </div>
                   </div>
@@ -747,7 +847,15 @@ export const SettingsView: React.FC = () => {
               )}
 
               {/* Section 5: Tauri 2 & Rust Core Health */}
-              {isSectionVisible("system", "Tauri 2 & Rust Core Health", ["rust", "backend", "health", "diagnostics", "tauri", "memory", "os"]) && (
+              {isSectionVisible("system", "Tauri 2 & Rust Core Health", [
+                "rust",
+                "backend",
+                "health",
+                "diagnostics",
+                "tauri",
+                "memory",
+                "os",
+              ]) && (
                 <section className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -828,12 +936,29 @@ export const SettingsView: React.FC = () => {
               )}
 
               {/* Section 6: In-App Automatic Updates */}
-              {isSectionVisible("updates", "In-App Automatic Updates", ["updates", "updater", "releases", "version", "download"]) && (
-                <UpdateSettingsCard currentVersion={backendHealth?.app_version || "0.1.0"} />
+              {isSectionVisible("updates", "In-App Automatic Updates", [
+                "updates",
+                "updater",
+                "releases",
+                "version",
+                "download",
+              ]) && (
+                <UpdateSettingsCard
+                  currentVersion={backendHealth?.app_version || "0.1.0"}
+                />
               )}
 
               {/* Section 7: About & Creator Information */}
-              {isSectionVisible("about", "About Infinity Researcher", ["about", "author", "creator", "sanjay", "license", "copyright", "setup", "bug"]) && (
+              {isSectionVisible("about", "About Infinity Researcher", [
+                "about",
+                "author",
+                "creator",
+                "sanjay",
+                "license",
+                "copyright",
+                "setup",
+                "bug",
+              ]) && (
                 <section className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="flex items-start gap-3.5">
@@ -897,16 +1022,28 @@ export const SettingsView: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 text-xs">
                     <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 dark:text-slate-500 block">Author & Creator</span>
-                      <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">Sanjay</p>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 dark:text-slate-500 block">
+                        Author & Creator
+                      </span>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                        Sanjay
+                      </p>
                     </div>
                     <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 dark:text-slate-500 block">Publisher</span>
-                      <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 truncate">Infinity Web Tech</p>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 dark:text-slate-500 block">
+                        Publisher
+                      </span>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                        Infinity Web Tech
+                      </p>
                     </div>
                     <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 dark:text-slate-500 block">Copyright</span>
-                      <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">© 2026 Sanjay</p>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 dark:text-slate-500 block">
+                        Copyright
+                      </span>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                        © 2026 Sanjay
+                      </p>
                     </div>
                   </div>
                 </section>

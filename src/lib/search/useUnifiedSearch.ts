@@ -4,12 +4,7 @@ import { SearchResultCategory, SearchResultItem } from "./searchTypes";
 import { APP_COMMANDS } from "./commandRegistry";
 import { scorePaper, scoreCollection, scoreCommand } from "./rankingEngine";
 import { getRecentSearches, addRecentSearch, clearRecentSearches } from "./searchHistory";
-import {
-  FileText,
-  Folder,
-  History,
-  Globe,
-} from "lucide-react";
+import { FileText, Folder, History, Globe } from "lucide-react";
 
 export interface UseUnifiedSearchOptions {
   query: string;
@@ -49,7 +44,9 @@ export function useUnifiedSearch({
   onExecuteAction,
   onRunOnlineSearch,
 }: UseUnifiedSearchOptions): UnifiedSearchResults {
-  const [recentSearches, setRecentSearches] = useState<string[]>(() => getRecentSearches());
+  const [recentSearches, setRecentSearches] = useState<string[]>(() =>
+    getRecentSearches()
+  );
 
   const clearHistory = useCallback(() => {
     clearRecentSearches();
@@ -125,7 +122,11 @@ export function useUnifiedSearch({
           category: "papers" as SearchResultCategory,
           icon: FileText,
           score,
-          badge: p.doi ? "DOI" : p.citationCount > 0 ? `${p.citationCount.toLocaleString()} cit.` : undefined,
+          badge: p.doi
+            ? "DOI"
+            : p.citationCount > 0
+              ? `${p.citationCount.toLocaleString()} cit.`
+              : undefined,
           badgeVariant: p.doi ? ("info" as const) : ("secondary" as const),
           meta: {
             paperId: p.id,
@@ -247,7 +248,17 @@ export function useUnifiedSearch({
       navigation: navItems,
       actions: finalActions,
     };
-  }, [cleanQuery, recentSearches, papers, collections, onSelectPaper, onSelectCollection, onNavigateSection, onExecuteAction, onRunOnlineSearch]);
+  }, [
+    cleanQuery,
+    recentSearches,
+    papers,
+    collections,
+    onSelectPaper,
+    onSelectCollection,
+    onNavigateSection,
+    onExecuteAction,
+    onRunOnlineSearch,
+  ]);
 
   const flattenedResults = useMemo(() => {
     return [

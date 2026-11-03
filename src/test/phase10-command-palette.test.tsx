@@ -143,7 +143,9 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
         </AppProvider>
       );
 
-      expect(screen.queryByRole("dialog", { name: "Command Palette" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "Command Palette" })
+      ).not.toBeInTheDocument();
 
       await user.click(screen.getByTestId("open-palette-btn"));
 
@@ -166,7 +168,9 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
 
       // Press Ctrl+K again to toggle close
       fireEvent.keyDown(window, { key: "k", ctrlKey: true });
-      expect(screen.queryByRole("dialog", { name: "Command Palette" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "Command Palette" })
+      ).not.toBeInTheDocument();
     });
 
     it("closes command palette when Escape key is pressed", async () => {
@@ -181,7 +185,9 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
       expect(screen.getByRole("dialog", { name: "Command Palette" })).toBeInTheDocument();
 
       fireEvent.keyDown(window, { key: "Escape" });
-      expect(screen.queryByRole("dialog", { name: "Command Palette" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "Command Palette" })
+      ).not.toBeInTheDocument();
     });
 
     it("closes command palette when clicking backdrop overlay", async () => {
@@ -197,7 +203,9 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
 
       // Click outer overlay
       await user.click(dialog);
-      expect(screen.queryByRole("dialog", { name: "Command Palette" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "Command Palette" })
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -213,15 +221,22 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
       await user.click(screen.getByTestId("open-palette-btn"));
 
       expect(screen.getByText(/Research Tools/i)).toBeInTheDocument();
-      expect(screen.getByRole("option", { name: "Literature Workspace" })).toBeInTheDocument();
-      expect(screen.getByRole("option", { name: "AI Research Assistant" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: "Literature Workspace" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: "AI Research Assistant" })
+      ).toBeInTheDocument();
       expect(screen.getByText(/Navigation/i)).toBeInTheDocument();
       expect(screen.getByRole("option", { name: "Dashboard" })).toBeInTheDocument();
       expect(screen.getByRole("option", { name: "Discover Papers" })).toBeInTheDocument();
     });
 
     it("displays and clears recent search history when available", async () => {
-      localStorage.setItem("rps_recent_searches", JSON.stringify(["quantum computing", "crispr cas9"]));
+      localStorage.setItem(
+        "rps_recent_searches",
+        JSON.stringify(["quantum computing", "crispr cas9"])
+      );
       const user = userEvent.setup();
 
       render(
@@ -233,14 +248,18 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
       await user.click(screen.getByTestId("open-palette-btn"));
 
       expect(screen.getByText(/Recent Searches/i)).toBeInTheDocument();
-      expect(screen.getByRole("option", { name: "quantum computing" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: "quantum computing" })
+      ).toBeInTheDocument();
       expect(screen.getByRole("option", { name: "crispr cas9" })).toBeInTheDocument();
 
       // Clear recent searches
       const clearBtn = screen.getByRole("button", { name: /Clear recent searches/i });
       await user.click(clearBtn);
 
-      expect(screen.queryByRole("option", { name: "quantum computing" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("option", { name: "quantum computing" })
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -259,7 +278,9 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
       await user.type(input, "Attention");
 
       expect(screen.getByText(/Research Papers/i)).toBeInTheDocument();
-      expect(screen.getByRole("option", { name: "Attention Is All You Need" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: "Attention Is All You Need" })
+      ).toBeInTheDocument();
     });
 
     it("prioritizes exact DOI match and assigns highest score", async () => {
@@ -297,7 +318,9 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
       await user.type(input, "Foundation");
 
       expect(screen.getByText(/Collections/i)).toBeInTheDocument();
-      expect(screen.getByRole("option", { name: "Foundation Models" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: "Foundation Models" })
+      ).toBeInTheDocument();
       expect(screen.getByText("2 papers")).toBeInTheDocument();
     });
 
@@ -339,8 +362,12 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
       const option = screen.getByRole("option", { name: "Literature Workspace" });
       await user.click(option);
 
-      expect(screen.getByTestId("active-section")).toHaveTextContent("literature_workspace");
-      expect(screen.queryByRole("dialog", { name: "Command Palette" })).not.toBeInTheDocument();
+      expect(screen.getByTestId("active-section")).toHaveTextContent(
+        "literature_workspace"
+      );
+      expect(
+        screen.queryByRole("dialog", { name: "Command Palette" })
+      ).not.toBeInTheDocument();
     });
 
     it("selects paper and closes palette when paper result is clicked", async () => {
@@ -362,7 +389,9 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
       await user.click(paperOption);
 
       expect(screen.getByTestId("selected-paper")).toHaveTextContent("p2");
-      expect(screen.queryByRole("dialog", { name: "Command Palette" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "Command Palette" })
+      ).not.toBeInTheDocument();
     });
 
     it("selects collection and navigates to collections view when collection is clicked", async () => {
@@ -383,7 +412,9 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
 
       expect(screen.getByTestId("selected-collection")).toHaveTextContent("c2");
       expect(screen.getByTestId("active-section")).toHaveTextContent("collections");
-      expect(screen.queryByRole("dialog", { name: "Command Palette" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "Command Palette" })
+      ).not.toBeInTheDocument();
     });
 
     it("executes theme toggle action when selected", async () => {
@@ -399,10 +430,14 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
 
       await user.type(input, "Toggle Theme");
 
-      const themeOption = screen.getByRole("option", { name: "Toggle Theme (Light / Dark)" });
+      const themeOption = screen.getByRole("option", {
+        name: "Toggle Theme (Light / Dark)",
+      });
       await user.click(themeOption);
 
-      expect(screen.queryByRole("dialog", { name: "Command Palette" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "Command Palette" })
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -421,13 +456,17 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
       // Type a query that brings up Citation Checker
       await user.type(input, "Citation Checker");
 
-      expect(screen.getByRole("option", { name: "Citation Checker" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: "Citation Checker" })
+      ).toBeInTheDocument();
 
       // Press Enter to execute the selected item
       fireEvent.keyDown(input, { key: "Enter" });
 
       expect(screen.getByTestId("active-section")).toHaveTextContent("citation_checker");
-      expect(screen.queryByRole("dialog", { name: "Command Palette" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "Command Palette" })
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -447,10 +486,14 @@ describe("Phase 10 — Global Search and Command Palette Suite", () => {
 
       expect(screen.getByText(/No matching results found for/i)).toBeInTheDocument();
 
-      const searchOnlineBtn = screen.getByRole("button", { name: /Search Online in Discover/i });
+      const searchOnlineBtn = screen.getByRole("button", {
+        name: /Search Online in Discover/i,
+      });
       await user.click(searchOnlineBtn);
 
-      expect(screen.getByTestId("global-query")).toHaveTextContent("xyznonexistentquery12345");
+      expect(screen.getByTestId("global-query")).toHaveTextContent(
+        "xyznonexistentquery12345"
+      );
       expect(screen.getByTestId("active-section")).toHaveTextContent("discover");
     });
   });

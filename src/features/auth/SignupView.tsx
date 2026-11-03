@@ -61,7 +61,8 @@ export const SignupView: React.FC<SignupModalProps> = ({ onSwitchToLogin }) => {
             Create Local Account
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Zero cloud tracking. Papers and analysis stay completely private on your machine.
+            Zero cloud tracking. Papers and analysis stay completely private on your
+            machine.
           </p>
         </div>
 
@@ -134,7 +135,11 @@ export const SignupView: React.FC<SignupModalProps> = ({ onSwitchToLogin }) => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {showPassword ? (
+                  <EyeOff className="w-3.5 h-3.5" />
+                ) : (
+                  <Eye className="w-3.5 h-3.5" />
+                )}
               </button>
             </div>
           </div>
@@ -185,4 +190,3 @@ export const SignupView: React.FC<SignupModalProps> = ({ onSwitchToLogin }) => {
     </div>
   );
 };
-

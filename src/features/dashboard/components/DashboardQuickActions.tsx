@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Plus,
-  BookOpen,
-  Bot,
-  Table,
-  GitCompare,
-  UploadCloud,
-} from "lucide-react";
+import { Plus, BookOpen, Bot, Table, GitCompare, UploadCloud } from "lucide-react";
 import { AppIcon } from "../../../components/icons/AppIcon";
 import { Button } from "../../../components/ui/Button";
 import { useApp } from "../../../context/AppContext";
@@ -119,4 +112,3 @@ export const DashboardQuickActions: React.FC<DashboardQuickActionsProps> = ({
     </div>
   );
 };
-

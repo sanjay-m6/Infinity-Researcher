@@ -43,7 +43,9 @@ pub async fn auth_unlock(
     password: String,
 ) -> Result<AuthResponse, String> {
     let auth = state.auth().map_err(|e| e.to_string())?;
-    auth.unlock_session(&token, &password).await.map_err(|e| e.to_string())
+    auth.unlock_session(&token, &password)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -60,7 +62,9 @@ pub async fn auth_restore_remembered_session(
     state: State<'_, AppState>,
 ) -> Result<Option<AuthResponse>, String> {
     let auth = state.auth().map_err(|e| e.to_string())?;
-    auth.restore_remembered_session().await.map_err(|e| e.to_string())
+    auth.restore_remembered_session()
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -69,8 +73,13 @@ pub async fn auth_get_preferences(
     token: String,
 ) -> Result<UserPreferences, String> {
     let auth = state.auth().map_err(|e| e.to_string())?;
-    let user = auth.validate_active_session(&token).await.map_err(|e| e.to_string())?;
-    auth.get_preferences(&user.id).await.map_err(|e| e.to_string())
+    let user = auth
+        .validate_active_session(&token)
+        .await
+        .map_err(|e| e.to_string())?;
+    auth.get_preferences(&user.id)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -80,8 +89,13 @@ pub async fn auth_update_preferences(
     request: UpdatePreferencesRequest,
 ) -> Result<UserPreferences, String> {
     let auth = state.auth().map_err(|e| e.to_string())?;
-    let user = auth.validate_active_session(&token).await.map_err(|e| e.to_string())?;
-    auth.update_preferences(&user.id, &token, request).await.map_err(|e| e.to_string())
+    let user = auth
+        .validate_active_session(&token)
+        .await
+        .map_err(|e| e.to_string())?;
+    auth.update_preferences(&user.id, &token, request)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -91,8 +105,13 @@ pub async fn auth_change_password(
     request: ChangePasswordRequest,
 ) -> Result<(), String> {
     let auth = state.auth().map_err(|e| e.to_string())?;
-    let user = auth.validate_active_session(&token).await.map_err(|e| e.to_string())?;
-    auth.change_password(&user.id, request).await.map_err(|e| e.to_string())
+    let user = auth
+        .validate_active_session(&token)
+        .await
+        .map_err(|e| e.to_string())?;
+    auth.change_password(&user.id, request)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

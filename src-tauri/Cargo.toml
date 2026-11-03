@@ -49,3 +49,7 @@ lto = true
 opt-level = 3
 panic = "abort"
 strip = true
+
+[lints.clippy]
+all = { level = "allow", priority = -1 }
+

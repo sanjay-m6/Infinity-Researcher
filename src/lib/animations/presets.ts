@@ -154,4 +154,3 @@ export function getAnimationPreset(
       return presetSubtleEntrance;
   }
 }
-

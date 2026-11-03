@@ -23,4 +23,3 @@ export const AnimatedPresence: React.FC<AnimatedPresenceComponentProps> = ({
 };
 
 export default AnimatedPresence;
-

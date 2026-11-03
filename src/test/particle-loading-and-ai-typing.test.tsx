@@ -50,16 +50,15 @@ describe("Particle Loading Experience & AI Typing Indicator Suite", () => {
 
       expect(screen.getByText("Infinity Researcher")).toBeInTheDocument();
       expect(screen.getByText("Preparing research library")).toBeInTheDocument();
-      expect(screen.getByText("Connecting to local SQLite database...")).toBeInTheDocument();
+      expect(
+        screen.getByText("Connecting to local SQLite database...")
+      ).toBeInTheDocument();
       expect(screen.getByRole("status")).toBeInTheDocument();
     });
 
     it("does not render when visible is false", () => {
       render(
-        <GlobalLoadingOverlay
-          visible={false}
-          statusMessage="Preparing workspace"
-        />
+        <GlobalLoadingOverlay visible={false} statusMessage="Preparing workspace" />
       );
 
       expect(screen.queryByText("Infinity Researcher")).not.toBeInTheDocument();
@@ -77,7 +76,9 @@ describe("Particle Loading Experience & AI Typing Indicator Suite", () => {
       );
 
       expect(screen.getByText("Initialization failed")).toBeInTheDocument();
-      expect(screen.getByText("Failed to connect to backend service")).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to connect to backend service")
+      ).toBeInTheDocument();
 
       const retryBtn = screen.getByRole("button", { name: /Retry/i });
       expect(retryBtn).toBeInTheDocument();
@@ -88,7 +89,9 @@ describe("Particle Loading Experience & AI Typing Indicator Suite", () => {
 
   describe("PageLoadingView component", () => {
     it("renders compact particle cluster with message", () => {
-      render(<PageLoadingView visible={true} message="Synthesizing multi-paper matrix..." />);
+      render(
+        <PageLoadingView visible={true} message="Synthesizing multi-paper matrix..." />
+      );
 
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Synthesizing multi-paper matrix...")).toBeInTheDocument();
@@ -150,7 +153,9 @@ describe("Particle Loading Experience & AI Typing Indicator Suite", () => {
         />
       );
 
-      expect(screen.getByText("Searching 100+ local paper embeddings...")).toBeInTheDocument();
+      expect(
+        screen.getByText("Searching 100+ local paper embeddings...")
+      ).toBeInTheDocument();
     });
 
     it("renders workspace variant with multi-particle orb animation", () => {
@@ -167,12 +172,7 @@ describe("Particle Loading Experience & AI Typing Indicator Suite", () => {
     });
 
     it("does not render when visible is false", () => {
-      render(
-        <AITypingIndicator
-          visible={false}
-          statusMessage="Generating answer..."
-        />
-      );
+      render(<AITypingIndicator visible={false} statusMessage="Generating answer..." />);
 
       expect(screen.queryByText("Generating answer...")).not.toBeInTheDocument();
     });

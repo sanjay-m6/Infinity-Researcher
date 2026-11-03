@@ -221,7 +221,10 @@ pub async fn import_ieee_paper(
         canonical_doi: normalized_doi,
         title,
         clean_title_key: clean_title,
-        abstract_text: input.abstract_text.clone().or(pdf_meta.abstract_text.clone()),
+        abstract_text: input
+            .abstract_text
+            .clone()
+            .or(pdf_meta.abstract_text.clone()),
         publication_date: input.publication_year.map(|y| format!("{}-01-01", y)),
         publication_year: input.publication_year,
         venue: input.venue.map(|v| v.trim().to_string()),
@@ -513,10 +516,16 @@ pub async fn import_local_oa_pdf(
         canonical_doi: normalized_doi,
         title,
         clean_title_key: clean_title,
-        abstract_text: input.abstract_text.clone().or(pdf_meta.abstract_text.clone()),
+        abstract_text: input
+            .abstract_text
+            .clone()
+            .or(pdf_meta.abstract_text.clone()),
         publication_date: input.publication_year.map(|y| format!("{}-01-01", y)),
         publication_year: input.publication_year,
-        venue: input.venue.map(|v| v.trim().to_string()).or(pdf_meta.venue.clone()),
+        venue: input
+            .venue
+            .map(|v| v.trim().to_string())
+            .or(pdf_meta.venue.clone()),
         venue_type: Some("journal".to_string()),
         language: "en".to_string(),
         citation_count: 0,

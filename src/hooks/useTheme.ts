@@ -26,15 +26,20 @@ export function useTheme(): ThemeContextValue {
   if (appCtx) {
     const theme = (appCtx.theme || "dark") as ThemePreference;
     const preference = ((appCtx as any).preference ?? theme) as ThemePreference;
-    const resolvedTheme = ((appCtx as any).resolvedTheme ?? (theme === "light" ? "light" : "dark")) as ResolvedTheme;
-    const isDark = (appCtx as any).isDark ?? (resolvedTheme === "dark");
+    const resolvedTheme = ((appCtx as any).resolvedTheme ??
+      (theme === "light" ? "light" : "dark")) as ResolvedTheme;
+    const isDark = (appCtx as any).isDark ?? resolvedTheme === "dark";
     const setTheme = appCtx.setTheme;
-    const toggleTheme = (appCtx as any).toggleTheme ?? ((origin?: ThemeSplashOrigin) => {
-      setTheme(resolvedTheme === "dark" ? "light" : "dark", origin);
-    });
-    const setThemeWithSplash = (appCtx as any).setThemeWithSplash ?? (async (newTheme: ThemePreference, origin?: ThemeSplashOrigin) => {
-      setTheme(newTheme, origin);
-    });
+    const toggleTheme =
+      (appCtx as any).toggleTheme ??
+      ((origin?: ThemeSplashOrigin) => {
+        setTheme(resolvedTheme === "dark" ? "light" : "dark", origin);
+      });
+    const setThemeWithSplash =
+      (appCtx as any).setThemeWithSplash ??
+      (async (newTheme: ThemePreference, origin?: ThemeSplashOrigin) => {
+        setTheme(newTheme, origin);
+      });
     const isInitialized = (appCtx as any).isThemeInitialized ?? true;
 
     return {

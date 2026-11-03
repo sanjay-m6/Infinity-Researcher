@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { LiveOrb } from "@/components/ui/live-orb"
+import { LiveOrb } from "@/components/ui/live-orb";
 
 const settings = {
   size: 200,
@@ -9,20 +9,16 @@ const settings = {
   color: "#7C5CFF",
   eyeColor: "#FAFAFA",
   colors: ["#7C6AF7", "#7DD3C7", "#E8B4D4"],
-}
+};
 
 export default function LiveOrbDemo(props: Partial<typeof settings>) {
-  const s = { ...settings, ...props }
+  const s = { ...settings, ...props };
 
   return (
     <div className="flex min-h-[520px] w-full flex-wrap items-center justify-center gap-x-10 gap-y-8 bg-background p-4 text-foreground">
       {/* No variant: white on dark pages, black on light ones. */}
       <figure className="flex flex-col items-center gap-3">
-        <LiveOrb
-          size={s.size}
-          interactive={s.interactive}
-          blink={s.blink}
-        />
+        <LiveOrb size={s.size} interactive={s.interactive} blink={s.blink} />
         <figcaption className="text-xs text-muted-foreground">Auto</figcaption>
       </figure>
       <figure className="flex flex-col items-center gap-3">
@@ -34,9 +30,7 @@ export default function LiveOrbDemo(props: Partial<typeof settings>) {
           interactive={s.interactive}
           blink={s.blink}
         />
-        <figcaption className="text-xs text-muted-foreground">
-          Custom
-        </figcaption>
+        <figcaption className="text-xs text-muted-foreground">Custom</figcaption>
       </figure>
       <figure className="flex flex-col items-center gap-3">
         <LiveOrb
@@ -49,5 +43,5 @@ export default function LiveOrbDemo(props: Partial<typeof settings>) {
         <figcaption className="text-xs text-muted-foreground">WebGL</figcaption>
       </figure>
     </div>
-  )
+  );
 }

@@ -142,7 +142,9 @@ export async function authUnlock(token: string, password: string): Promise<AuthR
   return invoke<AuthResponse>("auth_unlock", { token, password });
 }
 
-export async function authGetCurrentSession(token?: string | null): Promise<AuthResponse | null> {
+export async function authGetCurrentSession(
+  token?: string | null
+): Promise<AuthResponse | null> {
   if (!isTauriEnvironment()) {
     if (token && mockUser && !mockLocked) {
       return {
@@ -154,7 +156,9 @@ export async function authGetCurrentSession(token?: string | null): Promise<Auth
     }
     return null;
   }
-  return invoke<AuthResponse | null>("auth_get_current_session", { token: token || null });
+  return invoke<AuthResponse | null>("auth_get_current_session", {
+    token: token || null,
+  });
 }
 
 export async function authRestoreRememberedSession(): Promise<AuthResponse | null> {
@@ -211,4 +215,3 @@ export async function authTouchActivity(token: string): Promise<void> {
     // Non-critical background ping
   }
 }
-

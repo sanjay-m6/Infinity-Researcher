@@ -90,7 +90,9 @@ describe("Phase 5 — Token Preservation Guard & Semantic Validation", () => {
     const result = validatePreservationAndSemantics(original, strippedRevision);
 
     expect(result.warningIssuesCount).toBeGreaterThan(0);
-    const limitationIssue = result.issues.find((i) => i.id === "drift_limitation_removed");
+    const limitationIssue = result.issues.find(
+      (i) => i.id === "drift_limitation_removed"
+    );
     expect(limitationIssue).toBeDefined();
   });
 
@@ -292,7 +294,9 @@ describe("Phase 5 — Academic Writing Workspace UI", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Revision History/i)).toBeInTheDocument();
-      expect(screen.getAllByRole("button", { name: /Restore This Version/i }).length).toBeGreaterThan(0);
+      expect(
+        screen.getAllByRole("button", { name: /Restore This Version/i }).length
+      ).toBeGreaterThan(0);
     });
   });
 
@@ -308,7 +312,9 @@ describe("Phase 5 — Academic Writing Workspace UI", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Text Will Leave This Device/i)).toBeInTheDocument();
-      expect(screen.getByText(/Data Transmission & Remote AI Privacy Notice/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Data Transmission & Remote AI Privacy Notice/i)
+      ).toBeInTheDocument();
     });
   });
 });

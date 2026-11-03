@@ -199,7 +199,9 @@ export const PdfToolbar: React.FC<PdfToolbarProps> = ({
               {copiedDoi ? (
                 <>
                   <Check className="w-3 h-3 text-emerald-600" />
-                  <span className="text-emerald-600 dark:text-emerald-400 font-sans">Copied!</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-sans">
+                    Copied!
+                  </span>
                 </>
               ) : (
                 <>
@@ -240,7 +242,9 @@ export const PdfToolbar: React.FC<PdfToolbarProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => setIsFullscreen(!isFullscreen)}
-            title={isFullscreen ? "Exit focus reading mode" : "Focus reading mode (Fullscreen)"}
+            title={
+              isFullscreen ? "Exit focus reading mode" : "Focus reading mode (Fullscreen)"
+            }
             className="h-7 w-7 p-0"
           >
             {isFullscreen ? (
@@ -433,4 +437,3 @@ export const PdfToolbar: React.FC<PdfToolbarProps> = ({
     </div>
   );
 };
-

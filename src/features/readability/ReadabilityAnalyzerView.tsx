@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useApp } from "../../context/AppContext";
-import {
-  BarChart2,
-  Sparkles,
-  Upload,
-  Download,
-  Info,
-} from "lucide-react";
+import { BarChart2, Sparkles, Upload, Download, Info } from "lucide-react";
 import { ReadabilityReport } from "./types";
 import { analyzeReadability, READABILITY_DEMO_SAMPLE } from "./readabilityEngine";
 import { Button } from "../../components/ui/Button";
@@ -29,88 +23,93 @@ export const ReadabilityAnalyzerView: React.FC = () => {
     }
   });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"sentences" | "paragraphs" | "vocabulary">("sentences");
+  const [activeTab, setActiveTab] = useState<"sentences" | "paragraphs" | "vocabulary">(
+    "sentences"
+  );
   const [fileName, setFileName] = useState<string>("sample-document.txt");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const runAnalysis = useCallback(async (text: string, title = "Manuscript") => {
-    if (!text.trim()) {
-      setReport(null);
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      const meta = await ingestDocumentContent(
-        fileName || "manuscript.txt",
-        "txt",
-        text
-      ).catch(() => null);
-
-      const docHash = meta?.document_hash || `hash_${text.length}`;
-
-      const cached = await getReadabilityReportByHashDb(docHash).catch(() => null);
-      if (cached) {
-        try {
-          const metrics = JSON.parse(cached.metrics_json);
-          const vocabulary = JSON.parse(cached.vocabulary_json);
-          const paragraphs = JSON.parse(cached.paragraphs_json);
-          const recs = JSON.parse(cached.recommendations_json);
-          setReport({
-            id: cached.id,
-            rawText: text,
-            title: cached.document_title,
-            analyzedAt: cached.created_at,
-            language: {
-              detectedCode: cached.language_code,
-              languageName: cached.language_code === "en" ? "English" : "Non-English",
-              confidence: 0.98,
-              isEnglish: cached.language_code === "en",
-              limitationNotice: undefined,
-            },
-            metrics,
-            vocabulary,
-            paragraphs,
-            sentences: [],
-            totalParagraphs: paragraphs.length,
-            actionableClarityRecommendations: recs,
-            totalSentences: cached.sentence_count,
-            avgSentenceLength: cached.sentence_count
-              ? Math.round(cached.word_count / cached.sentence_count)
-              : 0,
-            longSentencesCount: 0,
-          });
-          setIsProcessing(false);
-          return;
-        } catch (e) {
-          console.warn("Failed to parse cached readability report:", e);
-        }
+  const runAnalysis = useCallback(
+    async (text: string, title = "Manuscript") => {
+      if (!text.trim()) {
+        setReport(null);
+        return;
       }
 
-      const res = analyzeReadability(text, title);
-      setReport(res);
+      setIsProcessing(true);
+      try {
+        const meta = await ingestDocumentContent(
+          fileName || "manuscript.txt",
+          "txt",
+          text
+        ).catch(() => null);
 
-      saveReadabilityReportDb({
-        id: `read_${Date.now()}`,
-        document_hash: docHash,
-        document_title: title,
-        language_code: res.language.detectedCode,
-        word_count: res.vocabulary.totalWords,
-        sentence_count: res.totalSentences,
-        flesch_reading_ease: res.metrics.fleschReadingEase,
-        flesch_kincaid_grade: res.metrics.fleschKincaidGrade,
-        gunning_fog_index: res.metrics.gunningFogIndex,
-        metrics_json: JSON.stringify(res.metrics),
-        vocabulary_json: JSON.stringify(res.vocabulary),
-        paragraphs_json: JSON.stringify(res.paragraphs),
-        recommendations_json: JSON.stringify(res.actionableClarityRecommendations),
-        created_at: new Date(res.analyzedAt).toISOString(),
-      }).catch((err) => console.warn("Failed to save readability report:", err));
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [fileName]);
+        const docHash = meta?.document_hash || `hash_${text.length}`;
+
+        const cached = await getReadabilityReportByHashDb(docHash).catch(() => null);
+        if (cached) {
+          try {
+            const metrics = JSON.parse(cached.metrics_json);
+            const vocabulary = JSON.parse(cached.vocabulary_json);
+            const paragraphs = JSON.parse(cached.paragraphs_json);
+            const recs = JSON.parse(cached.recommendations_json);
+            setReport({
+              id: cached.id,
+              rawText: text,
+              title: cached.document_title,
+              analyzedAt: cached.created_at,
+              language: {
+                detectedCode: cached.language_code,
+                languageName: cached.language_code === "en" ? "English" : "Non-English",
+                confidence: 0.98,
+                isEnglish: cached.language_code === "en",
+                limitationNotice: undefined,
+              },
+              metrics,
+              vocabulary,
+              paragraphs,
+              sentences: [],
+              totalParagraphs: paragraphs.length,
+              actionableClarityRecommendations: recs,
+              totalSentences: cached.sentence_count,
+              avgSentenceLength: cached.sentence_count
+                ? Math.round(cached.word_count / cached.sentence_count)
+                : 0,
+              longSentencesCount: 0,
+            });
+            setIsProcessing(false);
+            return;
+          } catch (e) {
+            console.warn("Failed to parse cached readability report:", e);
+          }
+        }
+
+        const res = analyzeReadability(text, title);
+        setReport(res);
+
+        saveReadabilityReportDb({
+          id: `read_${Date.now()}`,
+          document_hash: docHash,
+          document_title: title,
+          language_code: res.language.detectedCode,
+          word_count: res.vocabulary.totalWords,
+          sentence_count: res.totalSentences,
+          flesch_reading_ease: res.metrics.fleschReadingEase,
+          flesch_kincaid_grade: res.metrics.fleschKincaidGrade,
+          gunning_fog_index: res.metrics.gunningFogIndex,
+          metrics_json: JSON.stringify(res.metrics),
+          vocabulary_json: JSON.stringify(res.vocabulary),
+          paragraphs_json: JSON.stringify(res.paragraphs),
+          recommendations_json: JSON.stringify(res.actionableClarityRecommendations),
+          created_at: new Date(res.analyzedAt).toISOString(),
+        }).catch((err) => console.warn("Failed to save readability report:", err));
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [fileName]
+  );
 
   useEffect(() => {
     runAnalysis(READABILITY_DEMO_SAMPLE, "Demo Document");
@@ -237,7 +236,9 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
-                Evaluates sentence cadences, paragraph densities, vocabulary complexity, passive-voice distribution, and classical readability metrics (Flesch, Gunning Fog, Kincaid, SMOG) with language-appropriate calibrations.
+                Evaluates sentence cadences, paragraph densities, vocabulary complexity,
+                passive-voice distribution, and classical readability metrics (Flesch,
+                Gunning Fog, Kincaid, SMOG) with language-appropriate calibrations.
               </p>
             </div>
           </div>
@@ -294,10 +295,13 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
                 : "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200"
             }`}
           >
-            <Info className={`w-4 h-4 shrink-0 mt-0.5 ${report.language.isEnglish ? "text-indigo-500" : "text-amber-600"}`} />
+            <Info
+              className={`w-4 h-4 shrink-0 mt-0.5 ${report.language.isEnglish ? "text-indigo-500" : "text-amber-600"}`}
+            />
             <div className="space-y-0.5">
               <span className="font-bold block">
-                Detected Language: {report.language.languageName} ({Math.round(report.language.confidence * 100)}% confidence)
+                Detected Language: {report.language.languageName} (
+                {Math.round(report.language.confidence * 100)}% confidence)
               </span>
               <p>
                 {report.language.limitationNotice ||
@@ -335,9 +339,7 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
             <div className="text-2xl font-black text-slate-900 dark:text-slate-100">
               {report.metrics.fleschKincaidGrade}
             </div>
-            <span className="text-[10px] text-slate-500 block">
-              Kincaid Scale
-            </span>
+            <span className="text-[10px] text-slate-500 block">Kincaid Scale</span>
           </div>
 
           {/* Gunning Fog Index */}
@@ -349,7 +351,8 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
               {report.metrics.gunningFogIndex}
             </div>
             <span className="text-[10px] text-slate-500 block">
-              College Level ({report.metrics.gunningFogIndex >= 14 ? "Peer Review" : "General"})
+              College Level (
+              {report.metrics.gunningFogIndex >= 14 ? "Peer Review" : "General"})
             </span>
           </div>
 
@@ -361,9 +364,7 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
             <div className="text-2xl font-black text-slate-900 dark:text-slate-100">
               {report.avgSentenceLength}
             </div>
-            <span className="text-[10px] text-slate-500 block">
-              Words / Sentence
-            </span>
+            <span className="text-[10px] text-slate-500 block">Words / Sentence</span>
           </div>
 
           {/* Complex Words % */}
@@ -470,7 +471,9 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
 
           <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
             <span>
-              {report ? `${report.vocabulary.totalWords} words · ${report.totalSentences} sentences` : "0 words"}
+              {report
+                ? `${report.vocabulary.totalWords} words · ${report.totalSentences} sentences`
+                : "0 words"}
             </span>
             <Button
               variant="outline"
@@ -527,18 +530,19 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
           {/* TAB 1: SENTENCE-BY-SENTENCE & CLARITY INSPECTOR */}
           {activeTab === "sentences" && (
             <div className="space-y-2.5 max-h-[580px] overflow-y-auto pr-1">
-              {report?.actionableClarityRecommendations && report.actionableClarityRecommendations.length > 0 && (
-                <div className="p-3.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-900 dark:text-indigo-200 space-y-1">
-                  <span className="font-bold uppercase tracking-wider text-[10px] block text-indigo-600 dark:text-indigo-400">
-                    Actionable Clarity Directives
-                  </span>
-                  <ul className="list-disc pl-4 space-y-0.5">
-                    {report.actionableClarityRecommendations.map((rec, i) => (
-                      <li key={i}>{rec}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {report?.actionableClarityRecommendations &&
+                report.actionableClarityRecommendations.length > 0 && (
+                  <div className="p-3.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-900 dark:text-indigo-200 space-y-1">
+                    <span className="font-bold uppercase tracking-wider text-[10px] block text-indigo-600 dark:text-indigo-400">
+                      Actionable Clarity Directives
+                    </span>
+                    <ul className="list-disc pl-4 space-y-0.5">
+                      {report.actionableClarityRecommendations.map((rec, i) => (
+                        <li key={i}>{rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
               {report?.sentences.map((sent) => (
                 <div
@@ -547,8 +551,8 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
                     sent.isOverlyLong
                       ? "border-amber-200 dark:border-amber-900/60 bg-amber-50/15"
                       : sent.isPassive
-                      ? "border-sky-200 dark:border-sky-900/60 bg-sky-50/15"
-                      : "border-slate-200 dark:border-slate-800"
+                        ? "border-sky-200 dark:border-sky-900/60 bg-sky-50/15"
+                        : "border-slate-200 dark:border-slate-800"
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs">
@@ -608,8 +612,13 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                     {report?.paragraphs.map((p) => (
-                      <tr key={p.index} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                        <td className="px-4 py-3 font-bold font-mono">Paragraph {p.index}</td>
+                      <tr
+                        key={p.index}
+                        className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                      >
+                        <td className="px-4 py-3 font-bold font-mono">
+                          Paragraph {p.index}
+                        </td>
                         <td className="px-4 py-3">{p.sentenceCount}</td>
                         <td className="px-4 py-3 font-semibold">{p.wordCount}</td>
                         <td className="px-4 py-3">{p.avgSentenceLength}</td>
@@ -642,7 +651,8 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
                     {report?.vocabulary.lexicalDiversity}%
                   </div>
                   <span className="text-[10px] text-slate-500 block">
-                    {report?.vocabulary.uniqueWords} unique / {report?.vocabulary.totalWords} total words
+                    {report?.vocabulary.uniqueWords} unique /{" "}
+                    {report?.vocabulary.totalWords} total words
                   </span>
                 </div>
 
@@ -665,14 +675,17 @@ ${report.actionableClarityRecommendations.map((r, i) => `${i + 1}. ${r}`).join("
                   Repeated 2–4 Word Phrases (3+ Occurrences)
                 </span>
 
-                {report?.vocabulary.frequentPhrases && report.vocabulary.frequentPhrases.length > 0 ? (
+                {report?.vocabulary.frequentPhrases &&
+                report.vocabulary.frequentPhrases.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     {report.vocabulary.frequentPhrases.map((rp, i) => (
                       <div
                         key={i}
                         className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between"
                       >
-                        <span className="font-mono text-slate-800 dark:text-slate-200">"{rp.phrase}"</span>
+                        <span className="font-mono text-slate-800 dark:text-slate-200">
+                          "{rp.phrase}"
+                        </span>
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
                           {rp.count}x
                         </span>

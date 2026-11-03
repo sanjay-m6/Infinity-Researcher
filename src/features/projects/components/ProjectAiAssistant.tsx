@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  Sparkles,
-  Send,
-  User,
-  Copy,
-  Check,
-  FileText,
-  Clock,
-} from "lucide-react";
+import { Sparkles, Send, User, Copy, Check, FileText, Clock } from "lucide-react";
 import { askProjectAiAssistant, saveNote } from "../../../lib/desktop-api";
 import { Button } from "../../../components/ui/Button";
 import { LiveOrb } from "../../../components/ui/live-orb";
@@ -41,7 +33,10 @@ export const ProjectAiAssistant: React.FC<ProjectAiAssistantProps> = ({
       id: "welcome",
       role: "assistant",
       content: `Hello! I am your Project AI Copilot for **${projectTitle}**. I am grounded directly in this project's objectives, milestones, task dependencies, and linked literature. How can I assist your workflow today?`,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     },
   ]);
   const [input, setInput] = useState("");
@@ -57,7 +52,10 @@ export const ProjectAiAssistant: React.FC<ProjectAiAssistantProps> = ({
       id: `user_${Date.now()}`,
       role: "user",
       content: textToSend,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -70,7 +68,10 @@ export const ProjectAiAssistant: React.FC<ProjectAiAssistantProps> = ({
         id: `ai_${Date.now()}`,
         role: "assistant",
         content: answer,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err: any) {
@@ -79,7 +80,10 @@ export const ProjectAiAssistant: React.FC<ProjectAiAssistantProps> = ({
         id: `err_${Date.now()}`,
         role: "assistant",
         content: `Error consulting AI assistant: ${err?.message || "Failed to contact provider."}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
       setMessages((prev) => [...prev, errMsg]);
     } finally {
@@ -132,7 +136,10 @@ export const ProjectAiAssistant: React.FC<ProjectAiAssistantProps> = ({
                 id: "welcome_reset",
                 role: "assistant",
                 content: `History reset. Ready to analyze **${projectTitle}**.`,
-                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                timestamp: new Date().toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
               },
             ])
           }
@@ -156,7 +163,13 @@ export const ProjectAiAssistant: React.FC<ProjectAiAssistantProps> = ({
                 <User className="w-4 h-4" />
               </div>
             ) : (
-              <LiveOrb size={26} interactive={false} blink variant="webgl" className="shrink-0" />
+              <LiveOrb
+                size={26}
+                interactive={false}
+                blink
+                variant="webgl"
+                className="shrink-0"
+              />
             )}
 
             <div

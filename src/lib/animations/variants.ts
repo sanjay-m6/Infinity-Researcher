@@ -1,6 +1,11 @@
 import { Variants } from "motion/react";
 import { motionDistance, motionDuration, motionEase } from "./tokens";
-import { transitionFast, transitionNormal, transitionEnter, transitionExit } from "./transitions";
+import {
+  transitionFast,
+  transitionNormal,
+  transitionEnter,
+  transitionExit,
+} from "./transitions";
 
 /**
  * Pure opacity fade variants.
@@ -287,4 +292,3 @@ export const reducedMotionVariants: Variants = {
     transition: { duration: 0 },
   },
 };
-

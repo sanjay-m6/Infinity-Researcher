@@ -122,10 +122,15 @@ impl PdfResolverService {
                     let is_ieee_stamp = clean_url.contains("ieeexplore.ieee.org/stamp/stamp.jsp");
 
                     if is_ieee_stamp {
-                        if let Some(ieee_cand) = Self::extract_pdf_from_ieee_stamp(client, &validated_url, paper_id).await {
+                        if let Some(ieee_cand) =
+                            Self::extract_pdf_from_ieee_stamp(client, &validated_url, paper_id)
+                                .await
+                        {
                             if let Some(db) = db_opt {
                                 if let Ok(conn) = db.lock() {
-                                    let _ = PdfWorkspaceRepository::save_pdf_candidate(&conn, &ieee_cand);
+                                    let _ = PdfWorkspaceRepository::save_pdf_candidate(
+                                        &conn, &ieee_cand,
+                                    );
                                 }
                             }
                             evidence.push(format!(
@@ -141,17 +146,27 @@ impl PdfResolverService {
                             id: Uuid::new_v4().to_string(),
                             paper_id: paper_id.to_string(),
                             url: validated_url.to_string(),
-                            provider_id: if is_ncbi_pmc { "ncbi_pmc_web".to_string() } else { "direct_source".to_string() },
-                            source_type: if is_ncbi_pmc { "pmc_challenge".to_string() } else { "direct_api".to_string() },
+                            provider_id: if is_ncbi_pmc {
+                                "ncbi_pmc_web".to_string()
+                            } else {
+                                "direct_source".to_string()
+                            },
+                            source_type: if is_ncbi_pmc {
+                                "pmc_challenge".to_string()
+                            } else {
+                                "direct_api".to_string()
+                            },
                             access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                            evidence_notes: Some(
-                                if is_ncbi_pmc {
-                                    "PubMed Central web link (requires interactive browser POW verification)".to_string()
-                                } else {
-                                    "Direct PDF link provided by scholarly source adapter".to_string()
-                                }
-                            ),
-                            version_type: Some(if is_ncbi_pmc { "accepted_manuscript".to_string() } else { "published_version".to_string() }),
+                            evidence_notes: Some(if is_ncbi_pmc {
+                                "PubMed Central web link (requires interactive browser POW verification)".to_string()
+                            } else {
+                                "Direct PDF link provided by scholarly source adapter".to_string()
+                            }),
+                            version_type: Some(if is_ncbi_pmc {
+                                "accepted_manuscript".to_string()
+                            } else {
+                                "published_version".to_string()
+                            }),
                             identity_status: Some("unknown".to_string()),
                             identity_score: Some(0.0),
                             provenance_json: None,
@@ -206,7 +221,8 @@ impl PdfResolverService {
                 // --------------------------------------------------------------------
                 // Step 3.2: OpenAlex Open-Access Locations (Green OA, Institutional Repositories)
                 // --------------------------------------------------------------------
-                let openalex_cands = Self::query_openalex_oa_locations(client, clean_doi, paper_id).await;
+                let openalex_cands =
+                    Self::query_openalex_oa_locations(client, clean_doi, paper_id).await;
                 for oac in openalex_cands {
                     if let Some(db) = db_opt {
                         if let Ok(conn) = db.lock() {
@@ -224,7 +240,9 @@ impl PdfResolverService {
                 // --------------------------------------------------------------------
                 // Step 3.3: Europe PMC Full-Text API Lookup
                 // --------------------------------------------------------------------
-                if let Some(epmc_cand) = Self::query_europe_pmc_oa(client, clean_doi, paper_id).await {
+                if let Some(epmc_cand) =
+                    Self::query_europe_pmc_oa(client, clean_doi, paper_id).await
+                {
                     if let Some(db) = db_opt {
                         if let Ok(conn) = db.lock() {
                             let _ = PdfWorkspaceRepository::save_pdf_candidate(&conn, &epmc_cand);
@@ -240,7 +258,9 @@ impl PdfResolverService {
                 // --------------------------------------------------------------------
                 // Step 3.4: Semantic Scholar Open-Access Graph API Lookup
                 // --------------------------------------------------------------------
-                if let Some(s2_cand) = Self::query_semantic_scholar_oa(client, clean_doi, paper_id).await {
+                if let Some(s2_cand) =
+                    Self::query_semantic_scholar_oa(client, clean_doi, paper_id).await
+                {
                     if let Some(db) = db_opt {
                         if let Ok(conn) = db.lock() {
                             let _ = PdfWorkspaceRepository::save_pdf_candidate(&conn, &s2_cand);
@@ -257,7 +277,8 @@ impl PdfResolverService {
                 // --------------------------------------------------------------------
                 // Step 3.5: Crossref Works Link API Lookup
                 // --------------------------------------------------------------------
-                let crossref_cands = Self::query_crossref_oa_links(client, clean_doi, paper_id).await;
+                let crossref_cands =
+                    Self::query_crossref_oa_links(client, clean_doi, paper_id).await;
                 for crc in crossref_cands {
                     if let Some(db) = db_opt {
                         if let Ok(conn) = db.lock() {
@@ -287,7 +308,8 @@ impl PdfResolverService {
         // --------------------------------------------------------------------
         // Step 3.5: Deterministic Canonical Open-Access Routes (arXiv, bioRxiv, PLOS, PMC)
         // --------------------------------------------------------------------
-        let canonical_routes = Self::generate_canonical_candidates(canonical_doi, primary_landing_url, paper_id);
+        let canonical_routes =
+            Self::generate_canonical_candidates(canonical_doi, primary_landing_url, paper_id);
         for canon_cand in canonical_routes {
             evidence.push(format!(
                 "Generated canonical {} route: {}",
@@ -366,7 +388,10 @@ impl PdfResolverService {
                 0
             } else if url.contains("europepmc.org") || pid.contains("europe_pmc") {
                 1
-            } else if pid.contains("unpaywall") || pid.contains("openalex") || pid.contains("semantic_scholar") {
+            } else if pid.contains("unpaywall")
+                || pid.contains("openalex")
+                || pid.contains("semantic_scholar")
+            {
                 2
             } else if url.contains(".pdf") {
                 3
@@ -379,7 +404,8 @@ impl PdfResolverService {
         // Evaluate candidates (limit to top 8 to prevent network saturation)
         for mut cand in candidates {
             if scored_candidates.len() < 8 {
-                let report = CandidateVerifier::verify_candidate(client, &cand.url, Some(title), None).await;
+                let report =
+                    CandidateVerifier::verify_candidate(client, &cand.url, Some(title), None).await;
                 if report.is_valid && report.has_pdf_signature {
                     cand.url = report.final_url;
                     cand.access_status = PdfAvailabilityStatus::VerifiedOpenAccess;
@@ -405,10 +431,12 @@ impl PdfResolverService {
 
         // Sort descending: verified first, then highest confidence score
         scored_candidates.sort_by(|a, b| {
-            b.2.cmp(&a.2).then_with(|| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal))
+            b.2.cmp(&a.2)
+                .then_with(|| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal))
         });
 
-        let sorted_candidates: Vec<PdfCandidate> = scored_candidates.into_iter().map(|(c, _, _)| c).collect();
+        let sorted_candidates: Vec<PdfCandidate> =
+            scored_candidates.into_iter().map(|(c, _, _)| c).collect();
 
         // Persist verified candidates to database
         if let Some(db) = db_opt {
@@ -429,10 +457,7 @@ impl PdfResolverService {
                 best.access_status.as_str(),
                 best.url
             ));
-            (
-                best.access_status,
-                Some(best.url.clone()),
-            )
+            (best.access_status, Some(best.url.clone()))
         } else if is_open_access_hint {
             (
                 PdfAvailabilityStatus::OpenAccessAvailable,
@@ -523,7 +548,9 @@ impl PdfResolverService {
                         version_type: Some("preprint".to_string()),
                         identity_status: Some("unknown".to_string()),
                         identity_score: Some(0.0),
-                        provenance_json: Some("{\"provider\":\"arxiv\",\"canonical\":true}".to_string()),
+                        provenance_json: Some(
+                            "{\"provider\":\"arxiv\",\"canonical\":true}".to_string(),
+                        ),
                         last_checked_at: Utc::now().to_rfc3339(),
                         created_at: Utc::now().to_rfc3339(),
                     });
@@ -534,17 +561,25 @@ impl PdfResolverService {
         // 2. bioRxiv / medRxiv canonical routes (DOI prefix 10.1101/ or landing URL)
         let mut biorxiv_doi = None;
         if let Some(doi) = doi_opt {
-            let clean_doi = doi.trim().trim_start_matches("https://doi.org/").trim_start_matches("http://doi.org/");
+            let clean_doi = doi
+                .trim()
+                .trim_start_matches("https://doi.org/")
+                .trim_start_matches("http://doi.org/");
             if clean_doi.starts_with("10.1101/") {
                 biorxiv_doi = Some(clean_doi.to_string());
             }
         }
         if biorxiv_doi.is_none() {
             if let Some(landing) = landing_opt {
-                if landing.contains("biorxiv.org/content/") || landing.contains("medrxiv.org/content/") {
+                if landing.contains("biorxiv.org/content/")
+                    || landing.contains("medrxiv.org/content/")
+                {
                     if let Some(pos) = landing.find("/content/") {
                         let rest = &landing[pos + 9..];
-                        let clean_path = rest.trim_end_matches(".full.pdf").trim_end_matches(".full").trim_matches('/');
+                        let clean_path = rest
+                            .trim_end_matches(".full.pdf")
+                            .trim_end_matches(".full")
+                            .trim_matches('/');
                         if clean_path.starts_with("10.1101/") {
                             biorxiv_doi = Some(clean_path.to_string());
                         }
@@ -562,11 +597,15 @@ impl PdfResolverService {
                     provider_id: "canonical_biorxiv".to_string(),
                     source_type: "canonical_open_access".to_string(),
                     access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                    evidence_notes: Some("Deterministic canonical bioRxiv/medRxiv PDF route".to_string()),
+                    evidence_notes: Some(
+                        "Deterministic canonical bioRxiv/medRxiv PDF route".to_string(),
+                    ),
                     version_type: Some("preprint".to_string()),
                     identity_status: Some("unknown".to_string()),
                     identity_score: Some(0.0),
-                    provenance_json: Some("{\"provider\":\"biorxiv\",\"canonical\":true}".to_string()),
+                    provenance_json: Some(
+                        "{\"provider\":\"biorxiv\",\"canonical\":true}".to_string(),
+                    ),
                     last_checked_at: Utc::now().to_rfc3339(),
                     created_at: Utc::now().to_rfc3339(),
                 });
@@ -576,7 +615,10 @@ impl PdfResolverService {
         // 3. PLOS canonical route (DOI prefix 10.1371/ or journals.plos.org)
         let mut plos_doi = None;
         if let Some(doi) = doi_opt {
-            let clean_doi = doi.trim().trim_start_matches("https://doi.org/").trim_start_matches("http://doi.org/");
+            let clean_doi = doi
+                .trim()
+                .trim_start_matches("https://doi.org/")
+                .trim_start_matches("http://doi.org/");
             if clean_doi.starts_with("10.1371/") {
                 plos_doi = Some(clean_doi.to_string());
             }
@@ -595,7 +637,10 @@ impl PdfResolverService {
             }
         }
         if let Some(clean_doi) = plos_doi {
-            let plos_url = format!("https://journals.plos.org/plosone/article/file?id={}&type=printable", clean_doi);
+            let plos_url = format!(
+                "https://journals.plos.org/plosone/article/file?id={}&type=printable",
+                clean_doi
+            );
             if let Ok(val) = UrlGuard::validate_url(&plos_url) {
                 generated.push(PdfCandidate {
                     id: Uuid::new_v4().to_string(),
@@ -604,7 +649,9 @@ impl PdfResolverService {
                     provider_id: "canonical_plos".to_string(),
                     source_type: "canonical_open_access".to_string(),
                     access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                    evidence_notes: Some("Deterministic canonical PLOS printable PDF route".to_string()),
+                    evidence_notes: Some(
+                        "Deterministic canonical PLOS printable PDF route".to_string(),
+                    ),
                     version_type: Some("published_version".to_string()),
                     identity_status: Some("unknown".to_string()),
                     identity_score: Some(0.0),
@@ -617,7 +664,10 @@ impl PdfResolverService {
 
         // 4. MDPI (100% Gold Open Access - DOI prefix 10.3390/)
         if let Some(doi) = doi_opt {
-            let clean_doi = doi.trim().trim_start_matches("https://doi.org/").trim_start_matches("http://doi.org/");
+            let clean_doi = doi
+                .trim()
+                .trim_start_matches("https://doi.org/")
+                .trim_start_matches("http://doi.org/");
             if clean_doi.starts_with("10.3390/") {
                 let mdpi_url = format!("https://www.mdpi.com/{}/pdf", clean_doi);
                 if let Ok(val) = UrlGuard::validate_url(&mdpi_url) {
@@ -628,11 +678,15 @@ impl PdfResolverService {
                         provider_id: "canonical_mdpi".to_string(),
                         source_type: "canonical_open_access".to_string(),
                         access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                        evidence_notes: Some("Deterministic canonical MDPI Gold Open Access route".to_string()),
+                        evidence_notes: Some(
+                            "Deterministic canonical MDPI Gold Open Access route".to_string(),
+                        ),
                         version_type: Some("published_version".to_string()),
                         identity_status: Some("unknown".to_string()),
                         identity_score: Some(0.0),
-                        provenance_json: Some("{\"provider\":\"mdpi\",\"canonical\":true}".to_string()),
+                        provenance_json: Some(
+                            "{\"provider\":\"mdpi\",\"canonical\":true}".to_string(),
+                        ),
                         last_checked_at: Utc::now().to_rfc3339(),
                         created_at: Utc::now().to_rfc3339(),
                     });
@@ -671,11 +725,17 @@ impl PdfResolverService {
                     provider_id: "canonical_pmc".to_string(),
                     source_type: "canonical_open_access".to_string(),
                     access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                    evidence_notes: Some(format!("Deterministic canonical PMC repository route ({})", pmcid)),
+                    evidence_notes: Some(format!(
+                        "Deterministic canonical PMC repository route ({})",
+                        pmcid
+                    )),
                     version_type: Some("accepted_manuscript".to_string()),
                     identity_status: Some("unknown".to_string()),
                     identity_score: Some(0.0),
-                    provenance_json: Some(format!("{{\"provider\":\"pmc\",\"pmcid\":\"{}\"}}", pmcid)),
+                    provenance_json: Some(format!(
+                        "{{\"provider\":\"pmc\",\"pmcid\":\"{}\"}}",
+                        pmcid
+                    )),
                     last_checked_at: Utc::now().to_rfc3339(),
                     created_at: Utc::now().to_rfc3339(),
                 });
@@ -684,9 +744,16 @@ impl PdfResolverService {
 
         // 6. SpringerLink / BioMed Central / Nature (DOI prefix 10.1007/, 10.1186/, 10.1038/)
         if let Some(doi) = doi_opt {
-            let clean_doi = doi.trim().trim_start_matches("https://doi.org/").trim_start_matches("http://doi.org/");
-            if clean_doi.starts_with("10.1007/") || clean_doi.starts_with("10.1186/") || clean_doi.starts_with("10.1038/") {
-                let springer_url = format!("https://link.springer.com/content/pdf/{}.pdf", clean_doi);
+            let clean_doi = doi
+                .trim()
+                .trim_start_matches("https://doi.org/")
+                .trim_start_matches("http://doi.org/");
+            if clean_doi.starts_with("10.1007/")
+                || clean_doi.starts_with("10.1186/")
+                || clean_doi.starts_with("10.1038/")
+            {
+                let springer_url =
+                    format!("https://link.springer.com/content/pdf/{}.pdf", clean_doi);
                 if let Ok(val) = UrlGuard::validate_url(&springer_url) {
                     generated.push(PdfCandidate {
                         id: Uuid::new_v4().to_string(),
@@ -695,11 +762,15 @@ impl PdfResolverService {
                         provider_id: "canonical_springer".to_string(),
                         source_type: "canonical_open_access".to_string(),
                         access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                        evidence_notes: Some("Deterministic canonical Springer/Nature PDF route".to_string()),
+                        evidence_notes: Some(
+                            "Deterministic canonical Springer/Nature PDF route".to_string(),
+                        ),
                         version_type: Some("published_version".to_string()),
                         identity_status: Some("unknown".to_string()),
                         identity_score: Some(0.0),
-                        provenance_json: Some("{\"provider\":\"springer\",\"canonical\":true}".to_string()),
+                        provenance_json: Some(
+                            "{\"provider\":\"springer\",\"canonical\":true}".to_string(),
+                        ),
                         last_checked_at: Utc::now().to_rfc3339(),
                         created_at: Utc::now().to_rfc3339(),
                     });
@@ -709,9 +780,15 @@ impl PdfResolverService {
 
         // 7. Wiley Online Library (DOI prefix 10.1002/, 10.1111/)
         if let Some(doi) = doi_opt {
-            let clean_doi = doi.trim().trim_start_matches("https://doi.org/").trim_start_matches("http://doi.org/");
+            let clean_doi = doi
+                .trim()
+                .trim_start_matches("https://doi.org/")
+                .trim_start_matches("http://doi.org/");
             if clean_doi.starts_with("10.1002/") || clean_doi.starts_with("10.1111/") {
-                let wiley_url = format!("https://onlinelibrary.wiley.com/doi/pdfdirect/{}", clean_doi);
+                let wiley_url = format!(
+                    "https://onlinelibrary.wiley.com/doi/pdfdirect/{}",
+                    clean_doi
+                );
                 if let Ok(val) = UrlGuard::validate_url(&wiley_url) {
                     generated.push(PdfCandidate {
                         id: Uuid::new_v4().to_string(),
@@ -720,11 +797,16 @@ impl PdfResolverService {
                         provider_id: "canonical_wiley".to_string(),
                         source_type: "canonical_open_access".to_string(),
                         access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                        evidence_notes: Some("Deterministic canonical Wiley Online Library direct PDF route".to_string()),
+                        evidence_notes: Some(
+                            "Deterministic canonical Wiley Online Library direct PDF route"
+                                .to_string(),
+                        ),
                         version_type: Some("published_version".to_string()),
                         identity_status: Some("unknown".to_string()),
                         identity_score: Some(0.0),
-                        provenance_json: Some("{\"provider\":\"wiley\",\"canonical\":true}".to_string()),
+                        provenance_json: Some(
+                            "{\"provider\":\"wiley\",\"canonical\":true}".to_string(),
+                        ),
                         last_checked_at: Utc::now().to_rfc3339(),
                         created_at: Utc::now().to_rfc3339(),
                     });
@@ -734,7 +816,10 @@ impl PdfResolverService {
 
         // 8. ACM Digital Library (DOI prefix 10.1145/)
         if let Some(doi) = doi_opt {
-            let clean_doi = doi.trim().trim_start_matches("https://doi.org/").trim_start_matches("http://doi.org/");
+            let clean_doi = doi
+                .trim()
+                .trim_start_matches("https://doi.org/")
+                .trim_start_matches("http://doi.org/");
             if clean_doi.starts_with("10.1145/") {
                 let acm_url = format!("https://dl.acm.org/doi/pdf/{}", clean_doi);
                 if let Ok(val) = UrlGuard::validate_url(&acm_url) {
@@ -745,11 +830,16 @@ impl PdfResolverService {
                         provider_id: "canonical_acm".to_string(),
                         source_type: "canonical_open_access".to_string(),
                         access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                        evidence_notes: Some("Deterministic canonical ACM Digital Library direct PDF route".to_string()),
+                        evidence_notes: Some(
+                            "Deterministic canonical ACM Digital Library direct PDF route"
+                                .to_string(),
+                        ),
                         version_type: Some("published_version".to_string()),
                         identity_status: Some("unknown".to_string()),
                         identity_score: Some(0.0),
-                        provenance_json: Some("{\"provider\":\"acm\",\"canonical\":true}".to_string()),
+                        provenance_json: Some(
+                            "{\"provider\":\"acm\",\"canonical\":true}".to_string(),
+                        ),
                         last_checked_at: Utc::now().to_rfc3339(),
                         created_at: Utc::now().to_rfc3339(),
                     });
@@ -759,9 +849,13 @@ impl PdfResolverService {
 
         // 9. Frontiers (DOI prefix 10.3389/)
         if let Some(doi) = doi_opt {
-            let clean_doi = doi.trim().trim_start_matches("https://doi.org/").trim_start_matches("http://doi.org/");
+            let clean_doi = doi
+                .trim()
+                .trim_start_matches("https://doi.org/")
+                .trim_start_matches("http://doi.org/");
             if clean_doi.starts_with("10.3389/") {
-                let frontiers_url = format!("https://www.frontiersin.org/articles/{}/pdf", clean_doi);
+                let frontiers_url =
+                    format!("https://www.frontiersin.org/articles/{}/pdf", clean_doi);
                 if let Ok(val) = UrlGuard::validate_url(&frontiers_url) {
                     generated.push(PdfCandidate {
                         id: Uuid::new_v4().to_string(),
@@ -770,11 +864,15 @@ impl PdfResolverService {
                         provider_id: "canonical_frontiers".to_string(),
                         source_type: "canonical_open_access".to_string(),
                         access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                        evidence_notes: Some("Deterministic canonical Frontiers Gold Open Access route".to_string()),
+                        evidence_notes: Some(
+                            "Deterministic canonical Frontiers Gold Open Access route".to_string(),
+                        ),
                         version_type: Some("published_version".to_string()),
                         identity_status: Some("unknown".to_string()),
                         identity_score: Some(0.0),
-                        provenance_json: Some("{\"provider\":\"frontiers\",\"canonical\":true}".to_string()),
+                        provenance_json: Some(
+                            "{\"provider\":\"frontiers\",\"canonical\":true}".to_string(),
+                        ),
                         last_checked_at: Utc::now().to_rfc3339(),
                         created_at: Utc::now().to_rfc3339(),
                     });
@@ -793,7 +891,10 @@ impl PdfResolverService {
     ) -> Vec<PdfCandidate> {
         let mut candidates = Vec::new();
         let encoded_doi = url::form_urlencoded::byte_serialize(doi.as_bytes()).collect::<String>();
-        let url = format!("https://api.openalex.org/works/https://doi.org/{}", encoded_doi);
+        let url = format!(
+            "https://api.openalex.org/works/https://doi.org/{}",
+            encoded_doi
+        );
 
         let req = client
             .get(&url)
@@ -815,19 +916,31 @@ impl PdfResolverService {
 
         if let Some(locations) = json.get("oa_locations").and_then(|v| v.as_array()) {
             for loc in locations {
-                let pdf_url_opt = loc.get("pdf_url").and_then(|v| v.as_str())
+                let pdf_url_opt = loc
+                    .get("pdf_url")
+                    .and_then(|v| v.as_str())
                     .or_else(|| loc.get("landing_page_url").and_then(|v| v.as_str()));
                 if let Some(pdf_url) = pdf_url_opt {
                     if let Ok(validated) = UrlGuard::validate_url(pdf_url) {
-                        let version_raw = loc.get("version").and_then(|v| v.as_str()).unwrap_or("unknown");
+                        let version_raw = loc
+                            .get("version")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("unknown");
                         let version_type = match version_raw {
                             "publishedVersion" => "published_version",
                             "acceptedVersion" => "accepted_manuscript",
                             "submittedVersion" => "preprint",
                             _ => "repository_version",
                         };
-                        let source_name = loc.get("source").and_then(|s| s.get("display_name")).and_then(|v| v.as_str()).unwrap_or("OpenAlex OA Repository");
-                        let license = loc.get("license").and_then(|v| v.as_str()).unwrap_or("Open Access");
+                        let source_name = loc
+                            .get("source")
+                            .and_then(|s| s.get("display_name"))
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("OpenAlex OA Repository");
+                        let license = loc
+                            .get("license")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("Open Access");
 
                         candidates.push(PdfCandidate {
                             id: Uuid::new_v4().to_string(),
@@ -836,11 +949,17 @@ impl PdfResolverService {
                             provider_id: "openalex_oa".to_string(),
                             source_type: "open_access_resolver".to_string(),
                             access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                            evidence_notes: Some(format!("{} ({} - {})", source_name, version_type, license)),
+                            evidence_notes: Some(format!(
+                                "{} ({} - {})",
+                                source_name, version_type, license
+                            )),
                             version_type: Some(version_type.to_string()),
                             identity_status: Some("unknown".to_string()),
                             identity_score: Some(0.0),
-                            provenance_json: Some(format!("{{\"source\":\"openalex\",\"repository\":\"{}\"}}", source_name)),
+                            provenance_json: Some(format!(
+                                "{{\"source\":\"openalex\",\"repository\":\"{}\"}}",
+                                source_name
+                            )),
                             last_checked_at: Utc::now().to_rfc3339(),
                             created_at: Utc::now().to_rfc3339(),
                         });
@@ -862,10 +981,10 @@ impl PdfResolverService {
             "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:\"{}\"&format=json&resultType=core",
             encoded_doi
         );
-        let req = client
-            .get(&url)
-            .timeout(Duration::from_secs(6))
-            .header("User-Agent", "InfinityResearcher/0.1.0 (Desktop; EuropePMC resolver)");
+        let req = client.get(&url).timeout(Duration::from_secs(6)).header(
+            "User-Agent",
+            "InfinityResearcher/0.1.0 (Desktop; EuropePMC resolver)",
+        );
 
         let resp = match req.send().await {
             Ok(r) if r.status().is_success() => r,
@@ -875,14 +994,21 @@ impl PdfResolverService {
         let json: Value = resp.json().await.ok()?;
         let results = json.get("resultList")?.get("result")?.as_array()?;
         let first = results.first()?;
-        let is_oa = first.get("isOpenAccess").and_then(|v| v.as_str()).unwrap_or("N") == "Y";
+        let is_oa = first
+            .get("isOpenAccess")
+            .and_then(|v| v.as_str())
+            .unwrap_or("N")
+            == "Y";
         if !is_oa {
             return None;
         }
 
         let pmcid = first.get("pmcid").and_then(|v| v.as_str());
         if let Some(id) = pmcid {
-            let pdf_url = format!("https://europepmc.org/backend/ptpmcrender.fcgi?accid={}&blobtype=pdf", id);
+            let pdf_url = format!(
+                "https://europepmc.org/backend/ptpmcrender.fcgi?accid={}&blobtype=pdf",
+                id
+            );
             if let Ok(validated) = UrlGuard::validate_url(&pdf_url) {
                 return Some(PdfCandidate {
                     id: Uuid::new_v4().to_string(),
@@ -895,7 +1021,10 @@ impl PdfResolverService {
                     version_type: Some("accepted_manuscript".to_string()),
                     identity_status: Some("unknown".to_string()),
                     identity_score: Some(0.0),
-                    provenance_json: Some(format!("{{\"source\":\"europe_pmc\",\"pmcid\":\"{}\"}}", id)),
+                    provenance_json: Some(format!(
+                        "{{\"source\":\"europe_pmc\",\"pmcid\":\"{}\"}}",
+                        id
+                    )),
                     last_checked_at: Utc::now().to_rfc3339(),
                     created_at: Utc::now().to_rfc3339(),
                 });
@@ -946,7 +1075,10 @@ impl PdfResolverService {
             .get("license")
             .and_then(|v| v.as_str())
             .unwrap_or("Open Access (Unpaywall)");
-        let version_str = best_loc.get("version").and_then(|v| v.as_str()).unwrap_or("publishedVersion");
+        let version_str = best_loc
+            .get("version")
+            .and_then(|v| v.as_str())
+            .unwrap_or("publishedVersion");
         let version_type = match version_str {
             "publishedVersion" => "published_version",
             "acceptedVersion" => "accepted_manuscript",
@@ -977,15 +1109,18 @@ impl PdfResolverService {
         doi: &str,
         paper_id: &str,
     ) -> Option<PdfCandidate> {
-        let clean_doi = doi.trim().trim_start_matches("https://doi.org/").trim_start_matches("http://doi.org/");
+        let clean_doi = doi
+            .trim()
+            .trim_start_matches("https://doi.org/")
+            .trim_start_matches("http://doi.org/");
         let url = format!(
             "https://api.semanticscholar.org/graph/v1/paper/DOI:{}?fields=openAccessPdf,title,isOpenAccess",
             clean_doi
         );
-        let req = client
-            .get(&url)
-            .timeout(Duration::from_secs(5))
-            .header("User-Agent", "InfinityResearcher/0.1.0 (Desktop; scholarly OA resolver)");
+        let req = client.get(&url).timeout(Duration::from_secs(5)).header(
+            "User-Agent",
+            "InfinityResearcher/0.1.0 (Desktop; scholarly OA resolver)",
+        );
 
         let resp = match req.send().await {
             Ok(r) if r.status().is_success() => r,
@@ -997,7 +1132,10 @@ impl PdfResolverService {
         let pdf_url = oa_pdf.get("url").and_then(|v| v.as_str())?;
         let validated = UrlGuard::validate_url(pdf_url).ok()?;
 
-        let status_str = oa_pdf.get("status").and_then(|v| v.as_str()).unwrap_or("open_access");
+        let status_str = oa_pdf
+            .get("status")
+            .and_then(|v| v.as_str())
+            .unwrap_or("open_access");
         let version_type = match status_str.to_uppercase().as_str() {
             "GOLD" | "HYBRID" => "published_version",
             "GREEN" => "accepted_manuscript",
@@ -1015,7 +1153,10 @@ impl PdfResolverService {
             version_type: Some(version_type.to_string()),
             identity_status: Some("unknown".to_string()),
             identity_score: Some(0.0),
-            provenance_json: Some(format!("{{\"source\":\"semantic_scholar\",\"status\":\"{}\"}}", status_str)),
+            provenance_json: Some(format!(
+                "{{\"source\":\"semantic_scholar\",\"status\":\"{}\"}}",
+                status_str
+            )),
             last_checked_at: Utc::now().to_rfc3339(),
             created_at: Utc::now().to_rfc3339(),
         })
@@ -1028,15 +1169,15 @@ impl PdfResolverService {
         paper_id: &str,
     ) -> Vec<PdfCandidate> {
         let mut candidates = Vec::new();
-        let clean_doi = doi.trim().trim_start_matches("https://doi.org/").trim_start_matches("http://doi.org/");
+        let clean_doi = doi
+            .trim()
+            .trim_start_matches("https://doi.org/")
+            .trim_start_matches("http://doi.org/");
         let url = format!("https://api.crossref.org/works/{}", clean_doi);
-        let req = client
-            .get(&url)
-            .timeout(Duration::from_secs(5))
-            .header(
-                "User-Agent",
-                "InfinityResearcher/0.1.0 (Desktop; mailto:scholar@infinityresearcher.local)",
-            );
+        let req = client.get(&url).timeout(Duration::from_secs(5)).header(
+            "User-Agent",
+            "InfinityResearcher/0.1.0 (Desktop; mailto:scholar@infinityresearcher.local)",
+        );
 
         let resp = match req.send().await {
             Ok(r) if r.status().is_success() => r,
@@ -1048,9 +1189,16 @@ impl PdfResolverService {
             Err(_) => return candidates,
         };
 
-        if let Some(links) = json.get("message").and_then(|m| m.get("link")).and_then(|v| v.as_array()) {
+        if let Some(links) = json
+            .get("message")
+            .and_then(|m| m.get("link"))
+            .and_then(|v| v.as_array())
+        {
             for link in links {
-                let content_type = link.get("content-type").and_then(|v| v.as_str()).unwrap_or("");
+                let content_type = link
+                    .get("content-type")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
                 let url_str = match link.get("URL").and_then(|v| v.as_str()) {
                     Some(u) => u,
                     None => continue,
@@ -1062,8 +1210,15 @@ impl PdfResolverService {
 
                 if is_pdf {
                     if let Ok(validated) = UrlGuard::validate_url(url_str) {
-                        let version = link.get("content-version").and_then(|v| v.as_str()).unwrap_or("vor");
-                        let version_type = if version == "vor" { "published_version" } else { "accepted_manuscript" };
+                        let version = link
+                            .get("content-version")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("vor");
+                        let version_type = if version == "vor" {
+                            "published_version"
+                        } else {
+                            "accepted_manuscript"
+                        };
 
                         candidates.push(PdfCandidate {
                             id: Uuid::new_v4().to_string(),
@@ -1076,7 +1231,10 @@ impl PdfResolverService {
                             version_type: Some(version_type.to_string()),
                             identity_status: Some("unknown".to_string()),
                             identity_score: Some(0.0),
-                            provenance_json: Some(format!("{{\"source\":\"crossref\",\"content_type\":\"{}\"}}", content_type)),
+                            provenance_json: Some(format!(
+                                "{{\"source\":\"crossref\",\"content_type\":\"{}\"}}",
+                                content_type
+                            )),
                             last_checked_at: Utc::now().to_rfc3339(),
                             created_at: Utc::now().to_rfc3339(),
                         });
@@ -1151,27 +1309,40 @@ impl PdfResolverService {
                     if let Ok(json) = resp.json::<Value>().await {
                         if let Some(items) = json.get("data").and_then(|d| d.as_array()) {
                             for item in items {
-                                let item_title = item.get("title").and_then(|t| t.as_str()).unwrap_or("");
+                                let item_title =
+                                    item.get("title").and_then(|t| t.as_str()).unwrap_or("");
                                 if !Self::is_title_sufficiently_similar(clean_title, item_title) {
                                     continue;
                                 }
 
                                 // Check direct OpenAccessPdf url
                                 if let Some(oa_pdf) = item.get("openAccessPdf") {
-                                    if let Some(pdf_url) = oa_pdf.get("url").and_then(|u| u.as_str()) {
+                                    if let Some(pdf_url) =
+                                        oa_pdf.get("url").and_then(|u| u.as_str())
+                                    {
                                         if let Ok(validated) = UrlGuard::validate_url(pdf_url) {
                                             candidates.push(PdfCandidate {
                                                 id: Uuid::new_v4().to_string(),
                                                 paper_id: paper_id.to_string(),
                                                 url: validated.to_string(),
                                                 provider_id: "semantic_scholar_mirror".to_string(),
-                                                source_type: "open_access_preprint_mirror".to_string(),
-                                                access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                                                evidence_notes: Some("Semantic Scholar verified Open Access mirror".to_string()),
-                                                version_type: Some("accepted_manuscript".to_string()),
+                                                source_type: "open_access_preprint_mirror"
+                                                    .to_string(),
+                                                access_status:
+                                                    PdfAvailabilityStatus::OpenAccessAvailable,
+                                                evidence_notes: Some(
+                                                    "Semantic Scholar verified Open Access mirror"
+                                                        .to_string(),
+                                                ),
+                                                version_type: Some(
+                                                    "accepted_manuscript".to_string(),
+                                                ),
                                                 identity_status: Some("unknown".to_string()),
                                                 identity_score: Some(0.0),
-                                                provenance_json: Some(format!("{{\"title_matched\":true,\"item\":\"{}\"}}", item_title.replace('\"', "\\\""))),
+                                                provenance_json: Some(format!(
+                                                    "{{\"title_matched\":true,\"item\":\"{}\"}}",
+                                                    item_title.replace('\"', "\\\"")
+                                                )),
                                                 last_checked_at: Utc::now().to_rfc3339(),
                                                 created_at: Utc::now().to_rfc3339(),
                                             });
@@ -1185,7 +1356,8 @@ impl PdfResolverService {
                                     .and_then(|e| e.get("ArXiv"))
                                     .and_then(|a| a.as_str())
                                 {
-                                    let arxiv_pdf = format!("https://arxiv.org/pdf/{}.pdf", arxiv_id);
+                                    let arxiv_pdf =
+                                        format!("https://arxiv.org/pdf/{}.pdf", arxiv_id);
                                     if let Ok(validated) = UrlGuard::validate_url(&arxiv_pdf) {
                                         candidates.push(PdfCandidate {
                                             id: Uuid::new_v4().to_string(),
@@ -1193,12 +1365,19 @@ impl PdfResolverService {
                                             url: validated.to_string(),
                                             provider_id: "arxiv_mirror".to_string(),
                                             source_type: "open_access_preprint_mirror".to_string(),
-                                            access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                                            evidence_notes: Some(format!("Discovered author preprint on arXiv: {}", arxiv_id)),
+                                            access_status:
+                                                PdfAvailabilityStatus::OpenAccessAvailable,
+                                            evidence_notes: Some(format!(
+                                                "Discovered author preprint on arXiv: {}",
+                                                arxiv_id
+                                            )),
                                             version_type: Some("preprint".to_string()),
                                             identity_status: Some("unknown".to_string()),
                                             identity_score: Some(0.0),
-                                            provenance_json: Some(format!("{{\"source\":\"arxiv\",\"id\":\"{}\"}}", arxiv_id)),
+                                            provenance_json: Some(format!(
+                                                "{{\"source\":\"arxiv\",\"id\":\"{}\"}}",
+                                                arxiv_id
+                                            )),
                                             last_checked_at: Utc::now().to_rfc3339(),
                                             created_at: Utc::now().to_rfc3339(),
                                         });
@@ -1223,12 +1402,19 @@ impl PdfResolverService {
                                             url: validated.to_string(),
                                             provider_id: "europe_pmc_mirror".to_string(),
                                             source_type: "open_access_preprint_mirror".to_string(),
-                                            access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                                            evidence_notes: Some(format!("Discovered full text on PubMed Central: PMC{}", pmc_num)),
+                                            access_status:
+                                                PdfAvailabilityStatus::OpenAccessAvailable,
+                                            evidence_notes: Some(format!(
+                                                "Discovered full text on PubMed Central: PMC{}",
+                                                pmc_num
+                                            )),
                                             version_type: Some("accepted_manuscript".to_string()),
                                             identity_status: Some("unknown".to_string()),
                                             identity_score: Some(0.0),
-                                            provenance_json: Some(format!("{{\"source\":\"europe_pmc\",\"pmcid\":\"PMC{}\"}}", pmc_num)),
+                                            provenance_json: Some(format!(
+                                                "{{\"source\":\"europe_pmc\",\"pmcid\":\"PMC{}\"}}",
+                                                pmc_num
+                                            )),
                                             last_checked_at: Utc::now().to_rfc3339(),
                                             created_at: Utc::now().to_rfc3339(),
                                         });
@@ -1269,7 +1455,8 @@ impl PdfResolverService {
                             .and_then(|res| res.as_array())
                         {
                             for item in items {
-                                let item_title = item.get("title").and_then(|t| t.as_str()).unwrap_or("");
+                                let item_title =
+                                    item.get("title").and_then(|t| t.as_str()).unwrap_or("");
                                 if !Self::is_title_sufficiently_similar(clean_title, item_title) {
                                     continue;
                                 }
@@ -1339,7 +1526,9 @@ impl PdfResolverService {
             let mut urls = Vec::new();
 
             // 1. Highwire Press citation_pdf_url
-            if let Ok(sel) = scraper::Selector::parse("meta[name='citation_pdf_url'], meta[property='citation_pdf_url']") {
+            if let Ok(sel) = scraper::Selector::parse(
+                "meta[name='citation_pdf_url'], meta[property='citation_pdf_url']",
+            ) {
                 for el in parsed_html.select(&sel) {
                     if let Some(content) = el.value().attr("content") {
                         let trimmed = content.trim();
@@ -1363,7 +1552,9 @@ impl PdfResolverService {
             }
 
             // 3. bioRxiv / medRxiv metadata
-            if let Ok(sel) = scraper::Selector::parse("meta[name='biorxiv_pdf'], meta[name='biorxiv_url']") {
+            if let Ok(sel) =
+                scraper::Selector::parse("meta[name='biorxiv_pdf'], meta[name='biorxiv_url']")
+            {
                 for el in parsed_html.select(&sel) {
                     if let Some(content) = el.value().attr("content") {
                         let trimmed = content.trim();
@@ -1387,7 +1578,9 @@ impl PdfResolverService {
             }
 
             // 5. Direct article PDF download buttons / links
-            if let Ok(sel) = scraper::Selector::parse("a[data-article-pdf='true'], a.c-pdf-download__link, a.pdf-link, a.download-pdf") {
+            if let Ok(sel) = scraper::Selector::parse(
+                "a[data-article-pdf='true'], a.c-pdf-download__link, a.pdf-link, a.download-pdf",
+            ) {
                 for el in parsed_html.select(&sel).take(3) {
                     if let Some(href) = el.value().attr("href") {
                         let trimmed = href.trim();
@@ -1405,7 +1598,9 @@ impl PdfResolverService {
         for (content, tag_name) in candidate_urls {
             if let Some(resolved) = UrlGuard::resolve_link(landing_url, &content) {
                 if let Ok(validated) = UrlGuard::validate_url(&resolved) {
-                    let report = CandidateVerifier::verify_candidate(client, validated.as_str(), None, None).await;
+                    let report =
+                        CandidateVerifier::verify_candidate(client, validated.as_str(), None, None)
+                            .await;
                     if report.is_valid && report.has_pdf_signature {
                         return Some(PdfCandidate {
                             id: Uuid::new_v4().to_string(),
@@ -1414,11 +1609,17 @@ impl PdfResolverService {
                             provider_id: "landing_page".to_string(),
                             source_type: "landing_page_meta".to_string(),
                             access_status: PdfAvailabilityStatus::VerifiedOpenAccess,
-                            evidence_notes: Some(format!("Discovered via <{}> tag; verified %PDF- signature", tag_name)),
+                            evidence_notes: Some(format!(
+                                "Discovered via <{}> tag; verified %PDF- signature",
+                                tag_name
+                            )),
                             version_type: Some("published_version".to_string()),
                             identity_status: Some("unknown".to_string()),
                             identity_score: Some(0.0),
-                            provenance_json: Some(format!("{{\"source\":\"landing_page\",\"tag\":\"{}\"}}", tag_name)),
+                            provenance_json: Some(format!(
+                                "{{\"source\":\"landing_page\",\"tag\":\"{}\"}}",
+                                tag_name
+                            )),
                             last_checked_at: Utc::now().to_rfc3339(),
                             created_at: Utc::now().to_rfc3339(),
                         });
@@ -1438,10 +1639,7 @@ impl PdfResolverService {
     ) -> Option<PdfCandidate> {
         let clean_url = stamp_url.as_str();
         if let Ok(direct_url) = crate::scrapers::ieee_fetcher::resolve_ieee_direct_pdf_url(
-            clean_url,
-            None,
-            None,
-            client,
+            clean_url, None, None, client,
         )
         .await
         {
@@ -1452,7 +1650,10 @@ impl PdfResolverService {
                 provider_id: "ieee_xplore".to_string(),
                 source_type: "ieee_open_access_stream".to_string(),
                 access_status: PdfAvailabilityStatus::OpenAccessAvailable,
-                evidence_notes: Some("Direct PDF link resolved via proprietary IEEE Open Access algorithm".to_string()),
+                evidence_notes: Some(
+                    "Direct PDF link resolved via proprietary IEEE Open Access algorithm"
+                        .to_string(),
+                ),
                 version_type: Some("published_version".to_string()),
                 identity_status: Some("unknown".to_string()),
                 identity_score: Some(0.0),
@@ -1478,7 +1679,10 @@ mod tests {
             "paper-1",
         );
         assert_eq!(arxiv_candidates.len(), 1);
-        assert_eq!(arxiv_candidates[0].url, "https://arxiv.org/pdf/1706.03762.pdf");
+        assert_eq!(
+            arxiv_candidates[0].url,
+            "https://arxiv.org/pdf/1706.03762.pdf"
+        );
         assert_eq!(arxiv_candidates[0].provider_id, "canonical_arxiv");
 
         // arXiv via landing URL
@@ -1554,8 +1758,10 @@ mod tests {
             "paper-8",
         );
         assert_eq!(mdpi_cand.len(), 1);
-        assert_eq!(mdpi_cand[0].url, "https://www.mdpi.com/10.3390/e25010001/pdf");
+        assert_eq!(
+            mdpi_cand[0].url,
+            "https://www.mdpi.com/10.3390/e25010001/pdf"
+        );
         assert_eq!(mdpi_cand[0].provider_id, "canonical_mdpi");
     }
 }
-

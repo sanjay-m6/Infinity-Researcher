@@ -15,7 +15,8 @@ import * as desktopApi from "../lib/desktop-api";
 
 describe("GitHub Redaction & Client Logic", () => {
   it("redacts GitHub personal access tokens and OAuth tokens", () => {
-    const raw = "Error encountered with token ghp_1234567890abcdefghijklmnopqrstuvwxyz and github_pat_11AABBCCDDeeffgghhiijjkk";
+    const raw =
+      "Error encountered with token ghp_1234567890abcdefghijklmnopqrstuvwxyz and github_pat_11AABBCCDDeeffgghhiijjkk";
     const redacted = redactDiagnostics(raw);
     expect(redacted).not.toContain("ghp_1234567890abcdefghijklmnopqrstuvwxyz");
     expect(redacted).not.toContain("github_pat_11AABBCCDDeeffgghhiijjkk");
@@ -30,7 +31,8 @@ describe("GitHub Redaction & Client Logic", () => {
   });
 
   it("sanitizes Windows and Unix user directory paths", () => {
-    const raw = "File read failed at C:\\Users\\sanjay\\Documents\\Research\\paper.pdf and /home/researcher/data.db";
+    const raw =
+      "File read failed at C:\\Users\\sanjay\\Documents\\Research\\paper.pdf and /home/researcher/data.db";
     const redacted = redactDiagnostics(raw);
     expect(redacted).not.toContain("C:\\Users\\sanjay");
     expect(redacted).toContain("C:\\Users\\<user>");
@@ -64,7 +66,8 @@ describe("GitHub Redaction & Client Logic", () => {
       severity: "major",
       affectedArea: "PDF Reader",
       includeDiagnostics: true,
-      diagnosticsText: "Path: C:\\Users\\sanjay\\secret_key=ghp_abcdef1234567890abcdef1234567890",
+      diagnosticsText:
+        "Path: C:\\Users\\sanjay\\secret_key=ghp_abcdef1234567890abcdef1234567890",
     });
 
     expect(md).toContain("## Summary\nPage jump threw an error");
@@ -84,7 +87,9 @@ describe("GitHub Redaction & Client Logic", () => {
       additionalContext: "See drawer export tab",
     });
 
-    expect(md).toContain("## Problem or Scholarly Use Case\nExporting references requires manual copying");
+    expect(md).toContain(
+      "## Problem or Scholarly Use Case\nExporting references requires manual copying"
+    );
     expect(md).toContain("## Proposed Solution\nAdd a 1-click BibTeX export button");
     expect(md).toContain("## Value & Research Benefit\nSaves time when citing papers");
     expect(md).toContain("Infinity Researcher");
@@ -113,13 +118,15 @@ describe("Dynamic Onboarding Wizard", () => {
   it("renders Welcome step with Infinity Researcher branding and tagline", () => {
     render(
       <AppProvider>
-        <OnboardingWizard isOpen={true} onClose={() => { }} onComplete={() => { }} />
+        <OnboardingWizard isOpen={true} onClose={() => {}} onComplete={() => {}} />
       </AppProvider>
     );
 
     expect(screen.getByText("Welcome to Infinity Researcher")).toBeInTheDocument();
     expect(screen.getByText("Discover. Understand. Research.")).toBeInTheDocument();
-    expect(screen.getByText("Created by Sanjay · Infinity Web Technology")).toBeInTheDocument();
+    expect(
+      screen.getByText("Created by Sanjay · Infinity Web Technology")
+    ).toBeInTheDocument();
     expect(screen.getByText("Discover Papers")).toBeInTheDocument();
     expect(screen.getByText("Review Matrix")).toBeInTheDocument();
     expect(screen.getByText("AI Assistant")).toBeInTheDocument();
@@ -128,7 +135,7 @@ describe("Dynamic Onboarding Wizard", () => {
   it("navigates through steps and allows selecting research topics", async () => {
     render(
       <AppProvider>
-        <OnboardingWizard isOpen={true} onClose={() => { }} onComplete={() => { }} />
+        <OnboardingWizard isOpen={true} onClose={() => {}} onComplete={() => {}} />
       </AppProvider>
     );
 
@@ -161,7 +168,7 @@ describe("Dynamic Onboarding Wizard", () => {
     const onComplete = vi.fn();
     render(
       <AppProvider>
-        <OnboardingWizard isOpen={true} onClose={() => { }} onComplete={onComplete} />
+        <OnboardingWizard isOpen={true} onClose={() => {}} onComplete={onComplete} />
       </AppProvider>
     );
 
@@ -194,20 +201,24 @@ describe("FeedbackCenterModal Component", () => {
   it("renders Bug Report form with required fields and area selection", () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
       </AppProvider>
     );
 
-    expect(screen.getByText("Infinity Researcher Feedback & Issue Center")).toBeInTheDocument();
+    expect(
+      screen.getByText("Infinity Researcher Feedback & Issue Center")
+    ).toBeInTheDocument();
     expect(screen.getByText("Report a Bug")).toBeInTheDocument();
     expect(screen.getByText("Request a Feature")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Short summary of what went wrong/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/Short summary of what went wrong/i)
+    ).toBeInTheDocument();
   });
 
   it("switches to Feature Request tab and displays feature fields", () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
       </AppProvider>
     );
 
@@ -221,7 +232,7 @@ describe("FeedbackCenterModal Component", () => {
   it("switches between Double-Sided, Edit, and Preview layouts", () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
       </AppProvider>
     );
 
@@ -233,20 +244,22 @@ describe("FeedbackCenterModal Component", () => {
     fireEvent.click(screen.getByText("Edit"));
     expect(screen.queryByText(/Live GitHub Issue Preview/i)).not.toBeInTheDocument();
 
-    // Click Preview to enter preview-only 
+    // Click Preview to enter preview-only
     fireEvent.click(screen.getByText("Preview"));
     expect(screen.getByText(/Live GitHub Issue Preview/i)).toBeInTheDocument();
 
     // Click Double-Sided to return to split mode
     fireEvent.click(screen.getByText("Double-Sided"));
     expect(screen.getByText(/Live GitHub Issue Preview/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Short summary of what went wrong/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/Short summary of what went wrong/i)
+    ).toBeInTheDocument();
   });
 
   it("clears validation error when user begins typing", async () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
       </AppProvider>
     );
 
@@ -263,7 +276,7 @@ describe("FeedbackCenterModal Component", () => {
   it("switches to Preview tab and shows Markdown preview", () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
       </AppProvider>
     );
 
@@ -272,8 +285,9 @@ describe("FeedbackCenterModal Component", () => {
 
     fireEvent.click(screen.getByText("Preview"));
 
-    expect(screen.getByText(/Title: \[Bug\]: Matrix column sorting error/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Title: \[Bug\]: Matrix column sorting error/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/Applied GitHub Labels/i)).toBeInTheDocument();
   });
 });
-

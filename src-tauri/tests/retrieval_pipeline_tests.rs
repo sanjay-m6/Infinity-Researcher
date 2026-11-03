@@ -1,8 +1,10 @@
-use rusqlite::Connection;
 use research_paper_scraper_lib::database::migrations::run_migrations;
-use research_paper_scraper_lib::domain::pdf_workspace::{DownloadJob, PdfAvailabilityStatus, PdfCandidate};
+use research_paper_scraper_lib::domain::pdf_workspace::{
+    DownloadJob, PdfAvailabilityStatus, PdfCandidate,
+};
 use research_paper_scraper_lib::repositories::pdf_workspace_repo::PdfWorkspaceRepository;
 use research_paper_scraper_lib::services::pdf_processor::{ExtractedPdfMetadata, PdfProcessor};
+use rusqlite::Connection;
 
 fn setup_test_db() -> Connection {
     let mut conn = Connection::open_in_memory().expect("in-memory db open failed");
@@ -11,7 +13,11 @@ fn setup_test_db() -> Connection {
     conn
 }
 
-fn create_sample_extracted_metadata(title: &str, text: &str, doi: Option<&str>) -> ExtractedPdfMetadata {
+fn create_sample_extracted_metadata(
+    title: &str,
+    text: &str,
+    doi: Option<&str>,
+) -> ExtractedPdfMetadata {
     ExtractedPdfMetadata {
         title: Some(title.to_string()),
         author: None,
@@ -66,9 +72,16 @@ fn test_reconcile_identity_verified_match() {
         Some("10.48550/arXiv.1706.03762"),
     );
 
-    assert!(is_match, "Reconciliation should return true for matching paper");
+    assert!(
+        is_match,
+        "Reconciliation should return true for matching paper"
+    );
     assert_eq!(extracted.identity_status, "verified_match");
-    assert!(extracted.identity_score >= 0.85, "Expected high confidence score >= 0.85, got {}", extracted.identity_score);
+    assert!(
+        extracted.identity_score >= 0.85,
+        "Expected high confidence score >= 0.85, got {}",
+        extracted.identity_score
+    );
     assert_eq!(extracted.version_type.as_deref(), Some("preprint"));
 }
 
@@ -98,19 +111,21 @@ fn test_reconcile_identity_wrong_document_conflicting_doi() {
     );
 
     assert!(!is_match, "Reconciliation must reject conflicting paper");
-    assert_eq!(extracted.identity_status, "wrong_document", "Must flag conflicting DOI as wrong_document");
+    assert_eq!(
+        extracted.identity_status, "wrong_document",
+        "Must flag conflicting DOI as wrong_document"
+    );
     assert!(extracted.identity_score < 0.2);
-    assert!(extracted.reconciliation_notes.unwrap().contains("Conflicting DOI found"));
+    assert!(extracted
+        .reconciliation_notes
+        .unwrap()
+        .contains("Conflicting DOI found"));
 }
 
 #[test]
 fn test_reconcile_identity_uncertain_scanned_or_short_text() {
     let very_short_text = "Page 1. Scanned Document Archive.";
-    let mut extracted = create_sample_extracted_metadata(
-        "",
-        very_short_text,
-        None,
-    );
+    let mut extracted = create_sample_extracted_metadata("", very_short_text, None);
     extracted.title = None;
     extracted.is_scanned = true;
 
@@ -133,13 +148,22 @@ fn test_detect_version_type_heuristics() {
     assert_eq!(PdfProcessor::detect_version_type(preprint_text), "preprint");
 
     let aam_text = "This is the Author Accepted Manuscript (AAM) version following peer review.";
-    assert_eq!(PdfProcessor::detect_version_type(aam_text), "accepted_manuscript");
+    assert_eq!(
+        PdfProcessor::detect_version_type(aam_text),
+        "accepted_manuscript"
+    );
 
     let published_text = "Nature Vol 610. Published Version of Record. All rights reserved.";
-    assert_eq!(PdfProcessor::detect_version_type(published_text), "published_version");
+    assert_eq!(
+        PdfProcessor::detect_version_type(published_text),
+        "published_version"
+    );
 
     let unknown_text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
-    assert_eq!(PdfProcessor::detect_version_type(unknown_text), "unknown_version");
+    assert_eq!(
+        PdfProcessor::detect_version_type(unknown_text),
+        "unknown_version"
+    );
 }
 
 #[test]
@@ -172,7 +196,10 @@ fn test_pdf_workspace_repo_candidate_and_job_v15_columns() {
     let candidates = PdfWorkspaceRepository::get_pdf_candidates(&conn, "paper-test-1").unwrap();
     assert_eq!(candidates.len(), 1);
     assert_eq!(candidates[0].version_type.as_deref(), Some("preprint"));
-    assert_eq!(candidates[0].identity_status.as_deref(), Some("verified_match"));
+    assert_eq!(
+        candidates[0].identity_status.as_deref(),
+        Some("verified_match")
+    );
     assert_eq!(candidates[0].identity_score, Some(0.95));
 
     let job = DownloadJob {
@@ -203,8 +230,13 @@ fn test_pdf_workspace_repo_candidate_and_job_v15_columns() {
     };
 
     PdfWorkspaceRepository::create_download_job(&conn, &job).unwrap();
-    let retrieved_job = PdfWorkspaceRepository::get_download_job(&conn, "job-test-1").unwrap().unwrap();
+    let retrieved_job = PdfWorkspaceRepository::get_download_job(&conn, "job-test-1")
+        .unwrap()
+        .unwrap();
     assert_eq!(retrieved_job.version_type.as_deref(), Some("preprint"));
-    assert_eq!(retrieved_job.identity_status.as_deref(), Some("verified_match"));
+    assert_eq!(
+        retrieved_job.identity_status.as_deref(),
+        Some("verified_match")
+    );
     assert_eq!(retrieved_job.identity_score, Some(0.95));
 }

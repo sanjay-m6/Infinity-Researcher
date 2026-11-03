@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import {
-  classifyResearchQuery,
-} from "../lib/ai/queryClassifier";
+import { classifyResearchQuery } from "../lib/ai/queryClassifier";
 import {
   normalizeEvidenceText,
   calculateTokenOverlap,
@@ -42,13 +40,16 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
             proposed_method: "Hierarchical tiled block projection.",
             empirical_findings: ["2.4x speedup with negligible accuracy degradation."],
             limitations_author: ["Evaluated on sequence lengths up to 8k tokens."],
-            limitations_inferred: ["Memory fragmentation on non-tensor core architectures."],
+            limitations_inferred: [
+              "Memory fragmentation on non-tensor core architectures.",
+            ],
             future_directions: ["Adaptive block sizing for dynamic batching."],
             citations: [
               {
                 chunk_id: "chunk_1",
                 page_number: 3,
-                snippet: "Hierarchical tiled block projection reduces memory overhead by 40 percent.",
+                snippet:
+                  "Hierarchical tiled block projection reduces memory overhead by 40 percent.",
               },
             ],
           }),
@@ -58,7 +59,8 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
               paper_id: input.paper_id || "p1",
               paper_title: "Mock Paper",
               page_number: 3,
-              snippet: "Hierarchical tiled block projection reduces memory overhead by 40 percent.",
+              snippet:
+                "Hierarchical tiled block projection reduces memory overhead by 40 percent.",
               score: 0.95,
             },
           ],
@@ -77,7 +79,8 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
             baseline_comparisons: ["Standard Multi-Head Attention", "FlashAttention v1"],
             experimental_protocol: "Training for 50k steps on 8x H100 SXM5 GPUs.",
             evaluation_metrics: ["Perplexity", "TFLOPs throughput", "Latency ms"],
-            reproducibility_assessment: "Code and environment configurations publicly reproducible.",
+            reproducibility_assessment:
+              "Code and environment configurations publicly reproducible.",
             citations: [],
           }),
           citations: [],
@@ -91,12 +94,26 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
         return {
           text: JSON.stringify({
             key_metrics: [
-              { name: "Inference Speedup", value: "2.4x", baseline_value: "1.0x", context: "Sequence length 4096" },
-              { name: "Perplexity", value: "18.4", baseline_value: "18.3", context: "WikiText-103 test" },
+              {
+                name: "Inference Speedup",
+                value: "2.4x",
+                baseline_value: "1.0x",
+                context: "Sequence length 4096",
+              },
+              {
+                name: "Perplexity",
+                value: "18.4",
+                baseline_value: "18.3",
+                context: "WikiText-103 test",
+              },
             ],
-            quantitative_claims: ["Exceeds prior throughput records across all tested sequence lengths."],
+            quantitative_claims: [
+              "Exceeds prior throughput records across all tested sequence lengths.",
+            ],
             statistical_significance: "Standard deviation < 0.05 across 5 seeded trials.",
-            ablation_insights: ["Tiling alone accounts for 65% of the latency reduction."],
+            ablation_insights: [
+              "Tiling alone accounts for 65% of the latency reduction.",
+            ],
             unexpected_outcomes: ["Slight cache misses during warmup iterations."],
             citations: [],
           }),
@@ -111,10 +128,18 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
         return {
           text: JSON.stringify({
             author_acknowledged: ["Testing limited to single-node 8-GPU configurations."],
-            inferred_methodological: ["Sparse kernels may exhibit branch divergence on older architectures."],
-            inferred_scope_boundaries: ["Performance on non-autoregressive tasks not evaluated."],
-            computational_or_data_constraints: ["Requires minimum SRAM capacity of 160KB per SM."],
-            threats_to_validity: ["Synthetic batch sizes may not mirror production streaming traffic."],
+            inferred_methodological: [
+              "Sparse kernels may exhibit branch divergence on older architectures.",
+            ],
+            inferred_scope_boundaries: [
+              "Performance on non-autoregressive tasks not evaluated.",
+            ],
+            computational_or_data_constraints: [
+              "Requires minimum SRAM capacity of 160KB per SM.",
+            ],
+            threats_to_validity: [
+              "Synthetic batch sizes may not mirror production streaming traffic.",
+            ],
             citations: [],
           }),
           citations: [],
@@ -128,9 +153,12 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
         return {
           text: JSON.stringify({
             term: "FlashAttention",
-            paper_definition: "An IO-aware exact attention algorithm leveraging fast SRAM memory tiles.",
-            context_in_paper: "Used as the primary baseline and foundational architectural comparison.",
-            simplified_explanation: "A way to compute attention without writing intermediate matrices to slow RAM.",
+            paper_definition:
+              "An IO-aware exact attention algorithm leveraging fast SRAM memory tiles.",
+            context_in_paper:
+              "Used as the primary baseline and foundational architectural comparison.",
+            simplified_explanation:
+              "A way to compute attention without writing intermediate matrices to slow RAM.",
             related_concepts: ["IO Complexity", "GPU SRAM", "Fused Kernel"],
             citations: [],
           }),
@@ -148,13 +176,23 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
               {
                 dimension: "Attention Architecture",
                 paper_values: {
-                  p1: { summary: "Tiled linear projection", evidence_snippets: ["Excerpt 1"], page_numbers: [2] },
-                  p2: { summary: "Sparse KV cache paging", evidence_snippets: ["Excerpt 2"], page_numbers: [4] },
+                  p1: {
+                    summary: "Tiled linear projection",
+                    evidence_snippets: ["Excerpt 1"],
+                    page_numbers: [2],
+                  },
+                  p2: {
+                    summary: "Sparse KV cache paging",
+                    evidence_snippets: ["Excerpt 2"],
+                    page_numbers: [4],
+                  },
                 },
-                consensus_or_divergence: "Both focus on memory bandwidth bottlenecks but target different pipeline stages.",
+                consensus_or_divergence:
+                  "Both focus on memory bandwidth bottlenecks but target different pipeline stages.",
               },
             ],
-            synthesized_takeaway: "Paper 1 optimizes compute kernel tiling while Paper 2 optimizes long-context key-value cache paging.",
+            synthesized_takeaway:
+              "Paper 1 optimizes compute kernel tiling while Paper 2 optimizes long-context key-value cache paging.",
           }),
           citations: [],
           provider_id: "ollama_local",
@@ -169,10 +207,12 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
             identified_gaps: [
               {
                 title: "Dynamic Sequence Length Generalization",
-                description: "Both systems benchmark fixed-length sequences, leaving highly variable prompt lengths unstudied.",
+                description:
+                  "Both systems benchmark fixed-length sequences, leaving highly variable prompt lengths unstudied.",
                 gap_type: "unaddressed_methodology",
                 scope_caveat: "Observed within the 2 examined papers.",
-                potential_investigation: "Evaluate latency distributions under Poisson-arrival variable context loads.",
+                potential_investigation:
+                  "Evaluate latency distributions under Poisson-arrival variable context loads.",
                 grounded_papers: ["p1", "p2"],
               },
             ],
@@ -200,7 +240,8 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
         chunk_index: 0,
         page_number: 3,
         section_heading: "Methodology",
-        content_text: "Hierarchical tiled block projection reduces memory overhead by 40 percent on benchmark corpora.",
+        content_text:
+          "Hierarchical tiled block projection reduces memory overhead by 40 percent on benchmark corpora.",
         token_count: 20,
         created_at: new Date().toISOString(),
       },
@@ -227,34 +268,46 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
     });
 
     it("classifies methodology and architecture intents", () => {
-      const res = classifyResearchQuery("How does the proposed neural pipeline and architecture work?");
+      const res = classifyResearchQuery(
+        "How does the proposed neural pipeline and architecture work?"
+      );
       expect(res.intent).toBe("explain_methodology");
       expect(res.confidence).toBeGreaterThanOrEqual(0.9);
     });
 
     it("classifies empirical findings and benchmark results", () => {
-      const res = classifyResearchQuery("What are the benchmark accuracy results and F1 scores?");
+      const res = classifyResearchQuery(
+        "What are the benchmark accuracy results and F1 scores?"
+      );
       expect(res.intent).toBe("extract_findings");
     });
 
     it("classifies paper limitations and threats to validity", () => {
-      const res = classifyResearchQuery("What are the critical limitations and failure cases admitted by the authors?");
+      const res = classifyResearchQuery(
+        "What are the critical limitations and failure cases admitted by the authors?"
+      );
       expect(res.intent).toBe("extract_limitations");
     });
 
     it("classifies terminology and concept definition requests", () => {
-      const res = classifyResearchQuery("What is the definition of FlashAttention in this paper?");
+      const res = classifyResearchQuery(
+        "What is the definition of FlashAttention in this paper?"
+      );
       expect(res.intent).toBe("define_terminology");
     });
 
     it("classifies multi-paper comparison requests", () => {
-      const res = classifyResearchQuery("Compare this paper versus the baseline across both models");
+      const res = classifyResearchQuery(
+        "Compare this paper versus the baseline across both models"
+      );
       expect(res.intent).toBe("compare_papers");
       expect(res.isMultiPaper).toBe(true);
     });
 
     it("classifies research gap requests", () => {
-      const res = classifyResearchQuery("What are the open research gaps and future directions?");
+      const res = classifyResearchQuery(
+        "What are the open research gaps and future directions?"
+      );
       expect(res.intent).toBe("identify_gaps");
     });
 
@@ -351,7 +404,11 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
     it("batch-validates lists of citations", () => {
       const list = validateCitationsList(candidateChunks, [
         { chunk_id: "chunk_1", snippet: "reduces memory overhead", page_number: 3 },
-        { chunk_id: "chunk_2", snippet: "evaluate our system on WikiText-103", page_number: 5 },
+        {
+          chunk_id: "chunk_2",
+          snippet: "evaluate our system on WikiText-103",
+          page_number: 5,
+        },
       ]);
       expect(list).toHaveLength(2);
       expect(list[0].is_verified).toBe(true);
@@ -367,7 +424,8 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
       {
         id: "chunk_1",
         paper_id: "p1",
-        content_text: "Hierarchical tiled block projection reduces memory overhead by 40 percent on benchmark corpora.",
+        content_text:
+          "Hierarchical tiled block projection reduces memory overhead by 40 percent on benchmark corpora.",
         page_number: 3,
         section_heading: "Methodology",
       },
@@ -400,7 +458,9 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
 
     it("analyzes limitations with strict distinction of author admission", async () => {
       const limits = await generateLimitationsAnalysis("p1", "Mock Paper Title", chunks);
-      expect(limits.author_acknowledged).toContain("Testing limited to single-node 8-GPU configurations.");
+      expect(limits.author_acknowledged).toContain(
+        "Testing limited to single-node 8-GPU configurations."
+      );
       expect(limits.inferred_methodological).toHaveLength(1);
       expect(limits.computational_or_data_constraints).toHaveLength(1);
     });
@@ -431,7 +491,8 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
           {
             id: "p1_c1",
             paper_id: "p1",
-            content_text: "Hierarchical tiled block projection reduces memory overhead by 40 percent.",
+            content_text:
+              "Hierarchical tiled block projection reduces memory overhead by 40 percent.",
             page_number: 2,
           },
         ],
@@ -443,7 +504,8 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
           {
             id: "p2_c1",
             paper_id: "p2",
-            content_text: "Paged key-value caching prevents external memory fragmentation during decoding.",
+            content_text:
+              "Paged key-value caching prevents external memory fragmentation during decoding.",
             page_number: 4,
           },
         ],
@@ -454,7 +516,9 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
       const comparison = await compareMultiplePapers(multiPapers);
       expect(comparison.paper_ids).toEqual(["p1", "p2"]);
       expect(comparison.dimensions).toHaveLength(1);
-      expect(comparison.synthesized_takeaway).toContain("Paper 1 optimizes compute kernel tiling");
+      expect(comparison.synthesized_takeaway).toContain(
+        "Paper 1 optimizes compute kernel tiling"
+      );
       expect(comparison.isolated_evidence.p1).toBeDefined();
       expect(comparison.isolated_evidence.p2).toBeDefined();
     });
@@ -463,7 +527,9 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
       const gapAnalysis = await analyzeResearchGaps(multiPapers);
       expect(gapAnalysis.identified_gaps).toHaveLength(1);
       expect(gapAnalysis.field_wide_novelty_disclaimer).toBe(NOVELTY_DISCLAIMER);
-      expect(gapAnalysis.field_wide_novelty_disclaimer).toContain("strictly relative to the selected collection");
+      expect(gapAnalysis.field_wide_novelty_disclaimer).toContain(
+        "strictly relative to the selected collection"
+      );
       expect(gapAnalysis.identified_gaps[0].scope_caveat).toContain("Observed within");
     });
   });
@@ -476,7 +542,8 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
       id: "p1",
       title: "Efficient Kernel Scheduling for LLMs",
       authors: ["Alice Smith", "Bob Jones"],
-      abstract: "We introduce efficient tiled kernel scheduling algorithms for deep learning workloads.",
+      abstract:
+        "We introduce efficient tiled kernel scheduling algorithms for deep learning workloads.",
       publicationDate: "2024-05-10",
       year: 2024,
       venue: "NeurIPS",
@@ -510,7 +577,8 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
               {
                 id: "c1",
                 paper_id: "p1",
-                content_text: "Hierarchical tiled block projection reduces memory overhead by 40 percent.",
+                content_text:
+                  "Hierarchical tiled block projection reduces memory overhead by 40 percent.",
                 page_number: 3,
               },
             ]}
@@ -518,7 +586,9 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
         </AppProvider>
       );
 
-      expect(screen.getByText("Efficient Kernel Scheduling for LLMs")).toBeInTheDocument();
+      expect(
+        screen.getByText("Efficient Kernel Scheduling for LLMs")
+      ).toBeInTheDocument();
       expect(screen.getByText("Paper Understanding Engine")).toBeInTheDocument();
       expect(screen.getByText("Structured Summary")).toBeInTheDocument();
       expect(screen.getByText("Methodology Deep-Dive")).toBeInTheDocument();
@@ -528,7 +598,9 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
 
       await waitFor(() => {
         expect(screen.getByText("Core Problem Addressed")).toBeInTheDocument();
-        expect(screen.getByText(/High computational latency in dense attention layers/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/High computational latency in dense attention layers/)
+        ).toBeInTheDocument();
       });
     });
 
@@ -548,8 +620,12 @@ describe("Phase 14: AI Research Assistant & Paper Understanding Engine", () => {
       fireEvent.click(gapTabButton);
 
       // Verify the mandatory novelty alert banner is immediately visible
-      expect(screen.getByText("Collection Scope & Absolute Novelty Notice")).toBeInTheDocument();
-      expect(screen.getByText(new RegExp(NOVELTY_DISCLAIMER.slice(0, 30)))).toBeInTheDocument();
+      expect(
+        screen.getByText("Collection Scope & Absolute Novelty Notice")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(NOVELTY_DISCLAIMER.slice(0, 30)))
+      ).toBeInTheDocument();
     });
   });
 });

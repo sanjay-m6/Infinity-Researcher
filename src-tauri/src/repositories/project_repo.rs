@@ -46,8 +46,15 @@ impl ProjectRepository {
         conn: &Connection,
         input: &CreateDomainInput,
     ) -> Result<ResearchDomain, AppError> {
-        let id = format!("dom_custom_{}", Uuid::new_v4().to_string().replace('-', "")[..10].to_string());
-        let slug = input.name.to_lowercase().replace(' ', "-").replace(|c: char| !c.is_alphanumeric() && c != '-', "");
+        let id = format!(
+            "dom_custom_{}",
+            Uuid::new_v4().to_string().replace('-', "")[..10].to_string()
+        );
+        let slug = input
+            .name
+            .to_lowercase()
+            .replace(' ', "-")
+            .replace(|c: char| !c.is_alphanumeric() && c != '-', "");
         let now = Utc::now().to_rfc3339();
 
         conn.execute(
@@ -123,9 +130,16 @@ impl ProjectRepository {
             ],
         )?;
 
-        Self::log_activity(conn, &id, "project_created", "Research project initialized", Some(&format!("Project \"{}\" created", input.title)))?;
+        Self::log_activity(
+            conn,
+            &id,
+            "project_created",
+            "Research project initialized",
+            Some(&format!("Project \"{}\" created", input.title)),
+        )?;
 
-        Self::get_project(conn, &id)?.ok_or_else(|| AppError::Internal("Failed to retrieve created project".into()))
+        Self::get_project(conn, &id)?
+            .ok_or_else(|| AppError::Internal("Failed to retrieve created project".into()))
     }
 
     pub fn update_project(
@@ -176,7 +190,8 @@ impl ProjectRepository {
         )?;
 
         Self::recalculate_project_progress(conn, &input.id)?;
-        Self::get_project(conn, &input.id)?.ok_or_else(|| AppError::Internal("Failed to retrieve updated project".into()))
+        Self::get_project(conn, &input.id)?
+            .ok_or_else(|| AppError::Internal("Failed to retrieve updated project".into()))
     }
 
     pub fn get_project(conn: &Connection, id: &str) -> Result<Option<ResearchProject>, AppError> {
@@ -218,26 +233,52 @@ impl ProjectRepository {
         }
     }
 
-    pub fn get_project_with_details(conn: &Connection, id: &str) -> Result<Option<ProjectWithDetails>, AppError> {
+    pub fn get_project_with_details(
+        conn: &Connection,
+        id: &str,
+    ) -> Result<Option<ProjectWithDetails>, AppError> {
         let project = match Self::get_project(conn, id)? {
             Some(p) => p,
             None => return Ok(None),
         };
 
-        let primary_domain_name: Option<String> = if let Some(ref d_id) = project.primary_domain_id {
-            conn.query_row("SELECT name FROM research_domains WHERE id = ?1", params![d_id], |r| r.get(0)).ok()
+        let primary_domain_name: Option<String> = if let Some(ref d_id) = project.primary_domain_id
+        {
+            conn.query_row(
+                "SELECT name FROM research_domains WHERE id = ?1",
+                params![d_id],
+                |r| r.get(0),
+            )
+            .ok()
         } else {
             None
         };
 
         let subdomain_name: Option<String> = if let Some(ref d_id) = project.subdomain_id {
-            conn.query_row("SELECT name FROM research_domains WHERE id = ?1", params![d_id], |r| r.get(0)).ok()
+            conn.query_row(
+                "SELECT name FROM research_domains WHERE id = ?1",
+                params![d_id],
+                |r| r.get(0),
+            )
+            .ok()
         } else {
             None
         };
 
-        let total_tasks: i64 = conn.query_row("SELECT COUNT(*) FROM project_tasks WHERE project_id = ?1", params![id], |r| r.get(0)).unwrap_or(0);
-        let completed_tasks: i64 = conn.query_row("SELECT COUNT(*) FROM project_tasks WHERE project_id = ?1 AND status = 'completed'", params![id], |r| r.get(0)).unwrap_or(0);
+        let total_tasks: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM project_tasks WHERE project_id = ?1",
+                params![id],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
+        let completed_tasks: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM project_tasks WHERE project_id = ?1 AND status = 'completed'",
+                params![id],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
         let open_tasks: i64 = total_tasks - completed_tasks;
         let overdue_tasks: i64 = conn.query_row(
             "SELECT COUNT(*) FROM project_tasks WHERE project_id = ?1 AND status NOT IN ('completed', 'cancelled') AND due_date IS NOT NULL AND due_date < date('now')",
@@ -245,9 +286,21 @@ impl ProjectRepository {
             |r| r.get(0)
         ).unwrap_or(0);
 
-        let total_milestones: i64 = conn.query_row("SELECT COUNT(*) FROM project_milestones WHERE project_id = ?1", params![id], |r| r.get(0)).unwrap_or(0);
+        let total_milestones: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM project_milestones WHERE project_id = ?1",
+                params![id],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
         let completed_milestones: i64 = conn.query_row("SELECT COUNT(*) FROM project_milestones WHERE project_id = ?1 AND is_completed = 1", params![id], |r| r.get(0)).unwrap_or(0);
-        let linked_papers_count: i64 = conn.query_row("SELECT COUNT(*) FROM project_papers WHERE project_id = ?1", params![id], |r| r.get(0)).unwrap_or(0);
+        let linked_papers_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM project_papers WHERE project_id = ?1",
+                params![id],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
 
         Ok(Some(ProjectWithDetails {
             project,
@@ -324,12 +377,17 @@ impl ProjectRepository {
         Ok(())
     }
 
-    pub fn recalculate_project_progress(conn: &Connection, project_id: &str) -> Result<f64, AppError> {
-        let total_tasks: i64 = conn.query_row(
-            "SELECT COUNT(*) FROM project_tasks WHERE project_id = ?1",
-            params![project_id],
-            |r| r.get(0),
-        ).unwrap_or(0);
+    pub fn recalculate_project_progress(
+        conn: &Connection,
+        project_id: &str,
+    ) -> Result<f64, AppError> {
+        let total_tasks: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM project_tasks WHERE project_id = ?1",
+                params![project_id],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
 
         let progress = if total_tasks == 0 {
             0.0
@@ -376,7 +434,13 @@ impl ProjectRepository {
             ],
         )?;
 
-        Self::log_activity(conn, &input.project_id, "milestone_created", &format!("Milestone added: {}", input.title), None)?;
+        Self::log_activity(
+            conn,
+            &input.project_id,
+            "milestone_created",
+            &format!("Milestone added: {}", input.title),
+            None,
+        )?;
 
         Ok(ProjectMilestone {
             id,
@@ -447,7 +511,10 @@ impl ProjectRepository {
         Ok(())
     }
 
-    pub fn list_milestones(conn: &Connection, project_id: &str) -> Result<Vec<ProjectMilestone>, AppError> {
+    pub fn list_milestones(
+        conn: &Connection,
+        project_id: &str,
+    ) -> Result<Vec<ProjectMilestone>, AppError> {
         let mut stmt = conn.prepare(
             "SELECT id, project_id, title, description, due_date, is_completed, completed_at, sort_order, created_at, updated_at
              FROM project_milestones WHERE project_id = ?1 ORDER BY sort_order ASC, due_date ASC",
@@ -479,7 +546,10 @@ impl ProjectRepository {
     // Tasks & Dependencies
     // -------------------------------------------------------------------------
 
-    pub fn create_task(conn: &Connection, input: &CreateTaskInput) -> Result<ProjectTask, AppError> {
+    pub fn create_task(
+        conn: &Connection,
+        input: &CreateTaskInput,
+    ) -> Result<ProjectTask, AppError> {
         let id = format!("task_{}", Uuid::new_v4());
         let now = Utc::now().to_rfc3339();
         let tags_json = input
@@ -529,13 +599,23 @@ impl ProjectRepository {
 
         if let Some(ref pid) = input.project_id {
             Self::recalculate_project_progress(conn, pid)?;
-            Self::log_activity(conn, pid, "task_created", &format!("Task added: {}", input.title), None)?;
+            Self::log_activity(
+                conn,
+                pid,
+                "task_created",
+                &format!("Task added: {}", input.title),
+                None,
+            )?;
         }
 
-        Self::get_task(conn, &id)?.ok_or_else(|| AppError::Internal("Failed to retrieve created task".into()))
+        Self::get_task(conn, &id)?
+            .ok_or_else(|| AppError::Internal("Failed to retrieve created task".into()))
     }
 
-    pub fn update_task(conn: &Connection, input: &UpdateTaskInput) -> Result<ProjectTask, AppError> {
+    pub fn update_task(
+        conn: &Connection,
+        input: &UpdateTaskInput,
+    ) -> Result<ProjectTask, AppError> {
         let now = Utc::now().to_rfc3339();
         let tags_json = input
             .tags
@@ -575,7 +655,8 @@ impl ProjectRepository {
             ],
         )?;
 
-        let task = Self::get_task(conn, &input.id)?.ok_or_else(|| AppError::Internal("Failed to find updated task".into()))?;
+        let task = Self::get_task(conn, &input.id)?
+            .ok_or_else(|| AppError::Internal("Failed to find updated task".into()))?;
         if let Some(ref pid) = task.project_id {
             Self::recalculate_project_progress(conn, pid)?;
         }
@@ -583,7 +664,11 @@ impl ProjectRepository {
         Ok(task)
     }
 
-    pub fn update_task_status(conn: &Connection, task_id: &str, status: &str) -> Result<ProjectTask, AppError> {
+    pub fn update_task_status(
+        conn: &Connection,
+        task_id: &str,
+        status: &str,
+    ) -> Result<ProjectTask, AppError> {
         let now = Utc::now().to_rfc3339();
         let completed_at = if status == "completed" {
             Some(now.clone())
@@ -596,11 +681,18 @@ impl ProjectRepository {
             params![status, completed_at, now, task_id],
         )?;
 
-        let task = Self::get_task(conn, task_id)?.ok_or_else(|| AppError::Internal("Failed to find updated task".into()))?;
+        let task = Self::get_task(conn, task_id)?
+            .ok_or_else(|| AppError::Internal("Failed to find updated task".into()))?;
         if let Some(ref pid) = task.project_id {
             Self::recalculate_project_progress(conn, pid)?;
             if status == "completed" {
-                Self::log_activity(conn, pid, "task_completed", &format!("Completed task: {}", task.title), None)?;
+                Self::log_activity(
+                    conn,
+                    pid,
+                    "task_completed",
+                    &format!("Completed task: {}", task.title),
+                    None,
+                )?;
             }
         }
 
@@ -608,11 +700,13 @@ impl ProjectRepository {
     }
 
     pub fn delete_task(conn: &Connection, id: &str) -> Result<(), AppError> {
-        let project_id: Option<String> = conn.query_row(
-            "SELECT project_id FROM project_tasks WHERE id = ?1",
-            params![id],
-            |r| r.get(0),
-        ).ok();
+        let project_id: Option<String> = conn
+            .query_row(
+                "SELECT project_id FROM project_tasks WHERE id = ?1",
+                params![id],
+                |r| r.get(0),
+            )
+            .ok();
 
         conn.execute("DELETE FROM project_tasks WHERE id = ?1", params![id])?;
 
@@ -729,13 +823,23 @@ impl ProjectRepository {
         let mut detailed_tasks = Vec::new();
         for task in raw_tasks {
             let project_title: Option<String> = if let Some(ref pid) = task.project_id {
-                conn.query_row("SELECT title FROM research_projects WHERE id = ?1", params![pid], |r| r.get(0)).ok()
+                conn.query_row(
+                    "SELECT title FROM research_projects WHERE id = ?1",
+                    params![pid],
+                    |r| r.get(0),
+                )
+                .ok()
             } else {
                 None
             };
 
             let milestone_title: Option<String> = if let Some(ref mid) = task.milestone_id {
-                conn.query_row("SELECT title FROM project_milestones WHERE id = ?1", params![mid], |r| r.get(0)).ok()
+                conn.query_row(
+                    "SELECT title FROM project_milestones WHERE id = ?1",
+                    params![mid],
+                    |r| r.get(0),
+                )
+                .ok()
             } else {
                 None
             };
@@ -748,7 +852,11 @@ impl ProjectRepository {
                  WHERE d.task_id = ?1",
             )?;
             let dep_rows = dep_stmt.query_map(params![task.id], |row| {
-                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?, row.get::<_, String>(2)?))
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                ))
             })?;
 
             let mut dependencies = Vec::new();
@@ -769,11 +877,13 @@ impl ProjectRepository {
             let linked_papers = Self::list_task_papers(conn, &task.id)?;
 
             // Subtasks count
-            let subtask_count: i64 = conn.query_row(
-                "SELECT COUNT(*) FROM project_tasks WHERE parent_task_id = ?1",
-                params![task.id],
-                |r| r.get(0),
-            ).unwrap_or(0);
+            let subtask_count: i64 = conn
+                .query_row(
+                    "SELECT COUNT(*) FROM project_tasks WHERE parent_task_id = ?1",
+                    params![task.id],
+                    |r| r.get(0),
+                )
+                .unwrap_or(0);
             let completed_subtask_count: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM project_tasks WHERE parent_task_id = ?1 AND status = 'completed'",
                 params![task.id],
@@ -853,7 +963,8 @@ impl ProjectRepository {
         let mut queue = VecDeque::new();
         queue.push_back(candidate_prereq_id.to_string());
 
-        let mut stmt = conn.prepare("SELECT depends_on_task_id FROM task_dependencies WHERE task_id = ?1")?;
+        let mut stmt =
+            conn.prepare("SELECT depends_on_task_id FROM task_dependencies WHERE task_id = ?1")?;
 
         while let Some(current) = queue.pop_front() {
             if current == task_id {
@@ -895,13 +1006,21 @@ impl ProjectRepository {
             params![id, project_id, paper_id, rel, notes, now],
         )?;
 
-        let paper_title: String = conn.query_row(
-            "SELECT title FROM papers WHERE id = ?1",
-            params![paper_id],
-            |r| r.get(0),
-        ).unwrap_or_else(|_| "Unknown Paper".to_string());
+        let paper_title: String = conn
+            .query_row(
+                "SELECT title FROM papers WHERE id = ?1",
+                params![paper_id],
+                |r| r.get(0),
+            )
+            .unwrap_or_else(|_| "Unknown Paper".to_string());
 
-        Self::log_activity(conn, project_id, "paper_linked", &format!("Paper attached: {}", paper_title), notes)?;
+        Self::log_activity(
+            conn,
+            project_id,
+            "paper_linked",
+            &format!("Paper attached: {}", paper_title),
+            notes,
+        )?;
 
         Self::list_project_papers(conn, project_id)?
             .into_iter()
@@ -955,7 +1074,10 @@ impl ProjectRepository {
             let mut auth_stmt = conn.prepare(
                 "SELECT a.full_name FROM authors a JOIN paper_authors pa ON a.id = pa.author_id WHERE pa.paper_id = ?1 ORDER BY pa.author_order ASC"
             )?;
-            let authors: Vec<String> = auth_stmt.query_map(params![paper_id], |row| row.get(0))?.filter_map(|x| x.ok()).collect();
+            let authors: Vec<String> = auth_stmt
+                .query_map(params![paper_id], |row| row.get(0))?
+                .filter_map(|x| x.ok())
+                .collect();
 
             list.push(ProjectPaper {
                 id,
@@ -989,11 +1111,13 @@ impl ProjectRepository {
             params![id, task_id, paper_id, notes, now],
         )?;
 
-        let paper_title: String = conn.query_row(
-            "SELECT title FROM papers WHERE id = ?1",
-            params![paper_id],
-            |r| r.get(0),
-        ).unwrap_or_else(|_| "Linked Paper".to_string());
+        let paper_title: String = conn
+            .query_row(
+                "SELECT title FROM papers WHERE id = ?1",
+                params![paper_id],
+                |r| r.get(0),
+            )
+            .unwrap_or_else(|_| "Linked Paper".to_string());
 
         Ok(TaskPaper {
             id,
@@ -1099,4 +1223,3 @@ impl ProjectRepository {
         Ok(list)
     }
 }
-

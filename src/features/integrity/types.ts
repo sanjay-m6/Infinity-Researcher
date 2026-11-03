@@ -12,19 +12,16 @@ export type IntegrityDimension =
   | "extraction";
 
 export type FindingStatus =
-  | "verified"          // Verified compliant / grounded
-  | "concern"           // Potential integrity or empirical concern
-  | "technical_error"   // Tool failure, extraction artifact, or broken syntax
-  | "inconclusive"      // Ambiguous signal or insufficient data
-  | "reviewed";         // Author/Reviewer has verified and acknowledged
+  | "verified" // Verified compliant / grounded
+  | "concern" // Potential integrity or empirical concern
+  | "technical_error" // Tool failure, extraction artifact, or broken syntax
+  | "inconclusive" // Ambiguous signal or insufficient data
+  | "reviewed"; // Author/Reviewer has verified and acknowledged
 
 export type FindingSeverity = "critical" | "warning" | "info";
 
 export type DimensionStatus =
-  | "pass"
-  | "attention_needed"
-  | "concerns_found"
-  | "technical_issue";
+  "pass" | "attention_needed" | "concerns_found" | "technical_issue";
 
 export interface IntegrityFinding {
   id: string;
@@ -33,9 +30,9 @@ export interface IntegrityFinding {
   description: string;
   status: FindingStatus;
   severity: FindingSeverity;
-  confidence: string;            // e.g. "High (94%)", "Moderate Heuristic"
-  evidence: string;              // Exact text snippet, metric, or DOI
-  location: string;              // e.g. "Section: Methodology, Paragraph 2"
+  confidence: string; // e.g. "High (94%)", "Moderate Heuristic"
+  evidence: string; // Exact text snippet, metric, or DOI
+  location: string; // e.g. "Section: Methodology, Paragraph 2"
   suggestedAction: string;
   isReviewed: boolean;
   reviewedAt?: string | null;
@@ -73,4 +70,3 @@ export interface SavedIntegrityReportSummary {
   concernsCount: number;
   reviewedCount: number;
 }
-

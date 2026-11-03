@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  FolderOpen,
-  Plus,
-  Search,
-  Calendar,
-  Clock,
-  BookOpen,
-} from "lucide-react";
+import { FolderOpen, Plus, Search, Calendar, Clock, BookOpen } from "lucide-react";
 import {
   ProjectWithDetails,
   listResearchProjects,
@@ -159,9 +152,12 @@ export const ProjectsView: React.FC = () => {
             <FolderOpen className="w-7 h-7" />
           </div>
           <div className="max-w-md mx-auto">
-            <h3 className="text-base font-semibold text-foreground">No Research Projects Found</h3>
+            <h3 className="text-base font-semibold text-foreground">
+              No Research Projects Found
+            </h3>
             <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-              Create your first project to organize research questions, generate AI roadmaps, manage tasks, and connect literature.
+              Create your first project to organize research questions, generate AI
+              roadmaps, manage tasks, and connect literature.
             </p>
           </div>
           <div>
@@ -179,7 +175,10 @@ export const ProjectsView: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {projects.map((item) => {
             const p = item.project;
-            const isOverdue = p.target_deadline && new Date(p.target_deadline) < new Date() && p.status !== "completed";
+            const isOverdue =
+              p.target_deadline &&
+              new Date(p.target_deadline) < new Date() &&
+              p.status !== "completed";
 
             return (
               <div
@@ -198,8 +197,8 @@ export const ProjectsView: React.FC = () => {
                         p.priority === "critical"
                           ? "bg-red-500/10 text-red-600"
                           : p.priority === "high"
-                          ? "bg-amber-500/10 text-amber-600"
-                          : "bg-slate-500/10 text-slate-600"
+                            ? "bg-amber-500/10 text-amber-600"
+                            : "bg-slate-500/10 text-slate-600"
                       }`}
                     >
                       {p.priority}
@@ -221,7 +220,9 @@ export const ProjectsView: React.FC = () => {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-muted-foreground">Progress</span>
-                    <span className="font-bold text-foreground">{p.progress_percent}%</span>
+                    <span className="font-bold text-foreground">
+                      {p.progress_percent}%
+                    </span>
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
                     <div

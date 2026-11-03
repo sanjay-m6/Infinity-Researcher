@@ -1,6 +1,4 @@
-use crate::domain::saved_search::{
-    SavedSearch, SavedSearchCreateInput, SavedSearchUpdateInput,
-};
+use crate::domain::saved_search::{SavedSearch, SavedSearchCreateInput, SavedSearchUpdateInput};
 use rusqlite::{params, Connection, Result};
 
 pub struct SavedSearchRepository;
@@ -83,9 +81,8 @@ impl SavedSearchRepository {
             ],
         )?;
 
-        Self::get_by_id(conn, &id).and_then(|opt| {
-            opt.ok_or_else(|| rusqlite::Error::QueryReturnedNoRows)
-        })
+        Self::get_by_id(conn, &id)
+            .and_then(|opt| opt.ok_or_else(|| rusqlite::Error::QueryReturnedNoRows))
     }
 
     pub fn update(conn: &Connection, input: SavedSearchUpdateInput) -> Result<bool> {
@@ -145,4 +142,3 @@ impl SavedSearchRepository {
         Ok(rows > 0)
     }
 }
-

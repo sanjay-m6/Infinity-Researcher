@@ -133,7 +133,10 @@ impl AiProviderService {
                 }
             }
             // User-provided NVIDIA NIM API key
-            return Some("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".to_string());
+            return Some(
+                "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"
+                    .to_string(),
+            );
         }
         if provider.id == "groqcloud" {
             if let Ok(val) = std::env::var("GROQ_API_KEY") {
@@ -513,10 +516,7 @@ impl AiProviderService {
                     - **Provider**: {} ({})\n\
                     - **Model ID**: `{}`\n\
                     - **Endpoint**: `{}`",
-                    provider.display_name,
-                    provider.id,
-                    model_id,
-                    provider.endpoint_url
+                    provider.display_name, provider.id, model_id, provider.endpoint_url
                 )
             };
 
@@ -845,9 +845,14 @@ impl AiProviderService {
         }
 
         // 4. If an enabled provider exists but is missing credentials, provide helpful guidance
-        let enabled_providers: Vec<AiProvider> = providers.into_iter().filter(|p| p.is_enabled).collect();
+        let enabled_providers: Vec<AiProvider> =
+            providers.into_iter().filter(|p| p.is_enabled).collect();
         if let Some(p) = enabled_providers.into_iter().next() {
-            if !p.is_local && self.resolve_credential(p.credential_ref.as_deref()).is_none() {
+            if !p.is_local
+                && self
+                    .resolve_credential(p.credential_ref.as_deref())
+                    .is_none()
+            {
                 return Err(AppError::Validation(format!(
                     "Provider '{}' is enabled but has no API key configured. Please add your key in AI Diagnostics or Settings.",
                     p.display_name
@@ -860,17 +865,21 @@ impl AiProviderService {
         ))
     }
 
-    pub async fn diagnose_system(&self, db: &Database) -> Result<Vec<AiDiagnosticReport>, AppError> {
+    pub async fn diagnose_system(
+        &self,
+        db: &Database,
+    ) -> Result<Vec<AiDiagnosticReport>, AppError> {
         let conn = db.lock()?;
-        let providers = AiRepository::list_providers(&conn)
-            .map_err(|e| AppError::Database(e.to_string()))?;
+        let providers =
+            AiRepository::list_providers(&conn).map_err(|e| AppError::Database(e.to_string()))?;
 
         let mut reports = Vec::new();
         for p in providers {
             let has_credential = if p.is_local || p.auth_type == "none" {
                 true
             } else {
-                self.resolve_credential(p.credential_ref.as_deref()).is_some()
+                self.resolve_credential(p.credential_ref.as_deref())
+                    .is_some()
             };
 
             let is_ready = p.is_enabled && has_credential;
@@ -951,7 +960,8 @@ impl AiProviderService {
                     "timeout"
                 } else if err_str.contains("429") || err_str.contains("Rate limit") {
                     "rate_limit"
-                } else if err_str.contains("Cannot reach") || err_str.contains("Connection failed") {
+                } else if err_str.contains("Cannot reach") || err_str.contains("Connection failed")
+                {
                     "network_failure"
                 } else {
                     "unknown_error"
@@ -1053,7 +1063,9 @@ impl AiProviderService {
             format!("{}/v1/chat/completions", base_url.trim_end_matches('/'))
         };
 
-        let is_local_llama = base_url.contains("127.0.0.1:11435") || base_url.contains("localhost:11435") || base_url.contains(":8080");
+        let is_local_llama = base_url.contains("127.0.0.1:11435")
+            || base_url.contains("localhost:11435")
+            || base_url.contains(":8080");
 
         let effective_temp = if is_local_llama && temperature > 0.6 {
             0.3 // Keep local edge models strictly grounded without hallucinations
@@ -1078,16 +1090,19 @@ impl AiProviderService {
                 map.insert("repeat_penalty".to_string(), json!(1.25));
                 map.insert("presence_penalty".to_string(), json!(0.4));
                 map.insert("frequency_penalty".to_string(), json!(0.4));
-                map.insert("stop".to_string(), json!([
-                    "<|im_end|>",
-                    "<|endoftext|>",
-                    "</s>",
-                    "<|eot_id|>",
-                    "\nUser:",
-                    "\nAssistant:",
-                    "### User:",
-                    "### Assistant:"
-                ]));
+                map.insert(
+                    "stop".to_string(),
+                    json!([
+                        "<|im_end|>",
+                        "<|endoftext|>",
+                        "</s>",
+                        "<|eot_id|>",
+                        "\nUser:",
+                        "\nAssistant:",
+                        "### User:",
+                        "### Assistant:"
+                    ]),
+                );
             }
         }
 
@@ -1150,7 +1165,9 @@ impl AiProviderService {
         if extracted_text.trim().is_empty() {
             if let Some(delta) = val["choices"][0]["delta"]["content"].as_str() {
                 extracted_text = delta.to_string();
-            } else if let Some(delta_reasoning) = val["choices"][0]["delta"]["reasoning_content"].as_str() {
+            } else if let Some(delta_reasoning) =
+                val["choices"][0]["delta"]["reasoning_content"].as_str()
+            {
                 extracted_text = delta_reasoning.to_string();
             }
         }
@@ -1216,7 +1233,9 @@ impl AiProviderService {
             }
 
             // Skip lines that are exclusively CJK characters (e.g. stray '语', '述语者', '成语')
-            let has_cjk = trimmed.chars().any(|c| ('\u{4E00}'..='\u{9FFF}').contains(&c));
+            let has_cjk = trimmed
+                .chars()
+                .any(|c| ('\u{4E00}'..='\u{9FFF}').contains(&c));
             let has_latin = trimmed.chars().any(|c| c.is_ascii_alphabetic());
             if has_cjk && !has_latin {
                 continue;
@@ -1262,9 +1281,13 @@ impl AiProviderService {
             let tokens: Vec<&str> = trimmed.split_whitespace().collect();
             let mut deduped_line_tokens: Vec<&str> = Vec::new();
             for token in tokens {
-                let clean_token = token.trim_matches(|c: char| !c.is_alphanumeric()).to_lowercase();
+                let clean_token = token
+                    .trim_matches(|c: char| !c.is_alphanumeric())
+                    .to_lowercase();
                 if let Some(prev) = deduped_line_tokens.last() {
-                    let prev_clean = prev.trim_matches(|c: char| !c.is_alphanumeric()).to_lowercase();
+                    let prev_clean = prev
+                        .trim_matches(|c: char| !c.is_alphanumeric())
+                        .to_lowercase();
                     if clean_token == prev_clean && !clean_token.is_empty() {
                         continue;
                     }
@@ -1280,7 +1303,12 @@ impl AiProviderService {
                 .to_lowercase();
 
             // Skip if identical to recent lines (e.g. repeated "Amin M.")
-            if last_normalized.iter().rev().take(5).any(|prev| prev == &norm) {
+            if last_normalized
+                .iter()
+                .rev()
+                .take(5)
+                .any(|prev| prev == &norm)
+            {
                 continue;
             }
 
@@ -1298,7 +1326,10 @@ impl AiProviderService {
                     header_key = "authors".to_string();
                 } else if header_key == "keyword" || header_key == "keywords" {
                     header_key = "keywords".to_string();
-                } else if header_key == "year" || header_key == "yearofpublication" || header_key == "publicationyear" {
+                } else if header_key == "year"
+                    || header_key == "yearofpublication"
+                    || header_key == "publicationyear"
+                {
                     header_key = "year".to_string();
                 }
 
@@ -1306,7 +1337,10 @@ impl AiProviderService {
                     continue;
                 }
 
-                if !val.is_empty() || ["authors", "abstract", "keywords", "affiliation", "year"].contains(&header_key.as_str()) {
+                if !val.is_empty()
+                    || ["authors", "abstract", "keywords", "affiliation", "year"]
+                        .contains(&header_key.as_str())
+                {
                     seen_headers.insert(header_key);
                 }
             }

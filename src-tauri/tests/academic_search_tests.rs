@@ -277,7 +277,10 @@ fn test_canonical_routes_and_magic_bytes() {
         "paper-biorxiv",
     );
     assert_eq!(biorxiv.len(), 1);
-    assert_eq!(biorxiv[0].url, "https://www.biorxiv.org/content/10.1101/2021.05.01.442111.full.pdf");
+    assert_eq!(
+        biorxiv[0].url,
+        "https://www.biorxiv.org/content/10.1101/2021.05.01.442111.full.pdf"
+    );
 
     // Test canonical PLOS generation
     let plos = PdfResolverService::generate_canonical_candidates(
@@ -295,13 +298,22 @@ fn test_canonical_routes_and_magic_bytes() {
         "paper-pmc",
     );
     assert_eq!(pmc.len(), 1);
-    assert_eq!(pmc[0].url, "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8901234/pdf/");
+    assert_eq!(
+        pmc[0].url,
+        "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8901234/pdf/"
+    );
 
     // Test BOM & Comment PDF Magic Bytes validation
     assert!(CandidateVerifier::has_valid_pdf_magic_bytes(b"%PDF-1.7\n"));
-    assert!(CandidateVerifier::has_valid_pdf_magic_bytes(b"\xef\xbb\xbf%PDF-1.4\n"));
-    assert!(CandidateVerifier::has_valid_pdf_magic_bytes(b"   \r\n% Repository Banner\r\n%PDF-1.5"));
-    assert!(!CandidateVerifier::has_valid_pdf_magic_bytes(b"<!DOCTYPE html><html>%PDF-"));
+    assert!(CandidateVerifier::has_valid_pdf_magic_bytes(
+        b"\xef\xbb\xbf%PDF-1.4\n"
+    ));
+    assert!(CandidateVerifier::has_valid_pdf_magic_bytes(
+        b"   \r\n% Repository Banner\r\n%PDF-1.5"
+    ));
+    assert!(!CandidateVerifier::has_valid_pdf_magic_bytes(
+        b"<!DOCTYPE html><html>%PDF-"
+    ));
 
     // Test Explainable Confidence Score
     let score = CandidateVerifier::calculate_confidence_score(

@@ -27,7 +27,8 @@ export const SAMPLE_LITERATURE_PAPERS: LiteraturePaper[] = [
   },
   {
     id: "paper_ids_cloud_02",
-    title: "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters Using Contrastive Learning",
+    title:
+      "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters Using Contrastive Learning",
     authors: ["S. Zhang", "M. Rostami", "E. Dubois"],
     publicationYear: 2023,
     abstract:
@@ -43,7 +44,8 @@ export const SAMPLE_LITERATURE_PAPERS: LiteraturePaper[] = [
   },
   {
     id: "paper_ids_cloud_03",
-    title: "Evaluating Computational Latency and Adversarial Robustness of Transformer-Based Network Probes",
+    title:
+      "Evaluating Computational Latency and Adversarial Robustness of Transformer-Based Network Probes",
     authors: ["A. Chen", "L. Rossi", "N. Patel"],
     publicationYear: 2024,
     abstract:
@@ -74,7 +76,8 @@ export const SAMPLE_LITERATURE_PAPERS: LiteraturePaper[] = [
   },
   {
     id: "paper_ids_cloud_05",
-    title: "Graph Neural Networks for Microservice Flow Anomaly Detection in Serverless Architectures",
+    title:
+      "Graph Neural Networks for Microservice Flow Anomaly Detection in Serverless Architectures",
     authors: ["J. Miller", "F. Weber"],
     publicationYear: 2023,
     abstract:
@@ -84,7 +87,8 @@ export const SAMPLE_LITERATURE_PAPERS: LiteraturePaper[] = [
     hasFullText: false,
     isOpenAccess: false,
     extractionStatus: "partially_extracted",
-    extractionWarning: "Full text restricted behind publisher portal; metadata and abstract parsed.",
+    extractionWarning:
+      "Full text restricted behind publisher portal; metadata and abstract parsed.",
     tags: ["Serverless", "Graph Neural Networks", "Lateral Movement"],
     documentHash: "e5f6a1b2c3d47890e5f6a1b2c3d47890e5f6a1b2c3d47890e5f6a1b2c3d47890",
   },
@@ -93,20 +97,26 @@ export const SAMPLE_LITERATURE_PAPERS: LiteraturePaper[] = [
 export const SAMPLE_SURVEY_ROWS: LiteratureSurveyRow[] = [
   {
     paperId: "paper_ids_cloud_01",
-    paperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
+    paperTitle:
+      "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
     authors: "Al-Mansoor et al. (2024)",
     year: 2024,
-    objective: "Real-time classification of multi-vector cloud intrusions at gateway boundaries",
-    methodology: "Hybrid CNN for packet header spatial features + BiLSTM for flow temporal dependencies",
+    objective:
+      "Real-time classification of multi-vector cloud intrusions at gateway boundaries",
+    methodology:
+      "Hybrid CNN for packet header spatial features + BiLSTM for flow temporal dependencies",
     dataset: "CSE-CIC-IDS2018 (synthetic virtual network flows, 1.2M packets)",
     results: "98.4% Recall, 97.9% F1-score; 3.2 ms mean packet processing latency",
-    limitations: "Tested on synthetic virtual testbeds; lacks validation against live encrypted HTTP/3 traffic",
-    futureWork: "Investigate hardware-accelerated FPGA offloading for line-rate 100 Gbps deployments",
+    limitations:
+      "Tested on synthetic virtual testbeds; lacks validation against live encrypted HTTP/3 traffic",
+    futureWork:
+      "Investigate hardware-accelerated FPGA offloading for line-rate 100 Gbps deployments",
     evidence: {
       objective: {
         id: "ev_01_obj",
         paperId: "paper_ids_cloud_01",
-        paperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
+        paperTitle:
+          "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
         pageNumber: 2,
         verbatimExcerpt:
           "Our principal research objective is to develop a low-latency neural inspection pipeline capable of classifying multi-vector attacks at virtual cloud gateways before tenant container penetration.",
@@ -119,7 +129,8 @@ export const SAMPLE_SURVEY_ROWS: LiteratureSurveyRow[] = [
       methodology: {
         id: "ev_01_meth",
         paperId: "paper_ids_cloud_01",
-        paperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
+        paperTitle:
+          "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
         pageNumber: 4,
         verbatimExcerpt:
           "The architecture couples a 1D-CNN (kernel size 3, 64 filters) for spatial header extraction with a bidirectional LSTM layer (128 units) to capture inter-flow temporal dependencies.",
@@ -132,7 +143,8 @@ export const SAMPLE_SURVEY_ROWS: LiteratureSurveyRow[] = [
       results: {
         id: "ev_01_res",
         paperId: "paper_ids_cloud_01",
-        paperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
+        paperTitle:
+          "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
         pageNumber: 7,
         verbatimExcerpt:
           "Across all 7 attack vectors in CSE-CIC-IDS2018, the proposed CNN-BiLSTM achieved a macro-averaged recall of 98.4% and an F1-score of 97.9%, outperforming random forest baselines by 4.2%.",
@@ -145,7 +157,8 @@ export const SAMPLE_SURVEY_ROWS: LiteratureSurveyRow[] = [
       limitations: {
         id: "ev_01_lim",
         paperId: "paper_ids_cloud_01",
-        paperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
+        paperTitle:
+          "Deep Neural Network Architectures for Cloud Intrusion Detection: A Benchmark",
         pageNumber: 9,
         verbatimExcerpt:
           "A critical limitation is that our experiments relied on simulated synthetic packet traces in an isolated cloud testbed; real-world payload obfuscation and encrypted HTTP/3 streams were not evaluated.",
@@ -159,20 +172,26 @@ export const SAMPLE_SURVEY_ROWS: LiteratureSurveyRow[] = [
   },
   {
     paperId: "paper_ids_cloud_02",
-    paperTitle: "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters Using Contrastive Learning",
+    paperTitle:
+      "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters Using Contrastive Learning",
     authors: "Zhang et al. (2023)",
     year: 2023,
-    objective: "Unsupervised anomaly detection for novel zero-day container escapes without labeled attack signatures",
-    methodology: "Self-supervised contrastive embedding of Linux eBPF syscall telemetry sequences",
+    objective:
+      "Unsupervised anomaly detection for novel zero-day container escapes without labeled attack signatures",
+    methodology:
+      "Self-supervised contrastive embedding of Linux eBPF syscall telemetry sequences",
     dataset: "Custom Kubernetes benchmark (50 worker nodes, synthetic container escapes)",
     results: "94.2% detection rate on unseen exploit variants with 0.8% false alarm rate",
-    limitations: "Requires eBPF kernel instrumentation privileges, posing potential container host attack surfaces",
-    futureWork: "Lightweight sidecar agents that decouple host kernel telemetry from untrusted tenant pods",
+    limitations:
+      "Requires eBPF kernel instrumentation privileges, posing potential container host attack surfaces",
+    futureWork:
+      "Lightweight sidecar agents that decouple host kernel telemetry from untrusted tenant pods",
     evidence: {
       objective: {
         id: "ev_02_obj",
         paperId: "paper_ids_cloud_02",
-        paperTitle: "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters Using Contrastive Learning",
+        paperTitle:
+          "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters Using Contrastive Learning",
         pageNumber: 1,
         verbatimExcerpt:
           "We address the problem of detecting zero-day container escape anomalies in shared multi-tenant clusters without reliance on prior exploit signature signatures.",
@@ -185,7 +204,8 @@ export const SAMPLE_SURVEY_ROWS: LiteratureSurveyRow[] = [
       limitations: {
         id: "ev_02_lim",
         paperId: "paper_ids_cloud_02",
-        paperTitle: "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters Using Contrastive Learning",
+        paperTitle:
+          "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters Using Contrastive Learning",
         pageNumber: 11,
         verbatimExcerpt:
           "The requirement for CAP_SYS_ADMIN privileges to load eBPF telemetry probes remains a substantial barrier in strict managed cloud environments (e.g., AWS Fargate).",
@@ -199,20 +219,26 @@ export const SAMPLE_SURVEY_ROWS: LiteratureSurveyRow[] = [
   },
   {
     paperId: "paper_ids_cloud_03",
-    paperTitle: "Evaluating Computational Latency and Adversarial Robustness of Transformer-Based Network Probes",
+    paperTitle:
+      "Evaluating Computational Latency and Adversarial Robustness of Transformer-Based Network Probes",
     authors: "Chen et al. (2024)",
     year: 2024,
-    objective: "Quantifying inference latency and adversarial evasion vulnerabilities of transformer-based IDS probes",
-    methodology: "BERT-style tokenized packet inspection under Projected Gradient Descent (PGD) payload perturbation",
+    objective:
+      "Quantifying inference latency and adversarial evasion vulnerabilities of transformer-based IDS probes",
+    methodology:
+      "BERT-style tokenized packet inspection under Projected Gradient Descent (PGD) payload perturbation",
     dataset: "CIC-DDoS2019 and real-world enterprise edge gateway logs (450 GB)",
-    results: "Identified that injecting 3 dead-byte payload perturbations drops detection recall from 96.1% to 61.4%",
-    limitations: "Defense mechanism adds 18.4% additional GPU inference latency, constraining real-time deployment",
+    results:
+      "Identified that injecting 3 dead-byte payload perturbations drops detection recall from 96.1% to 61.4%",
+    limitations:
+      "Defense mechanism adds 18.4% additional GPU inference latency, constraining real-time deployment",
     futureWork: "Certified robustness guarantees for streaming packet transformers",
     evidence: {
       results: {
         id: "ev_03_res",
         paperId: "paper_ids_cloud_03",
-        paperTitle: "Evaluating Computational Latency and Adversarial Robustness of Transformer-Based Network Probes",
+        paperTitle:
+          "Evaluating Computational Latency and Adversarial Robustness of Transformer-Based Network Probes",
         pageNumber: 6,
         verbatimExcerpt:
           "Our adversarial evaluation reveals that minimal byte padding attacks cause the model's recall to degrade precipitously from 96.1% to 61.4%, exposing acute evasion sensitivity.",
@@ -225,7 +251,8 @@ export const SAMPLE_SURVEY_ROWS: LiteratureSurveyRow[] = [
       limitations: {
         id: "ev_03_lim",
         paperId: "paper_ids_cloud_03",
-        paperTitle: "Evaluating Computational Latency and Adversarial Robustness of Transformer-Based Network Probes",
+        paperTitle:
+          "Evaluating Computational Latency and Adversarial Robustness of Transformer-Based Network Probes",
         pageNumber: 8,
         verbatimExcerpt:
           "Adversarial retraining mitigates evasion but increases inference latency by 18.4%, rendering line-rate inspection unfeasible without specialized NPU hardware.",
@@ -242,20 +269,23 @@ export const SAMPLE_SURVEY_ROWS: LiteratureSurveyRow[] = [
 export const SAMPLE_RESEARCH_GAPS: ResearchGapItem[] = [
   {
     id: "gap_01_realworld_eval",
-    title: "Lack of High-Throughput Real-World Validation Across Encrypted HTTP/3 Cloud Streams",
+    title:
+      "Lack of High-Throughput Real-World Validation Across Encrypted HTTP/3 Cloud Streams",
     description:
       "Multiple independent studies (Al-Mansoor 2024, Chen 2024) rely exclusively on synthetic packet traces (CSE-CIC-IDS2018). High-rate QUIC/HTTP/3 encrypted traffic with dynamic payload multiplexing remains unaddressed.",
     category: "missing_evaluations",
     supportingPaperIds: ["paper_ids_cloud_01", "paper_ids_cloud_03"],
     evidencePassages: [
       {
-        paperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
+        paperTitle:
+          "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
         page: 9,
         passage:
           "A critical limitation is that our experiments relied on simulated synthetic packet traces in an isolated cloud testbed; real-world payload obfuscation and encrypted HTTP/3 streams were not evaluated.",
       },
       {
-        paperTitle: "Evaluating Computational Latency and Adversarial Robustness (Chen 2024)",
+        paperTitle:
+          "Evaluating Computational Latency and Adversarial Robustness (Chen 2024)",
         page: 8,
         passage:
           "Payload encryption models were not tested under continuous stream multiplexing, representing a notable gap in practical applicability.",
@@ -276,7 +306,8 @@ export const SAMPLE_RESEARCH_GAPS: ResearchGapItem[] = [
     supportingPaperIds: ["paper_ids_cloud_02"],
     evidencePassages: [
       {
-        paperTitle: "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters (Zhang 2023)",
+        paperTitle:
+          "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters (Zhang 2023)",
         page: 11,
         passage:
           "The requirement for CAP_SYS_ADMIN privileges to load eBPF telemetry probes remains a substantial barrier in strict managed cloud environments (e.g., AWS Fargate).",
@@ -297,7 +328,8 @@ export const SAMPLE_RESEARCH_GAPS: ResearchGapItem[] = [
     supportingPaperIds: ["paper_ids_cloud_01", "paper_ids_cloud_03"],
     evidencePassages: [
       {
-        paperTitle: "Evaluating Computational Latency and Adversarial Robustness (Chen 2024)",
+        paperTitle:
+          "Evaluating Computational Latency and Adversarial Robustness (Chen 2024)",
         page: 8,
         passage:
           "Adversarial retraining mitigates evasion but increases inference latency by 18.4%, rendering line-rate inspection unfeasible without specialized NPU hardware.",
@@ -322,7 +354,8 @@ export const SAMPLE_WRITING_SECTIONS: WritingSection[] = [
         id: "cl_01",
         text: "Deep neural networks achieve high detection accuracy on synthetic benchmarks but suffer under encrypted traffic.",
         linkedPaperId: "paper_ids_cloud_01",
-        linkedPaperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
+        linkedPaperTitle:
+          "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
         linkedPage: 9,
         evidenceSnippet:
           "Our experiments relied on simulated synthetic packet traces in an isolated cloud testbed; real-world payload obfuscation and encrypted HTTP/3 streams were not evaluated.",
@@ -340,7 +373,8 @@ export const SAMPLE_WRITING_SECTIONS: WritingSection[] = [
         id: "cl_02",
         text: "Al-Mansoor et al. [1] achieved 98.4% recall on CSE-CIC-IDS2018 using a hybrid CNN-BiLSTM.",
         linkedPaperId: "paper_ids_cloud_01",
-        linkedPaperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
+        linkedPaperTitle:
+          "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
         linkedPage: 7,
         evidenceSnippet:
           "Across all 7 attack vectors in CSE-CIC-IDS2018, the proposed CNN-BiLSTM achieved a macro-averaged recall of 98.4% and an F1-score of 97.9%.",
@@ -350,7 +384,8 @@ export const SAMPLE_WRITING_SECTIONS: WritingSection[] = [
         id: "cl_03",
         text: "Zhang et al. [2] require CAP_SYS_ADMIN privileges for eBPF telemetry in Kubernetes.",
         linkedPaperId: "paper_ids_cloud_02",
-        linkedPaperTitle: "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters (Zhang 2023)",
+        linkedPaperTitle:
+          "Zero-Day Attack Detection in Multi-Tenant Kubernetes Clusters (Zhang 2023)",
         linkedPage: 11,
         evidenceSnippet:
           "The requirement for CAP_SYS_ADMIN privileges to load eBPF telemetry probes remains a substantial barrier in strict managed cloud environments.",
@@ -360,7 +395,8 @@ export const SAMPLE_WRITING_SECTIONS: WritingSection[] = [
         id: "cl_04",
         text: "Chen et al. [3] observed recall drops from 96.1% to 61.4% under dead-byte payload perturbations.",
         linkedPaperId: "paper_ids_cloud_03",
-        linkedPaperTitle: "Evaluating Computational Latency and Adversarial Robustness (Chen 2024)",
+        linkedPaperTitle:
+          "Evaluating Computational Latency and Adversarial Robustness (Chen 2024)",
         linkedPage: 6,
         evidenceSnippet:
           "Our adversarial evaluation reveals that minimal byte padding attacks cause the model's recall to degrade precipitously from 96.1% to 61.4%.",
@@ -406,19 +442,23 @@ export const SAMPLE_EXTRACTED_ASSETS: ExtractedAssetItem[] = [
   {
     id: "asset_fig_01",
     paperId: "paper_ids_cloud_01",
-    paperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
+    paperTitle:
+      "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
     assetType: "figure",
     title: "Figure 3: Hybrid CNN-BiLSTM Pipeline Architecture",
     caption:
       "Schematic diagram showing the dual-stream feature extraction pipeline: spatial packet header convolution and temporal flow recurrent recurrence.",
     pageNumber: 3,
-    contentSnippet: "Virtual Network Interface -> 1D Convolution (64 filters) -> BiLSTM (128 units) -> Softmax Classifier",
-    attributionNotice: "Extracted from IEEE TDSC (2024). Source attribution preserved under fair academic quotation.",
+    contentSnippet:
+      "Virtual Network Interface -> 1D Convolution (64 filters) -> BiLSTM (128 units) -> Softmax Classifier",
+    attributionNotice:
+      "Extracted from IEEE TDSC (2024). Source attribution preserved under fair academic quotation.",
   },
   {
     id: "asset_tab_01",
     paperId: "paper_ids_cloud_01",
-    paperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
+    paperTitle:
+      "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
     assetType: "table",
     title: "Table 2: Detection Recall and Latency Across Attack Vectors",
     caption: "Performance metrics across 7 attack classes on CSE-CIC-IDS2018.",
@@ -442,14 +482,16 @@ export const SAMPLE_SIMILARITY_MATCHES: SimilarityMatchFinding[] = [
     draftExcerpt:
       "couples a 1D-CNN (kernel size 3, 64 filters) for spatial header extraction with a bidirectional LSTM layer (128 units) to capture inter-flow temporal dependencies.",
     sourcePaperId: "paper_ids_cloud_01",
-    sourcePaperTitle: "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
+    sourcePaperTitle:
+      "Deep Neural Network Architectures for Cloud Intrusion Detection (Al-Mansoor 2024)",
     sourceExcerpt:
       "The architecture couples a 1D-CNN (kernel size 3, 64 filters) for spatial header extraction with a bidirectional LSTM layer (128 units) to capture inter-flow temporal dependencies.",
     sourcePageNumber: 4,
     category: "quoted_with_citation",
     reviewStatus: "properly_quoted",
     similarityScore: 94.5,
-    reviewerNotes: "Properly referenced to Al-Mansoor et al. [1] with verbatim quotation marks.",
+    reviewerNotes:
+      "Properly referenced to Al-Mansoor et al. [1] with verbatim quotation marks.",
   },
   {
     id: "sim_match_02",
@@ -458,7 +500,8 @@ export const SAMPLE_SIMILARITY_MATCHES: SimilarityMatchFinding[] = [
     draftExcerpt:
       "drops detection recall from 96.1% to 61.4% while adversarial defense mechanisms introduce an 18.4% latency penalty",
     sourcePaperId: "paper_ids_cloud_03",
-    sourcePaperTitle: "Evaluating Computational Latency and Adversarial Robustness (Chen 2024)",
+    sourcePaperTitle:
+      "Evaluating Computational Latency and Adversarial Robustness (Chen 2024)",
     sourceExcerpt:
       "cause the model's recall to degrade precipitously from 96.1% to 61.4% while adversarial retraining increases inference latency by 18.4%",
     sourcePageNumber: 6,
@@ -468,4 +511,3 @@ export const SAMPLE_SIMILARITY_MATCHES: SimilarityMatchFinding[] = [
     reviewerNotes: "Numerical findings attributed to Chen et al. [3].",
   },
 ];
-

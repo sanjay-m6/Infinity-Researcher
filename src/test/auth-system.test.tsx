@@ -102,7 +102,9 @@ describe("Feature: Local Authentication System — UI & Behavior", () => {
 
     expect(screen.getByText(/application locked/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/enter password to unlock/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /unlock application/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /unlock application/i })
+    ).toBeInTheDocument();
     expect(screen.getByText(/switch account or log out/i)).toBeInTheDocument();
   });
 
@@ -131,7 +133,9 @@ describe("Feature: Local Authentication System — UI & Behavior", () => {
     // Should transition to main AppShell
     await waitFor(() => {
       expect(screen.getAllByText("Infinity Researcher").length).toBeGreaterThan(0);
-      expect(screen.getByRole("navigation", { name: "Main Navigation" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("navigation", { name: "Main Navigation" })
+      ).toBeInTheDocument();
     });
   });
 });

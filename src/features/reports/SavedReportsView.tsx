@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { useApp } from "../../context/AppContext";
-import {
-  FileText,
-  Download,
-  Copy,
-  Check,
-  TableProperties,
-} from "lucide-react";
+import { FileText, Download, Copy, Check, TableProperties } from "lucide-react";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 
@@ -36,7 +30,8 @@ export const SavedReportsView: React.FC = () => {
       format: "CSV",
       createdDate: "Oct 28, 2026",
       fileSizeBytes: "14.2 KB",
-      summary: "9-column comparative matrix covering methodology, datasets, sample sizes, and empirical findings.",
+      summary:
+        "9-column comparative matrix covering methodology, datasets, sample sizes, and empirical findings.",
     },
     {
       id: "report-2",
@@ -47,7 +42,8 @@ export const SavedReportsView: React.FC = () => {
       format: "Markdown",
       createdDate: "Oct 27, 2026",
       fileSizeBytes: "28.6 KB",
-      summary: "Synthesis of verified open-access IEEE research papers with claim-to-page citation links.",
+      summary:
+        "Synthesis of verified open-access IEEE research papers with claim-to-page citation links.",
     },
     {
       id: "report-3",
@@ -58,7 +54,8 @@ export const SavedReportsView: React.FC = () => {
       format: "BibTeX",
       createdDate: "Oct 26, 2026",
       fileSizeBytes: "9.8 KB",
-      summary: "Standardized BibTeX entries with verified canonical DOIs and arXiv persistent identifiers.",
+      summary:
+        "Standardized BibTeX entries with verified canonical DOIs and arXiv persistent identifiers.",
     },
   ]);
 
@@ -95,7 +92,8 @@ export const SavedReportsView: React.FC = () => {
             Saved Reports & Exports
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Access exported literature review matrices, synthesis documents, and standardized reference bibliographies.
+            Access exported literature review matrices, synthesis documents, and
+            standardized reference bibliographies.
           </p>
         </div>
 
@@ -155,7 +153,11 @@ export const SavedReportsView: React.FC = () => {
                   className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors cursor-pointer"
                   title="Copy Report Content"
                 >
-                  {copiedId === report.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedId === report.id ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
                 </button>
                 <button
                   type="button"

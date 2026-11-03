@@ -38,7 +38,8 @@ export const PaperGridView: React.FC<PaperGridViewProps> = ({
       {papers.map((paper) => {
         const isSelected = selectedPaperIds.includes(paper.id);
         const status = (paper.readingStatus || "unread") as ReadingStatus;
-        const statusConfig = READING_STATUS_CONFIG[status] || READING_STATUS_CONFIG.unread;
+        const statusConfig =
+          READING_STATUS_CONFIG[status] || READING_STATUS_CONFIG.unread;
         const readingProgress = paper.readingProgress ?? 0;
 
         return (

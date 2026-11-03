@@ -130,9 +130,8 @@ const ParticleDots: React.FC<{ reducedMotion: boolean; size?: "sm" | "md" }> = (
           key={i}
           className={`${dotSize} rounded-full`}
           style={{
-            background: i % 2 === 0
-              ? "rgba(226, 232, 240, 0.8)"
-              : "rgba(129, 140, 248, 0.7)",
+            background:
+              i % 2 === 0 ? "rgba(226, 232, 240, 0.8)" : "rgba(129, 140, 248, 0.7)",
           }}
           animate={
             reducedMotion
@@ -199,7 +198,9 @@ export const AITypingIndicator: React.FC<AITypingIndicatorProps> = ({
             <div className="inline-flex items-center gap-2 text-xs text-slate-400">
               <ThinkingOrb state={orbState} size={20} className="shrink-0" />
               <ParticleDots reducedMotion={reducedMotion} size="sm" />
-              {message && <span className="text-slate-500 dark:text-slate-400">{message}</span>}
+              {message && (
+                <span className="text-slate-500 dark:text-slate-400">{message}</span>
+              )}
             </div>
           )}
 
@@ -249,4 +250,3 @@ export const AITypingIndicator: React.FC<AITypingIndicatorProps> = ({
 };
 
 export default AITypingIndicator;
-

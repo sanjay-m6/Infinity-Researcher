@@ -110,7 +110,9 @@ describe("Phase 16 — Download Manager & PDF Acquisition Engine Modernization",
     vi.clearAllMocks();
 
     vi.spyOn(desktopApi, "listPdfDownloadJobs").mockResolvedValue(MOCK_DOWNLOAD_JOBS);
-    vi.spyOn(desktopApi, "getDownloadStorageMetrics").mockResolvedValue(MOCK_STORAGE_METRICS);
+    vi.spyOn(desktopApi, "getDownloadStorageMetrics").mockResolvedValue(
+      MOCK_STORAGE_METRICS
+    );
     vi.spyOn(desktopApi, "cancelPdfDownload").mockResolvedValue(undefined);
     vi.spyOn(desktopApi, "retryPdfDownload").mockResolvedValue(MOCK_DOWNLOAD_JOBS[0]);
     vi.spyOn(desktopApi, "clearCompletedPdfDownloads").mockResolvedValue(1);
@@ -328,7 +330,9 @@ describe("Phase 16 — Download Manager & PDF Acquisition Engine Modernization",
       expect(screen.getByText("Clear Completed (1)")).toBeInTheDocument();
     });
 
-    const clearCompletedBtn = screen.getByRole("button", { name: /Clear Completed \(1\)/i });
+    const clearCompletedBtn = screen.getByRole("button", {
+      name: /Clear Completed \(1\)/i,
+    });
     await user.click(clearCompletedBtn);
 
     expect(screen.getByText("Clear Completed Downloads History?")).toBeInTheDocument();
@@ -368,7 +372,9 @@ describe("Phase 16 — Download Manager & PDF Acquisition Engine Modernization",
     await waitFor(() => {
       expect(screen.getByText(/Safe Storage Commitment:/)).toBeInTheDocument();
       expect(
-        screen.getByText(/Clearing download tasks from this queue view will never delete your verified local research papers/)
+        screen.getByText(
+          /Clearing download tasks from this queue view will never delete your verified local research papers/
+        )
       ).toBeInTheDocument();
     });
   });
@@ -381,7 +387,9 @@ describe("Phase 16 — Download Manager & PDF Acquisition Engine Modernization",
       </AppProvider>
     );
 
-    const webCrawlersTab = screen.getByRole("button", { name: /Website Crawlers & Scrapers/i });
+    const webCrawlersTab = screen.getByRole("button", {
+      name: /Website Crawlers & Scrapers/i,
+    });
     await user.click(webCrawlersTab);
 
     await waitFor(() => {

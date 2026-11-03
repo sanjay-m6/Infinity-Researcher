@@ -77,7 +77,8 @@ const INSIGHT_TOOLS: InsightConfig[] = [
   {
     id: "beginner_eli5",
     label: "Beginner Explanation (ELI5)",
-    shortDesc: "Plain-language walkthrough of the core mechanism and real-world impact without jargon.",
+    shortDesc:
+      "Plain-language walkthrough of the core mechanism and real-world impact without jargon.",
     icon: HelpCircle,
     badge: "Intuitive",
     prompt:
@@ -86,7 +87,8 @@ const INSIGHT_TOOLS: InsightConfig[] = [
   {
     id: "structured_summary",
     label: "Structured Summary",
-    shortDesc: "Background, Objective, Methodology, Key Findings, Significance & Limitations.",
+    shortDesc:
+      "Background, Objective, Methodology, Key Findings, Significance & Limitations.",
     icon: BookOpen,
     badge: "Comprehensive",
     prompt:
@@ -95,7 +97,8 @@ const INSIGHT_TOOLS: InsightConfig[] = [
   {
     id: "methodology_analysis",
     label: "Methodology Analysis",
-    shortDesc: "Mathematical formulations, algorithms, experimental controls, and variables.",
+    shortDesc:
+      "Mathematical formulations, algorithms, experimental controls, and variables.",
     icon: Code2,
     badge: "Technical",
     prompt:
@@ -104,7 +107,8 @@ const INSIGHT_TOOLS: InsightConfig[] = [
   {
     id: "results_interpretation",
     label: "Results Interpretation",
-    shortDesc: "Statistical significance, benchmarks, effect sizes, trade-offs, and ablations.",
+    shortDesc:
+      "Statistical significance, benchmarks, effect sizes, trade-offs, and ablations.",
     icon: Activity,
     badge: "Empirical",
     prompt:
@@ -113,7 +117,8 @@ const INSIGHT_TOOLS: InsightConfig[] = [
   {
     id: "strengths_weaknesses",
     label: "Strengths & Weaknesses",
-    shortDesc: "Critical peer-review critique of rigor, baseline fairness, and confounders.",
+    shortDesc:
+      "Critical peer-review critique of rigor, baseline fairness, and confounders.",
     icon: ShieldAlert,
     badge: "Peer Review",
     prompt:
@@ -131,7 +136,8 @@ const INSIGHT_TOOLS: InsightConfig[] = [
   {
     id: "future_work",
     label: "Future Work Roadmap",
-    shortDesc: "Authors' declared next steps plus novel high-impact follow-up hypotheses.",
+    shortDesc:
+      "Authors' declared next steps plus novel high-impact follow-up hypotheses.",
     icon: Compass,
     badge: "Roadmap",
     prompt:
@@ -173,7 +179,10 @@ const POPULAR_PROVIDER_MODELS: Record<string, string[]> = {
   ],
   ollama_local: ["llama3.2:latest", "mistral:latest", "qwen2.5:latest"],
   groq_cloud: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
-  openrouter: ["meta-llama/llama-3.2-3b-instruct:free", "google/gemini-2.0-flash-exp:free"],
+  openrouter: [
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "google/gemini-2.0-flash-exp:free",
+  ],
   gemini_api: ["gemini-1.5-flash", "gemini-1.5-pro"],
   cerebras: ["llama3.1-8b", "llama3.1-70b"],
   huggingface: ["meta-llama/Llama-3.2-3B-Instruct", "mistralai/Mistral-7B-Instruct-v0.3"],
@@ -199,14 +208,33 @@ export interface StreamingMessageState {
 }
 
 export const QUICK_PROMPT_CHIPS = [
-  { label: "💡 Key Findings", prompt: "What are the core findings and key quantitative results of this paper?" },
-  { label: "🔬 Methodology", prompt: "Explain the methodology, algorithms, and experimental controls in detail." },
-  { label: "⚠️ Limitations", prompt: "What are the primary limitations, assumptions, and failure modes acknowledged?" },
-  { label: "📐 Equations", prompt: "Break down the core equations and mathematical formulations in this paper." },
-  { label: "🚀 Future Work", prompt: "What novel research hypotheses and next steps does this suggest?" },
+  {
+    label: "💡 Key Findings",
+    prompt: "What are the core findings and key quantitative results of this paper?",
+  },
+  {
+    label: "🔬 Methodology",
+    prompt: "Explain the methodology, algorithms, and experimental controls in detail.",
+  },
+  {
+    label: "⚠️ Limitations",
+    prompt:
+      "What are the primary limitations, assumptions, and failure modes acknowledged?",
+  },
+  {
+    label: "📐 Equations",
+    prompt: "Break down the core equations and mathematical formulations in this paper.",
+  },
+  {
+    label: "🚀 Future Work",
+    prompt: "What novel research hypotheses and next steps does this suggest?",
+  },
 ];
 
-export function parseThoughtAndBody(content: string): { thought: string | null; body: string } {
+export function parseThoughtAndBody(content: string): {
+  thought: string | null;
+  body: string;
+} {
   const match = content.match(/<think>([\s\S]*?)<\/think>/i);
   if (match) {
     return {
@@ -281,19 +309,35 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
 
         if (list.length > 0) {
           setProviders(list);
-          if (!selectedProviderId || selectedProviderId === "lm_studio_local" || selectedProviderId === "llama_cpp_local") {
+          if (
+            !selectedProviderId ||
+            selectedProviderId === "lm_studio_local" ||
+            selectedProviderId === "llama_cpp_local"
+          ) {
             const nim = list.find((p) => p.id === "nvidia_nim" && p.is_enabled);
-            const target = nim || list.find((p) => p.id === "in_app_local" && p.is_enabled) || list.find((p) => p.is_enabled) || list[0];
+            const target =
+              nim ||
+              list.find((p) => p.id === "in_app_local" && p.is_enabled) ||
+              list.find((p) => p.is_enabled) ||
+              list[0];
             if (target) {
               setSelectedProviderId(target.id);
-              setSelectedModelId(target.id === "nvidia_nim" ? "nvidia/nemotron-3-ultra-550b-a55b" : target.default_model);
+              setSelectedModelId(
+                target.id === "nvidia_nim"
+                  ? "nvidia/nemotron-3-ultra-550b-a55b"
+                  : target.default_model
+              );
             }
           } else if (!list.some((p) => p.id === selectedProviderId && p.is_enabled)) {
             const nim = list.find((p) => p.id === "nvidia_nim" && p.is_enabled);
             const target = nim || list.find((p) => p.is_enabled) || list[0];
             if (target) {
               setSelectedProviderId(target.id);
-              setSelectedModelId(target.id === "nvidia_nim" ? "nvidia/nemotron-3-ultra-550b-a55b" : target.default_model);
+              setSelectedModelId(
+                target.id === "nvidia_nim"
+                  ? "nvidia/nemotron-3-ultra-550b-a55b"
+                  : target.default_model
+              );
             }
           }
         }
@@ -308,14 +352,14 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
     if (selectedProviderId) {
       try {
         localStorage.setItem("ai_hub_chat_provider_id", selectedProviderId);
-      } catch { }
+      } catch {}
     }
   }, [selectedProviderId]);
 
   useEffect(() => {
     try {
       localStorage.setItem("ai_hub_chat_model_id", selectedModelId);
-    } catch { }
+    } catch {}
   }, [selectedModelId]);
 
   const activeProvider =
@@ -340,7 +384,9 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
   const [copiedChatId, setCopiedChatId] = useState<string | null>(null);
 
   // Real-Time Streaming & ChatGPT UI State
-  const [streamingMessage, setStreamingMessage] = useState<StreamingMessageState | null>(null);
+  const [streamingMessage, setStreamingMessage] = useState<StreamingMessageState | null>(
+    null
+  );
   const [expandedThoughts, setExpandedThoughts] = useState<Record<string, boolean>>({});
   const isAbortedRef = React.useRef<boolean>(false);
   const thinkingTimerRef = React.useRef<any>(null);
@@ -377,12 +423,20 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
   const paperIdKey = paper.id;
   const session = discoverSessionStore.getState();
   const currentChatMessages =
-    (session.chatHistoryByPaper[paperIdKey]?.length ? session.chatHistoryByPaper[paperIdKey] : null) ||
-    (paper.paper_id && session.chatHistoryByPaper[paper.paper_id]?.length ? session.chatHistoryByPaper[paper.paper_id] : null) ||
+    (session.chatHistoryByPaper[paperIdKey]?.length
+      ? session.chatHistoryByPaper[paperIdKey]
+      : null) ||
+    (paper.paper_id && session.chatHistoryByPaper[paper.paper_id]?.length
+      ? session.chatHistoryByPaper[paper.paper_id]
+      : null) ||
     [];
   const currentPaperInsights =
-    (Object.keys(session.insightsByPaper[paperIdKey] || {}).length ? session.insightsByPaper[paperIdKey] : null) ||
-    (paper.paper_id && Object.keys(session.insightsByPaper[paper.paper_id] || {}).length ? session.insightsByPaper[paper.paper_id] : null) ||
+    (Object.keys(session.insightsByPaper[paperIdKey] || {}).length
+      ? session.insightsByPaper[paperIdKey]
+      : null) ||
+    (paper.paper_id && Object.keys(session.insightsByPaper[paper.paper_id] || {}).length
+      ? session.insightsByPaper[paper.paper_id]
+      : null) ||
     {};
 
   // Check RAG index status whenever paper changes
@@ -395,7 +449,11 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
 
     try {
       let existingChunks = await getPaperRagChunks(targetId);
-      if ((!existingChunks || existingChunks.length === 0) && paper.paper_id && paper.id !== paper.paper_id) {
+      if (
+        (!existingChunks || existingChunks.length === 0) &&
+        paper.paper_id &&
+        paper.id !== paper.paper_id
+      ) {
         existingChunks = await getPaperRagChunks(paper.id);
       }
       setChunks(existingChunks || []);
@@ -593,7 +651,16 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
     scrollToBottom("smooth");
 
     const trimmedLower = text.trim().toLowerCase();
-    const isGreeting = ["hey", "heyy", "heyyy", "hi", "hello", "howdy", "sup", "greetings"].includes(trimmedLower);
+    const isGreeting = [
+      "hey",
+      "heyy",
+      "heyyy",
+      "hi",
+      "hello",
+      "howdy",
+      "sup",
+      "greetings",
+    ].includes(trimmedLower);
 
     if (isGreeting) {
       const assistantMsg: AiChatMessage = {
@@ -652,16 +719,16 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
       if (!activePaperId && !paper.is_imported) {
         try {
           activePaperId = await ensurePaperIsImported();
-          await ensureFullTextIndexed(activePaperId).catch(() => { });
+          await ensureFullTextIndexed(activePaperId).catch(() => {});
         } catch (e) {
           console.warn("Auto-import before chat failed:", e);
         }
       } else if (activePaperId) {
         if (chunks.length <= 2) {
-          await ensureFullTextIndexed(activePaperId).catch(() => { });
+          await ensureFullTextIndexed(activePaperId).catch(() => {});
         }
       } else {
-        await ensureFullTextIndexed(paper.id).catch(() => { });
+        await ensureFullTextIndexed(paper.id).catch(() => {});
       }
 
       if (isAbortedRef.current) {
@@ -698,11 +765,14 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
       const thinkRegex = /<think>([\s\S]*?)<\/think>/i;
       const match = response.text.match(thinkRegex);
       const thoughtText = match ? match[1].trim() : "";
-      const bodyText = match ? response.text.replace(thinkRegex, "").trim() : response.text;
+      const bodyText = match
+        ? response.text.replace(thinkRegex, "").trim()
+        : response.text;
 
       const isTestEnv =
         (typeof process !== "undefined" && process.env?.NODE_ENV === "test") ||
-        (typeof window !== "undefined" && Boolean((window as any).__VITEST_ENVIRONMENT__));
+        (typeof window !== "undefined" &&
+          Boolean((window as any).__VITEST_ENVIRONMENT__));
 
       if (isTestEnv) {
         // Fast-path for unit tests: commit immediately so test assertions resolve
@@ -862,7 +932,9 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
         discoverSessionStore.setChatMessages(paperIdKey, cleanedMessages);
 
         // Automatically re-run the last user question
-        const lastUserMsg = [...currentChatMessages].reverse().find((m) => m.role === "user");
+        const lastUserMsg = [...currentChatMessages]
+          .reverse()
+          .find((m) => m.role === "user");
         if (lastUserMsg?.content) {
           void handleSendChat(lastUserMsg.content);
         }
@@ -896,16 +968,16 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
       if (!activePaperId && !paper.is_imported) {
         try {
           activePaperId = await ensurePaperIsImported();
-          await ensureFullTextIndexed(activePaperId).catch(() => { });
+          await ensureFullTextIndexed(activePaperId).catch(() => {});
         } catch (e) {
           console.warn("Auto-import before generating insight failed:", e);
         }
       } else if (activePaperId) {
         if (chunks.length <= 2) {
-          await ensureFullTextIndexed(activePaperId).catch(() => { });
+          await ensureFullTextIndexed(activePaperId).catch(() => {});
         }
       } else {
-        await ensureFullTextIndexed(paper.id).catch(() => { });
+        await ensureFullTextIndexed(paper.id).catch(() => {});
       }
 
       const targetProvider = selectedProviderId || "nvidia_nim";
@@ -966,40 +1038,46 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
       const pageSet = new Set(chunks.map((c) => c.page_number).filter(Boolean));
       return {
         label: `Full Text Indexed (${chunks.length} chunks, ${pageSet.size} pages)`,
-        color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800",
+        color:
+          "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800",
         type: "full",
       };
     }
     if (chunks.length === 1) {
       return {
         label: "Abstract Grounded (1 chunk)",
-        color: "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300 dark:border-amber-800",
+        color:
+          "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300 dark:border-amber-800",
         type: "abstract",
       };
     }
     if (paper.local_pdf_path || paper.is_downloaded) {
       return {
         label: "PDF Downloaded (Ready to Index)",
-        color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800",
+        color:
+          "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800",
         type: "ready",
       };
     }
     if (paper.abstract_text) {
       return {
         label: "Abstract Available",
-        color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700",
+        color:
+          "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700",
         type: "abstract_unindexed",
       };
     }
     return {
       label: "Metadata Only (No Text)",
-      color: "bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-300 dark:border-rose-800",
+      color:
+        "bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-300 dark:border-rose-800",
       type: "none",
     };
   })();
 
   const activeInsight = currentPaperInsights[selectedInsightId];
-  const activeToolConfig = INSIGHT_TOOLS.find((t) => t.id === selectedInsightId) || INSIGHT_TOOLS[0];
+  const activeToolConfig =
+    INSIGHT_TOOLS.find((t) => t.id === selectedInsightId) || INSIGHT_TOOLS[0];
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-slate-900 overflow-hidden">
@@ -1018,10 +1096,11 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
             <button
               type="button"
               onClick={() => setSubTab("chat")}
-              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all flex items-center gap-1 cursor-pointer ${subTab === "chat"
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all flex items-center gap-1 cursor-pointer ${
+                subTab === "chat"
                   ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs font-semibold"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                }`}
+              }`}
             >
               <MessageSquare className="w-3 h-3" />
               <span>Paper Chat</span>
@@ -1035,10 +1114,11 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
             <button
               type="button"
               onClick={() => setSubTab("insights")}
-              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all flex items-center gap-1 cursor-pointer ${subTab === "insights"
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all flex items-center gap-1 cursor-pointer ${
+                subTab === "insights"
                   ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs font-semibold"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                }`}
+              }`}
             >
               <Lightbulb className="w-3 h-3" />
               <span>AI Insights (8)</span>
@@ -1109,7 +1189,8 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
               >
                 {providers.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.is_local ? "🔒 " : "⚡ "} {p.display_name} ({p.is_local ? "Local" : "Cloud"})
+                    {p.is_local ? "🔒 " : "⚡ "} {p.display_name} (
+                    {p.is_local ? "Local" : "Cloud"})
                   </option>
                 ))}
               </select>
@@ -1125,7 +1206,10 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
                   value={currentModel}
                   onChange={(e) => {
                     setSelectedModelId(e.target.value);
-                    showToast?.(`Switched model to ${e.target.value.split("/").pop() || e.target.value}`, "info");
+                    showToast?.(
+                      `Switched model to ${e.target.value.split("/").pop() || e.target.value}`,
+                      "info"
+                    );
                   }}
                   className="w-full text-[10px] font-mono pl-2 pr-5 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none cursor-pointer shadow-xs truncate"
                   title="Select model identifier"
@@ -1135,8 +1219,12 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
                       {m.split("/").pop() || m}
                     </option>
                   ))}
-                  {!POPULAR_PROVIDER_MODELS[selectedProviderId].includes(currentModel) && (
-                    <option value={currentModel}>{currentModel.split("/").pop() || currentModel}</option>
+                  {!POPULAR_PROVIDER_MODELS[selectedProviderId].includes(
+                    currentModel
+                  ) && (
+                    <option value={currentModel}>
+                      {currentModel.split("/").pop() || currentModel}
+                    </option>
                   )}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1 text-slate-400">
@@ -1147,11 +1235,16 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
 
             {/* Mode Badge */}
             <span
-              className={`px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 ${activeProvider?.is_local
+              className={`px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 ${
+                activeProvider?.is_local
                   ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60"
                   : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60"
-                }`}
-              title={activeProvider?.is_local ? "100% Private Offline Model" : "High-Performance Cloud API"}
+              }`}
+              title={
+                activeProvider?.is_local
+                  ? "100% Private Offline Model"
+                  : "High-Performance Cloud API"
+              }
             >
               {activeProvider?.is_local ? "Local" : "Cloud"}
             </span>
@@ -1176,7 +1269,8 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
                     Ask About This Paper
                   </h4>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                    Questions are answered strictly from this paper's extracted content with interactive page-level citations.
+                    Questions are answered strictly from this paper's extracted content
+                    with interactive page-level citations.
                   </p>
                 </div>
 
@@ -1222,14 +1316,19 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
                           <div className="flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
                             <span className="font-semibold text-slate-800 dark:text-slate-200">
-                              {(msg.model_id || msg.provider_id || "AI Assistant").split("/").pop()}
+                              {(msg.model_id || msg.provider_id || "AI Assistant")
+                                .split("/")
+                                .pop()}
                             </span>
                             <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
                               Grounded
                             </span>
                           </div>
                           <span className="text-[10px] text-slate-400 font-mono">
-                            {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            {new Date(msg.created_at).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </span>
                         </div>
 
@@ -1247,7 +1346,9 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
                                   Thought Process
                                 </span>
                               </div>
-                              <ChevronDown className={`w-3 h-3 transition-transform ${isThoughtExpanded ? "rotate-180" : ""}`} />
+                              <ChevronDown
+                                className={`w-3 h-3 transition-transform ${isThoughtExpanded ? "rotate-180" : ""}`}
+                              />
                             </button>
                             {isThoughtExpanded && (
                               <div className="px-2.5 pb-2 text-[11px] text-slate-600 dark:text-slate-400 whitespace-pre-wrap font-mono border-t border-slate-200 dark:border-slate-800 pt-1.5 leading-relaxed bg-white/40 dark:bg-slate-950/40">
@@ -1430,7 +1531,9 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
                               Thought Process ({streamingMessage.thinkingSeconds}s)
                             </span>
                           </div>
-                          <ChevronDown className={`w-3 h-3 transition-transform ${expandedThoughts[streamingMessage.id] ? "rotate-180" : ""}`} />
+                          <ChevronDown
+                            className={`w-3 h-3 transition-transform ${expandedThoughts[streamingMessage.id] ? "rotate-180" : ""}`}
+                          />
                         </button>
                         {expandedThoughts[streamingMessage.id] && (
                           <div className="px-2.5 pb-2 text-[11px] text-slate-600 dark:text-slate-400 whitespace-pre-wrap font-mono border-t border-slate-200 dark:border-slate-800 pt-1.5 leading-relaxed bg-white/40 dark:bg-slate-950/40">
@@ -1447,31 +1550,35 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
                     </div>
 
                     {/* Streaming Citations preview */}
-                    {streamingMessage.citations && streamingMessage.citations.length > 0 && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-700/80 space-y-1">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                          Grounded Citations:
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {streamingMessage.citations.map((c, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => {
-                                if (c.page_number) {
-                                  onNavigatePdfPage(c.page_number);
-                                  showToast(`Jumping PDF to Page ${c.page_number}`, "info");
-                                }
-                              }}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 shadow-2xs cursor-pointer"
-                            >
-                              <FileText className="w-2.5 h-2.5 text-indigo-500" />
-                              <span>Page {c.page_number}</span>
-                            </button>
-                          ))}
+                    {streamingMessage.citations &&
+                      streamingMessage.citations.length > 0 && (
+                        <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-700/80 space-y-1">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                            Grounded Citations:
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {streamingMessage.citations.map((c, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => {
+                                  if (c.page_number) {
+                                    onNavigatePdfPage(c.page_number);
+                                    showToast(
+                                      `Jumping PDF to Page ${c.page_number}`,
+                                      "info"
+                                    );
+                                  }
+                                }}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 shadow-2xs cursor-pointer"
+                              >
+                                <FileText className="w-2.5 h-2.5 text-indigo-500" />
+                                <span>Page {c.page_number}</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 )}
               </div>
@@ -1552,7 +1659,10 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
             <div className="flex items-center justify-between text-[10px] text-slate-400 px-1">
               <div className="flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5 text-indigo-500" />
-                <span>Grounded on {chunks.length > 0 ? `${chunks.length} paper sections` : "abstract"}</span>
+                <span>
+                  Grounded on{" "}
+                  {chunks.length > 0 ? `${chunks.length} paper sections` : "abstract"}
+                </span>
               </div>
 
               {currentChatMessages.length > 0 && (
@@ -1593,16 +1703,18 @@ export const DiscoverPaperAssistant: React.FC<DiscoverPaperAssistantProps> = ({
                         void handleGenerateInsight(tool);
                       }
                     }}
-                    className={`p-1.5 rounded-lg text-left transition-all flex items-center gap-1.5 border cursor-pointer ${isSelected
+                    className={`p-1.5 rounded-lg text-left transition-all flex items-center gap-1.5 border cursor-pointer ${
+                      isSelected
                         ? "bg-indigo-50 dark:bg-indigo-950/60 border-indigo-300 dark:border-indigo-700 text-indigo-900 dark:text-indigo-200"
                         : "bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 hover:bg-slate-50"
-                      }`}
+                    }`}
                   >
                     <div
-                      className={`p-1 rounded ${isSelected
+                      className={`p-1 rounded ${
+                        isSelected
                           ? "bg-indigo-600 text-white"
                           : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
-                        }`}
+                      }`}
                     >
                       <Icon className="w-3 h-3" />
                     </div>

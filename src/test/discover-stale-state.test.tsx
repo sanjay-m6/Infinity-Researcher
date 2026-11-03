@@ -119,13 +119,11 @@ describe("Discover View Stale State & Source Telemetry Regression Suite (Part C 
     const user = userEvent.setup();
     let unlistenCalled = false;
 
-    vi.spyOn(desktopApi, "startWebsiteSearchStream").mockImplementation(
-      async () => {
-        return () => {
-          unlistenCalled = true;
-        };
-      }
-    );
+    vi.spyOn(desktopApi, "startWebsiteSearchStream").mockImplementation(async () => {
+      return () => {
+        unlistenCalled = true;
+      };
+    });
 
     render(
       <AppProvider>
@@ -201,9 +199,13 @@ describe("Discover View Stale State & Source Telemetry Regression Suite (Part C 
 
     // Diagnostics modal opens with Engine Version and telemetry
     await waitFor(() => {
-      expect(screen.getByText(/Scraping Engine Diagnostics & Observability/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Scraping Engine Diagnostics & Observability/i)
+      ).toBeInTheDocument();
       expect(screen.getByText(/2.19.0/i)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /Copy Diagnostics Report/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Copy Diagnostics Report/i })
+      ).toBeInTheDocument();
     });
   });
 });

@@ -49,7 +49,9 @@ describe("Phase 6 — Animated Icon System Modernization", () => {
     });
 
     it("applies role='img' and aria-label when accessible name is explicitly provided", () => {
-      render(<AppIcon icon={Search} aria-label="Search research papers" title="Paper Search" />);
+      render(
+        <AppIcon icon={Search} aria-label="Search research papers" title="Paper Search" />
+      );
       const icon = screen.getByRole("img", { name: "Search research papers" });
       expect(icon).toBeInTheDocument();
       expect(icon).toHaveAttribute("title", "Paper Search");
@@ -102,12 +104,7 @@ describe("Phase 6 — Animated Icon System Modernization", () => {
 
   describe("3. IconButton Accessibility & Interaction Standards", () => {
     it("renders button with required accessible name (aria-label) and default ghost variant", () => {
-      render(
-        <IconButton
-          icon={Settings}
-          aria-label="Open application settings"
-        />
-      );
+      render(<IconButton icon={Settings} aria-label="Open application settings" />);
       const button = screen.getByRole("button", { name: "Open application settings" });
       expect(button).toBeInTheDocument();
       expect(button).toHaveAttribute("type", "button");
@@ -117,11 +114,7 @@ describe("Phase 6 — Animated Icon System Modernization", () => {
     it("triggers onClick handler when clicked", () => {
       const handleClick = vi.fn();
       render(
-        <IconButton
-          icon={Settings}
-          aria-label="Configure AI"
-          onClick={handleClick}
-        />
+        <IconButton icon={Settings} aria-label="Configure AI" onClick={handleClick} />
       );
       const button = screen.getByRole("button", { name: "Configure AI" });
       fireEvent.click(button);
@@ -146,11 +139,7 @@ describe("Phase 6 — Animated Icon System Modernization", () => {
 
     it("shows loading state with spinner and sets aria-busy='true'", () => {
       render(
-        <IconButton
-          icon={RefreshCw}
-          aria-label="Synchronize papers"
-          isLoading={true}
-        />
+        <IconButton icon={RefreshCw} aria-label="Synchronize papers" isLoading={true} />
       );
       const button = screen.getByRole("button", { name: "Synchronize papers" });
       expect(button).toBeDisabled();
@@ -159,11 +148,7 @@ describe("Phase 6 — Animated Icon System Modernization", () => {
 
     it("synchronizes isExpanded prop with aria-expanded attribute", () => {
       const { rerender } = render(
-        <IconButton
-          icon={ChevronDown}
-          aria-label="Toggle section"
-          isExpanded={false}
-        />
+        <IconButton icon={ChevronDown} aria-label="Toggle section" isExpanded={false} />
       );
       expect(screen.getByRole("button", { name: "Toggle section" })).toHaveAttribute(
         "aria-expanded",
@@ -171,11 +156,7 @@ describe("Phase 6 — Animated Icon System Modernization", () => {
       );
 
       rerender(
-        <IconButton
-          icon={ChevronDown}
-          aria-label="Toggle section"
-          isExpanded={true}
-        />
+        <IconButton icon={ChevronDown} aria-label="Toggle section" isExpanded={true} />
       );
       expect(screen.getByRole("button", { name: "Toggle section" })).toHaveAttribute(
         "aria-expanded",
@@ -219,4 +200,3 @@ describe("Phase 6 — Animated Icon System Modernization", () => {
     });
   });
 });
-

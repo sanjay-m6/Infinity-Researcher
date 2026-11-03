@@ -29,7 +29,9 @@ describe("Version Management & SemVer Strategy", () => {
 
   it("rejects invalid bump arguments", () => {
     expect(() => computeNextVersion("0.1.0", "invalid")).toThrow(/Invalid bump type/);
-    expect(() => computeNextVersion("invalid", "patch")).toThrow(/not a valid Semantic Version/);
+    expect(() => computeNextVersion("invalid", "patch")).toThrow(
+      /not a valid Semantic Version/
+    );
   });
 
   it("synchronizes versions across project manifests in actual repository", () => {
@@ -111,7 +113,9 @@ describe("Release Artifact Verification Logic", () => {
   it("flags missing installers when target directory is empty", () => {
     const result = verifyReleaseDirectory(tempDir, "0.1.0");
     expect(result.valid).toBe(false);
-    expect(result.issues.some((i: string) => i.includes("No installer packages"))).toBe(true);
+    expect(result.issues.some((i: string) => i.includes("No installer packages"))).toBe(
+      true
+    );
   });
 
   it("validates well-formed updater manifest latest.json and installer bundles", () => {
@@ -161,7 +165,11 @@ describe("Release Artifact Verification Logic", () => {
 
     const result = verifyReleaseDirectory(tempDir, "0.2.0");
     expect(result.valid).toBe(false);
-    expect(result.issues.some((i: string) => i.includes('does not match expected version "0.2.0"'))).toBe(true);
+    expect(
+      result.issues.some((i: string) =>
+        i.includes('does not match expected version "0.2.0"')
+      )
+    ).toBe(true);
   });
 });
 

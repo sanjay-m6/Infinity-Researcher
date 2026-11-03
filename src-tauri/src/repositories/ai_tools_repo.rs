@@ -119,8 +119,7 @@ impl AiToolsRepository {
             params![id, job_type, doc_hash],
         )?;
 
-        Self::get_analysis_job(conn, id)?
-            .ok_or_else(|| rusqlite::Error::QueryReturnedNoRows)
+        Self::get_analysis_job(conn, id)?.ok_or_else(|| rusqlite::Error::QueryReturnedNoRows)
     }
 
     pub fn update_job_progress(
@@ -271,7 +270,10 @@ impl AiToolsRepository {
         Ok(())
     }
 
-    pub fn get_integrity_report(conn: &Connection, id: &str) -> Result<Option<SavedIntegrityReport>> {
+    pub fn get_integrity_report(
+        conn: &Connection,
+        id: &str,
+    ) -> Result<Option<SavedIntegrityReport>> {
         let mut stmt = conn.prepare(
             "SELECT id, document_hash, file_name, title, word_count,
                     dimensions_json, ethical_disclaimer, created_at, updated_at
@@ -305,7 +307,10 @@ impl AiToolsRepository {
         }
     }
 
-    pub fn get_findings_for_report(conn: &Connection, report_id: &str) -> Result<Vec<IntegrityReportFinding>> {
+    pub fn get_findings_for_report(
+        conn: &Connection,
+        report_id: &str,
+    ) -> Result<Vec<IntegrityReportFinding>> {
         let mut stmt = conn.prepare(
             "SELECT id, report_id, dimension, title, description,
                     status, severity, confidence, evidence, location,
@@ -683,4 +688,3 @@ impl AiToolsRepository {
         Ok(list)
     }
 }
-

@@ -95,7 +95,9 @@ describe("Phase 5 — Global Component Library Modernization", () => {
 
       expect(screen.getByLabelText("DOI Identifier")).toBeInTheDocument();
       expect(screen.getByText("Format: 10.xxxx/xxxxx")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("10.1109/ACCESS.2023.1042918")).toHaveClass("bg-card");
+      expect(screen.getByPlaceholderText("10.1109/ACCESS.2023.1042918")).toHaveClass(
+        "bg-card"
+      );
     });
 
     it("renders Input with error state", () => {
@@ -172,7 +174,9 @@ describe("Phase 5 — Global Component Library Modernization", () => {
         </FormField>
       );
 
-      expect(screen.getByText("Token stored securely in local vault.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Token stored securely in local vault.")
+      ).toBeInTheDocument();
       expect(screen.getByRole("alert")).toHaveTextContent("Invalid API token");
     });
   });
@@ -240,7 +244,9 @@ describe("Phase 5 — Global Component Library Modernization", () => {
 
       expect(screen.getByText("No research papers found")).toBeInTheDocument();
       expect(
-        screen.getByText("Try broadening your search terms or enabling multi-source crawl.")
+        screen.getByText(
+          "Try broadening your search terms or enabling multi-source crawl."
+        )
       ).toBeInTheDocument();
       fireEvent.click(screen.getByText("Clear Filters"));
       expect(handleAction).toHaveBeenCalled();
@@ -248,7 +254,9 @@ describe("Phase 5 — Global Component Library Modernization", () => {
 
     it("renders LoadingState with message and spinner", () => {
       render(<LoadingState message="Extracting citations from PDF..." />);
-      expect(screen.getByRole("status")).toHaveTextContent("Extracting citations from PDF...");
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Extracting citations from PDF..."
+      );
     });
 
     it("renders ErrorState with title, description, and retry action", () => {
@@ -275,7 +283,9 @@ describe("Phase 5 — Global Component Library Modernization", () => {
         />
       );
 
-      expect(screen.getByRole("status")).toHaveTextContent("12 papers imported successfully");
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "12 papers imported successfully"
+      );
       fireEvent.click(screen.getByLabelText("Dismiss message"));
       expect(handleDismiss).toHaveBeenCalled();
     });
@@ -315,7 +325,11 @@ describe("Phase 5 — Global Component Library Modernization", () => {
     it("renders MetadataList and MetadataItem with copy action", async () => {
       render(
         <MetadataList>
-          <MetadataItem label="DOI" value="10.1145/3290605.3300233" copyValue="10.1145/3290605.3300233" />
+          <MetadataItem
+            label="DOI"
+            value="10.1145/3290605.3300233"
+            copyValue="10.1145/3290605.3300233"
+          />
           <MetadataItem label="Year" value="2024" />
         </MetadataList>
       );

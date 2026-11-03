@@ -1,13 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  BarChart3,
-  TrendingUp,
-  PieChart,
-  Sparkles,
-  Info,
-  Layers,
-} from "lucide-react";
+import { BarChart3, TrendingUp, PieChart, Sparkles, Info, Layers } from "lucide-react";
 import { AppIcon } from "../../../components/icons/AppIcon";
 import { Badge } from "../../../components/ui/Badge";
 import { Paper } from "../../../types/domain";
@@ -44,11 +37,25 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
       let domain = "General Research";
       const titleLower = (p.title + " " + (p.venue || "")).toLowerCase();
 
-      if (titleLower.includes("neural") || titleLower.includes("learning") || titleLower.includes("transformer") || titleLower.includes("llm")) {
+      if (
+        titleLower.includes("neural") ||
+        titleLower.includes("learning") ||
+        titleLower.includes("transformer") ||
+        titleLower.includes("llm")
+      ) {
         domain = "Neural Networks & Machine Learning";
-      } else if (titleLower.includes("climatic") || titleLower.includes("climate") || titleLower.includes("weather") || titleLower.includes("chad")) {
+      } else if (
+        titleLower.includes("climatic") ||
+        titleLower.includes("climate") ||
+        titleLower.includes("weather") ||
+        titleLower.includes("chad")
+      ) {
         domain = "Climatic & Environmental Sciences";
-      } else if (titleLower.includes("renewable") || titleLower.includes("energy") || titleLower.includes("forecasting")) {
+      } else if (
+        titleLower.includes("renewable") ||
+        titleLower.includes("energy") ||
+        titleLower.includes("forecasting")
+      ) {
         domain = "Renewable Energy & Systems";
       } else if (p.venue && p.venue.trim().length > 0) {
         domain = `Domain • ${p.venue.trim()}`;
@@ -79,7 +86,13 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
   // 2. Publication Timeline & Citation Velocity Analysis
   const timelineData = useMemo(() => {
     const currentYear = new Date().getFullYear();
-    const years = [currentYear - 4, currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
+    const years = [
+      currentYear - 4,
+      currentYear - 3,
+      currentYear - 2,
+      currentYear - 1,
+      currentYear,
+    ];
     const yearStats: Record<number, { count: number; citations: number }> = {};
 
     years.forEach((yr) => {
@@ -88,7 +101,9 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
 
     if (papers && papers.length > 0) {
       papers.forEach((p) => {
-        const yr = p.year || (p.publicationDate ? new Date(p.publicationDate).getFullYear() : null);
+        const yr =
+          p.year ||
+          (p.publicationDate ? new Date(p.publicationDate).getFullYear() : null);
         if (yr && yearStats[yr]) {
           yearStats[yr].count += 1;
           yearStats[yr].citations += p.citationCount || 0;
@@ -136,7 +151,11 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
       const status = (p.readingStatus || "").toLowerCase();
       if (status === "completed" || status === "read" || status === "synthesized") {
         completed += 1;
-      } else if (status === "reading" || status === "in_review" || status === "in_progress") {
+      } else if (
+        status === "reading" ||
+        status === "in_review" ||
+        status === "in_progress"
+      ) {
         reading += 1;
       } else {
         unread += 1;
@@ -163,11 +182,16 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
           className="group relative"
         >
           <div className="flex items-center justify-between text-xs mb-1">
-            <span className="font-medium text-slate-800 dark:text-slate-200 truncate pr-2 max-w-[70%]" title={topic.label}>
+            <span
+              className="font-medium text-slate-800 dark:text-slate-200 truncate pr-2 max-w-[70%]"
+              title={topic.label}
+            >
               {topic.label}
             </span>
             <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
-              <span>{topic.count} {topic.count === 1 ? "item" : "items"}</span>
+              <span>
+                {topic.count} {topic.count === 1 ? "item" : "items"}
+              </span>
               <span className="text-slate-400 font-semibold">{topic.pct}%</span>
             </div>
           </div>
@@ -181,10 +205,10 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
                 idx === 0
                   ? "bg-indigo-600 dark:bg-indigo-500"
                   : idx === 1
-                  ? "bg-sky-500 dark:bg-sky-400"
-                  : idx === 2
-                  ? "bg-emerald-500 dark:bg-emerald-400"
-                  : "bg-slate-400 dark:bg-slate-500"
+                    ? "bg-sky-500 dark:bg-sky-400"
+                    : idx === 2
+                      ? "bg-emerald-500 dark:bg-emerald-400"
+                      : "bg-slate-400 dark:bg-slate-500"
               }`}
             />
           </div>
@@ -228,11 +252,16 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
   // Render Component for Timeline
   const renderTimeline = (compact = false) => (
     <div className="space-y-3">
-      <div className={`flex items-end justify-between gap-2 px-1 ${compact ? "h-24 pt-2" : "h-32 pt-4 px-2"}`}>
+      <div
+        className={`flex items-end justify-between gap-2 px-1 ${compact ? "h-24 pt-2" : "h-32 pt-4 px-2"}`}
+      >
         {timelineData.items.map((item, idx) => {
           const heightPercent =
             timelineData.maxCount > 0
-              ? Math.max(Math.round((item.count / timelineData.maxCount) * 100), item.count > 0 ? 15 : 4)
+              ? Math.max(
+                  Math.round((item.count / timelineData.maxCount) * 100),
+                  item.count > 0 ? 15 : 4
+                )
               : 4;
 
           return (
@@ -278,10 +307,16 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
       <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
         <span className="flex items-center gap-1">
           <AppIcon icon={Sparkles} size="xs" className="text-amber-500" />
-          <span>Citations: <strong className="text-slate-800 dark:text-slate-200 font-mono">{timelineData.totalCitations}</strong></span>
+          <span>
+            Citations:{" "}
+            <strong className="text-slate-800 dark:text-slate-200 font-mono">
+              {timelineData.totalCitations}
+            </strong>
+          </span>
         </span>
         <span className="font-mono text-[10px]">
-          {new Date().getFullYear()}: {timelineData.items[timelineData.items.length - 1]?.count || 0} items
+          {new Date().getFullYear()}:{" "}
+          {timelineData.items[timelineData.items.length - 1]?.count || 0} items
         </span>
       </div>
     </div>
@@ -289,10 +324,14 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
 
   // Render Component for Reading Progress
   const renderReadingProgress = (compact = false) => (
-    <div className={`items-center ${compact ? "space-y-3" : "grid grid-cols-1 md:grid-cols-3 gap-4"}`}>
+    <div
+      className={`items-center ${compact ? "space-y-3" : "grid grid-cols-1 md:grid-cols-3 gap-4"}`}
+    >
       {/* Radial Gauge */}
       <div className="flex items-center justify-center p-1">
-        <div className={`relative flex items-center justify-center ${compact ? "w-20 h-20" : "w-28 h-28"}`}>
+        <div
+          className={`relative flex items-center justify-center ${compact ? "w-20 h-20" : "w-28 h-28"}`}
+        >
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
             <circle
               cx="50"
@@ -320,7 +359,9 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`${compact ? "text-base" : "text-xl"} font-bold font-mono tracking-tight text-slate-900 dark:text-slate-100 tabular-nums`}>
+            <span
+              className={`${compact ? "text-base" : "text-xl"} font-bold font-mono tracking-tight text-slate-900 dark:text-slate-100 tabular-nums`}
+            >
               {readingData.completionRate}%
             </span>
             <span className="text-[9px] text-slate-400 font-medium">Synthesized</span>
@@ -333,7 +374,9 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
         <div className="p-1.5 px-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-            <span className="text-slate-700 dark:text-slate-300 text-[11px]">Completed / Read</span>
+            <span className="text-slate-700 dark:text-slate-300 text-[11px]">
+              Completed / Read
+            </span>
           </div>
           <span className="font-mono font-semibold text-slate-900 dark:text-slate-100 text-[11px] tabular-nums">
             {readingData.completed} doc(s)
@@ -343,7 +386,9 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
         <div className="p-1.5 px-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-            <span className="text-slate-700 dark:text-slate-300 text-[11px]">In Review / Reading</span>
+            <span className="text-slate-700 dark:text-slate-300 text-[11px]">
+              In Review / Reading
+            </span>
           </div>
           <span className="font-mono font-semibold text-slate-900 dark:text-slate-100 text-[11px] tabular-nums">
             {readingData.reading} doc(s)
@@ -353,7 +398,9 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
         <div className="p-1.5 px-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />
-            <span className="text-slate-700 dark:text-slate-300 text-[11px]">Unread in Library</span>
+            <span className="text-slate-700 dark:text-slate-300 text-[11px]">
+              Unread in Library
+            </span>
           </div>
           <span className="font-mono font-semibold text-slate-900 dark:text-slate-100 text-[11px] tabular-nums">
             {readingData.unread} doc(s)
@@ -364,7 +411,10 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
           <span>Open Access:</span>
           <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">
             {readingData.openAccess} / {papers.length} (
-            {papers.length > 0 ? Math.round((readingData.openAccess / papers.length) * 100) : 0}%)
+            {papers.length > 0
+              ? Math.round((readingData.openAccess / papers.length) * 100)
+              : 0}
+            %)
           </span>
         </div>
       </div>
@@ -385,7 +435,11 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
           <div>
             <h2 className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
               Research Visual Analytics
-              <Badge variant="outline" size="sm" className="font-mono text-[10px] py-0 px-1.5">
+              <Badge
+                variant="outline"
+                size="sm"
+                className="font-mono text-[10px] py-0 px-1.5"
+              >
                 {papers.length} indexed
               </Badge>
             </h2>
@@ -483,7 +537,9 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
                     <AppIcon icon={BarChart3} size="xs" className="text-indigo-500" />
                     <span>Topics & Domains</span>
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">{topicData.length} clusters</span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {topicData.length} clusters
+                  </span>
                 </div>
                 {renderTopicBars(true)}
               </div>
@@ -495,7 +551,9 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
                     <AppIcon icon={TrendingUp} size="xs" className="text-sky-500" />
                     <span>Publication Timeline</span>
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">{timelineData.totalCitations} citations</span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {timelineData.totalCitations} citations
+                  </span>
                 </div>
                 {renderTimeline(true)}
               </div>
@@ -507,7 +565,9 @@ export const DashboardAnalyticsCharts: React.FC<DashboardAnalyticsChartsProps> =
                     <AppIcon icon={PieChart} size="xs" className="text-emerald-500" />
                     <span>Reading & Synthesis</span>
                   </span>
-                  <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">{readingData.completionRate}% done</span>
+                  <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">
+                    {readingData.completionRate}% done
+                  </span>
                 </div>
                 {renderReadingProgress(true)}
               </div>

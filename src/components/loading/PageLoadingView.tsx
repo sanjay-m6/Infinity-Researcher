@@ -57,8 +57,8 @@ export const PageLoadingView: React.FC<PageLoadingViewProps> = ({
                       i % 3 === 0
                         ? "rgba(129, 140, 248, 0.7)"
                         : i % 3 === 1
-                        ? "rgba(226, 232, 240, 0.6)"
-                        : "rgba(167, 139, 250, 0.5)",
+                          ? "rgba(226, 232, 240, 0.6)"
+                          : "rgba(167, 139, 250, 0.5)",
                   }}
                   animate={
                     reducedMotion
@@ -93,7 +93,13 @@ export const PageLoadingView: React.FC<PageLoadingViewProps> = ({
             })}
             {/* Center Live Orb */}
             <div className="absolute inset-0 m-auto flex items-center justify-center pointer-events-none">
-              <LiveOrb size={36} interactive blink variant="webgl" className="shadow-md" />
+              <LiveOrb
+                size={36}
+                interactive
+                blink
+                variant="webgl"
+                className="shadow-md"
+              />
             </div>
           </div>
 
@@ -115,4 +121,3 @@ export const PageLoadingView: React.FC<PageLoadingViewProps> = ({
 };
 
 export default PageLoadingView;
-

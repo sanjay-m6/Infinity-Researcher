@@ -58,7 +58,9 @@ export function getStoredThemeSettings(): ThemeSettings {
               : getStoredThemePreference();
 
           const preset: PresetThemeId =
-            parsed.preset in PRESET_THEMES ? parsed.preset : DEFAULT_THEME_SETTINGS.preset;
+            parsed.preset in PRESET_THEMES
+              ? parsed.preset
+              : DEFAULT_THEME_SETTINGS.preset;
 
           const customAccent: string | null =
             typeof parsed.customAccent === "string" && isValidHex(parsed.customAccent)
@@ -66,7 +68,9 @@ export function getStoredThemeSettings(): ThemeSettings {
               : null;
 
           const accentHistory: string[] = Array.isArray(parsed.accentHistory)
-            ? parsed.accentHistory.filter((c: unknown) => typeof c === "string" && isValidHex(c)).slice(0, 8)
+            ? parsed.accentHistory
+                .filter((c: unknown) => typeof c === "string" && isValidHex(c))
+                .slice(0, 8)
             : DEFAULT_THEME_SETTINGS.accentHistory;
 
           const backgroundPreset: BackgroundPreset =
@@ -113,7 +117,10 @@ export function getStoredThemeSettings(): ThemeSettings {
             density,
             motion,
             particleIntensity,
-            activeCustomThemeId: typeof parsed.activeCustomThemeId === "string" ? parsed.activeCustomThemeId : null,
+            activeCustomThemeId:
+              typeof parsed.activeCustomThemeId === "string"
+                ? parsed.activeCustomThemeId
+                : null,
             customThemes,
           };
         }
@@ -135,10 +142,7 @@ export function getStoredThemeSettings(): ThemeSettings {
  * Detects the current operating system color scheme preference.
  */
 export function getSystemResolvedTheme(): ResolvedTheme {
-  if (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function"
-  ) {
+  if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
     try {
       const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       return isDark ? "dark" : "light";

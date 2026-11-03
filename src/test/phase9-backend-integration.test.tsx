@@ -32,7 +32,8 @@ describe("Phase 9 — Backend Integration, Database & Performance", () => {
 
   describe("Document Ingestion & Hash-Based Deduplication Contract", () => {
     it("ingests document content and returns calculated SHA-256 hash, word count, and clean encoding flag", async () => {
-      const sample = "Deep learning and neural networks have revolutionized pattern recognition in academic literature.";
+      const sample =
+        "Deep learning and neural networks have revolutionized pattern recognition in academic literature.";
       const meta = await ingestDocumentContent("sample.txt", "txt", sample);
 
       expect(meta.file_name).toBe("sample.txt");
@@ -44,7 +45,9 @@ describe("Phase 9 — Backend Integration, Database & Performance", () => {
     });
 
     it("throws error for empty document content ingestion", async () => {
-      await expect(ingestDocumentContent("empty.txt", "txt", "   \n\t  ")).rejects.toThrow();
+      await expect(
+        ingestDocumentContent("empty.txt", "txt", "   \n\t  ")
+      ).rejects.toThrow();
     });
   });
 
@@ -80,7 +83,9 @@ describe("Phase 9 — Backend Integration, Database & Performance", () => {
         file_name: "test_manuscript.pdf",
         title: "Test Manuscript Evaluation",
         word_count: 1450,
-        dimensions_json: JSON.stringify([{ dimension: "similarity", status: "pass", findingsCount: 0 }]),
+        dimensions_json: JSON.stringify([
+          { dimension: "similarity", status: "pass", findingsCount: 0 },
+        ]),
         ethical_disclaimer: "Advisory only.",
         findings_count: 1,
         unreviewed_count: 1,
@@ -114,7 +119,11 @@ describe("Phase 9 — Backend Integration, Database & Performance", () => {
       expect(retrieved).toBeTruthy();
       expect(retrieved?.document_hash).toBe(docHash);
 
-      const updated = await updateIntegrityFindingReviewDb(saved.findings[0].id, true, "Reviewed by author");
+      const updated = await updateIntegrityFindingReviewDb(
+        saved.findings[0].id,
+        true,
+        "Reviewed by author"
+      );
       expect(updated).toBe(true);
 
       const deleted = await deleteIntegrityReportDb(reportId);
@@ -163,7 +172,8 @@ describe("Phase 9 — Backend Integration, Database & Performance", () => {
         session_id: sessionId,
         revision_number: 1,
         action_type: "natural_flow",
-        original_text: "In recent years, deep learning has revolutionized computer vision.",
+        original_text:
+          "In recent years, deep learning has revolutionized computer vision.",
         revised_text: "Recently, deep neural networks have transformed computer vision.",
         diff_summary: "Delta words: 0, score: 98",
         preserved_numbers_ok: true,

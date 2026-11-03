@@ -58,7 +58,9 @@ export const AppShell: React.FC = () => {
     setIsFeedbackCenterOpen,
     feedbackCategory,
   } = useApp();
-  const [hasVisitedDiscover, setHasVisitedDiscover] = useState(activeSection === "discover");
+  const [hasVisitedDiscover, setHasVisitedDiscover] = useState(
+    activeSection === "discover"
+  );
   const isAiHubActive =
     activeSection === "ai_hub" ||
     activeSection === "research_assistant" ||
@@ -134,7 +136,6 @@ export const AppShell: React.FC = () => {
     }
   };
 
-
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#070b12] text-slate-900 dark:text-slate-100 font-sans antialiased">
       {/* Custom Window Title Bar */}
@@ -154,20 +155,22 @@ export const AppShell: React.FC = () => {
           <main
             id="main-content"
             tabIndex={-1}
-            className={`flex-1 focus:outline-none ${activeSection === "discover" ||
-                activeSection === "review_matrix" ||
-                activeSection === "paper_comparison" ||
-                activeSection === "literature_workspace" ||
-                isAiHubActive
+            className={`flex-1 focus:outline-none ${
+              activeSection === "discover" ||
+              activeSection === "review_matrix" ||
+              activeSection === "paper_comparison" ||
+              activeSection === "literature_workspace" ||
+              isAiHubActive
                 ? "overflow-hidden p-0 flex flex-col h-full w-full"
                 : "overflow-y-auto px-6 py-6 sm:px-8 sm:py-8"
-              }`}
+            }`}
           >
             {/* Discover View is persistently kept mounted once visited so switching tabs never resets query, results, streaming jobs, or PDF state */}
             {hasVisitedDiscover && (
               <div
-                className={`flex-1 h-full w-full flex flex-col min-h-0 ${activeSection === "discover" ? "" : "hidden"
-                  }`}
+                className={`flex-1 h-full w-full flex flex-col min-h-0 ${
+                  activeSection === "discover" ? "" : "hidden"
+                }`}
               >
                 <DiscoverView />
               </div>
@@ -176,8 +179,9 @@ export const AppShell: React.FC = () => {
             {/* AI Workspace & Research Knowledge View is persistently kept mounted so switching tabs never resets reading assistant, chat, or models */}
             {hasVisitedAiHub && (
               <div
-                className={`flex-1 h-full w-full flex flex-col min-h-0 ${isAiHubActive ? "" : "hidden"
-                  }`}
+                className={`flex-1 h-full w-full flex flex-col min-h-0 ${
+                  isAiHubActive ? "" : "hidden"
+                }`}
               >
                 <AiHubView />
               </div>
@@ -193,8 +197,8 @@ export const AppShell: React.FC = () => {
                 }
                 className={
                   activeSection === "review_matrix" ||
-                    activeSection === "paper_comparison" ||
-                    activeSection === "literature_workspace"
+                  activeSection === "paper_comparison" ||
+                  activeSection === "literature_workspace"
                     ? "flex-1 h-full w-full flex flex-col min-h-0 overflow-hidden"
                     : "max-w-7xl mx-auto w-full"
                 }
@@ -238,10 +242,7 @@ export const AppShell: React.FC = () => {
       <CommandPalette />
 
       {/* About Infinity Researcher Dialog */}
-      <AboutModal
-        isOpen={isAboutModalOpen}
-        onClose={() => setIsAboutModalOpen(false)}
-      />
+      <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
 
       {/* Support & Donation Dialog */}
       <SupportDonationModal

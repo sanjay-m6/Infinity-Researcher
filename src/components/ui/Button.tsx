@@ -3,13 +3,7 @@ import { cn } from "../../lib/utils";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:
-    | "default"
-    | "primary"
-    | "secondary"
-    | "outline"
-    | "ghost"
-    | "destructive"
-    | "link";
+    "default" | "primary" | "secondary" | "outline" | "ghost" | "destructive" | "link";
   size?: "xs" | "sm" | "md" | "lg" | "icon" | "default";
   isLoading?: boolean;
 }
@@ -38,14 +32,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         "bg-primary text-primary-foreground hover:bg-primary-hover active:opacity-90 shadow-xs",
       secondary:
         "bg-secondary text-secondary-foreground hover:bg-secondary-hover active:opacity-90",
-      outline:
-        "border border-border text-foreground hover:bg-muted active:bg-accent",
-      ghost:
-        "text-foreground hover:bg-muted active:bg-accent",
+      outline: "border border-border text-foreground hover:bg-muted active:bg-accent",
+      ghost: "text-foreground hover:bg-muted active:bg-accent",
       destructive:
         "bg-destructive text-destructive-foreground hover:opacity-90 active:opacity-80 shadow-xs",
-      link:
-        "text-primary underline-offset-4 hover:underline p-0 h-auto font-normal",
+      link: "text-primary underline-offset-4 hover:underline p-0 h-auto font-normal",
     };
 
     const sizeStyles = {

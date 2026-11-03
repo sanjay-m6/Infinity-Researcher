@@ -5,7 +5,11 @@ import {
   CitationAuditReport,
   CitationStyleType,
 } from "./types";
-import { splitDocumentSections, extractInTextCitations, parseBibliographyReferences } from "./citationParser";
+import {
+  splitDocumentSections,
+  extractInTextCitations,
+  parseBibliographyReferences,
+} from "./citationParser";
 
 // ---------------------------------------------------------------------------
 // STRING SIMILARITY UTILITY (NORMALIZED LEVENSHTEIN / JACCARD)
@@ -22,8 +26,18 @@ function calculateTitleSimilarity(a: string, b: string): number {
   if (normA === normB) return 1.0;
 
   // Simple token overlap
-  const wordsA = new Set(a.toLowerCase().split(/\s+/).filter((w) => w.length > 2));
-  const wordsB = new Set(b.toLowerCase().split(/\s+/).filter((w) => w.length > 2));
+  const wordsA = new Set(
+    a
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 2)
+  );
+  const wordsB = new Set(
+    b
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 2)
+  );
   if (wordsA.size === 0 || wordsB.size === 0) return 0;
 
   let intersection = 0;
@@ -38,7 +52,10 @@ function calculateTitleSimilarity(a: string, b: string): number {
 // CROSS-REFERENCING AUDIT ENGINE
 // ---------------------------------------------------------------------------
 
-export function performCitationAudit(rawDocument: string, documentTitle = "Manuscript"): CitationAuditReport {
+export function performCitationAudit(
+  rawDocument: string,
+  documentTitle = "Manuscript"
+): CitationAuditReport {
   const { bodyText, referenceText, isBibtexFile } = splitDocumentSections(rawDocument);
 
   const inTextCitations = isBibtexFile ? [] : extractInTextCitations(bodyText);
@@ -152,7 +169,11 @@ export function performCitationAudit(rawDocument: string, documentTitle = "Manus
       // Key duplicate
       const keyDuplicate = refA.key === refB.key;
 
-      if (doiDuplicate || titleDuplicate || (keyDuplicate && refA.year && refA.year === refB.year)) {
+      if (
+        doiDuplicate ||
+        titleDuplicate ||
+        (keyDuplicate && refA.year && refA.year === refB.year)
+      ) {
         duplicateCount++;
         refB.isDuplicateOfId = refA.id;
         issues.push({
@@ -161,7 +182,9 @@ export function performCitationAudit(rawDocument: string, documentTitle = "Manus
           category: "duplicate_reference",
           title: `Duplicate Reference Detected: [${refA.key}] and [${refB.key}]`,
           description: `References [${refA.key}] and [${refB.key}] appear to represent the same publication (${
-            doiDuplicate ? `identical DOI "${refA.doiStatus.canonicalDoi}"` : `title similarity`
+            doiDuplicate
+              ? `identical DOI "${refA.doiStatus.canonicalDoi}"`
+              : `title similarity`
           }).`,
           sourceSnippet: `${refA.rawText}\n---\n${refB.rawText}`,
           referenceId: refB.id,
@@ -185,7 +208,9 @@ export function performCitationAudit(rawDocument: string, documentTitle = "Manus
           severity: "critical",
           category: "malformed_doi",
           title: `Malformed DOI Syntax in [${ref.key}]`,
-          description: ref.doiStatus.syntaxErrorNote || `DOI "${ref.doi}" fails standard syntax validation.`,
+          description:
+            ref.doiStatus.syntaxErrorNote ||
+            `DOI "${ref.doi}" fails standard syntax validation.`,
           sourceSnippet: ref.rawText,
           referenceId: ref.id,
           suggestedFix: `Correct the DOI format to "10.<registrant>/<suffix>", or remove trailing punctuation.`,
@@ -216,7 +241,11 @@ export function performCitationAudit(rawDocument: string, documentTitle = "Manus
         }
 
         // Check Title discrepancy
-        if (ref.title && meta.title && calculateTitleSimilarity(ref.title, meta.title) < 0.65) {
+        if (
+          ref.title &&
+          meta.title &&
+          calculateTitleSimilarity(ref.title, meta.title) < 0.65
+        ) {
           metadataDiscrepancyCount++;
           issues.push({
             id: `discrep_title_${ref.id}`,

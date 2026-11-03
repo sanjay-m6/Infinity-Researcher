@@ -14,9 +14,9 @@ import * as desktopApi from "../lib/desktop-api";
 
 beforeAll(() => {
   global.ResizeObserver = class ResizeObserver {
-    observe() { }
-    unobserve() { }
-    disconnect() { }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
   };
 
   HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
@@ -230,7 +230,9 @@ describe("Phase 13: PDF Reader Workspace Modernization Suite", () => {
 
     it("copies canonical DOI to clipboard when clicking DOI badge", async () => {
       const user = userEvent.setup();
-      const writeSpy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined);
+      const writeSpy = vi
+        .spyOn(navigator.clipboard, "writeText")
+        .mockResolvedValue(undefined);
       render(
         <PdfToolbar
           paperTitle="Paper with DOI"
@@ -399,7 +401,9 @@ describe("Phase 13: PDF Reader Workspace Modernization Suite", () => {
 
     it("renders metadata, abstract, and copies APA/BibTeX citations", async () => {
       const user = userEvent.setup();
-      const writeSpy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined);
+      const writeSpy = vi
+        .spyOn(navigator.clipboard, "writeText")
+        .mockResolvedValue(undefined);
 
       render(
         <PdfRightPanel
@@ -426,7 +430,9 @@ describe("Phase 13: PDF Reader Workspace Modernization Suite", () => {
       const copyApaBtn = screen.getByRole("button", { name: /Copy APA/i });
       await user.click(copyApaBtn);
       expect(writeSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Ashish Vaswani, Noam Shazeer (2017). Attention Is All You Need.")
+        expect.stringContaining(
+          "Ashish Vaswani, Noam Shazeer (2017). Attention Is All You Need."
+        )
       );
 
       // Copy BibTeX Citation
@@ -593,9 +599,7 @@ describe("Phase 13: PDF Reader Workspace Modernization Suite", () => {
 
       await waitFor(() => {
         expect(screen.getByText(/Publisher Access Restricted/i)).toBeInTheDocument();
-        expect(
-          screen.getByText(/Document Requires Browser Access/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Document Requires Browser Access/i)).toBeInTheDocument();
         expect(
           screen.getByRole("link", { name: /Open Official Article Page/i })
         ).toBeInTheDocument();
@@ -604,7 +608,9 @@ describe("Phase 13: PDF Reader Workspace Modernization Suite", () => {
 
     it("handles INVALID_DOCUMENT state when HTML landing page is returned instead of PDF", async () => {
       vi.spyOn(desktopApi, "fetchRemotePdfPreview").mockResolvedValue(
-        new TextEncoder().encode("<!DOCTYPE html><html><body>Login Required</body></html>").buffer
+        new TextEncoder().encode(
+          "<!DOCTYPE html><html><body>Login Required</body></html>"
+        ).buffer
       );
 
       render(
@@ -661,7 +667,9 @@ describe("Phase 13: PDF Reader Workspace Modernization Suite", () => {
     });
 
     it("debounces SQLite reader state persistence", async () => {
-      const saveStateSpy = vi.spyOn(desktopApi, "saveReaderState").mockResolvedValue(undefined);
+      const saveStateSpy = vi
+        .spyOn(desktopApi, "saveReaderState")
+        .mockResolvedValue(undefined);
 
       vi.spyOn(desktopApi, "readPaperPdf").mockResolvedValue(
         new TextEncoder().encode("%PDF-1.7 valid pdf").buffer

@@ -36,7 +36,8 @@ describe("Milestone 2: Frontend Chat Persistence Across Panels", () => {
           id: "msg_hub_2",
           session_id: "ai_hub_default",
           role: "assistant",
-          content: "Transformers enable full parallelization via multi-head self-attention.",
+          content:
+            "Transformers enable full parallelization via multi-head self-attention.",
           citations: [],
           retrieval_mode: "paper",
           created_at: new Date().toISOString(),
@@ -347,7 +348,8 @@ describe("Milestone 2: Frontend Chat Persistence Across Panels", () => {
           session_id: "discover_disc_paper_persistence",
           paper_id: "disc_paper_persistence",
           role: "assistant",
-          content: "ResNet addresses vanishing/exploding gradients and degradation via skip connections.",
+          content:
+            "ResNet addresses vanishing/exploding gradients and degradation via skip connections.",
           citations: [],
           retrieval_mode: "paper",
           created_at: new Date().toISOString(),

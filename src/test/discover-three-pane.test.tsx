@@ -16,13 +16,18 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
 
   it("renders the three panes: search list, center reader area, and right details pane", () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <DiscoverView />
       </AppProvider>
     );
 
     // Header & Workspace Title
-    expect(screen.getByRole("heading", { name: /Discover Research Papers/i, level: 1 })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Discover Research Papers/i, level: 1 })
+    ).toBeInTheDocument();
     expect(screen.getByText(/Three-Pane Workspace/i)).toBeInTheDocument();
 
     // Left Pane: Search & Filter elements
@@ -32,9 +37,7 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
     expect(screen.getByRole("button", { name: /^PDF$/i })).toBeInTheDocument();
 
     // Center Pane & Left Pane display discovered paper title
-    expect(
-      screen.getAllByText(/Attention Is All You Need/i).length
-    ).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Attention Is All You Need/i).length).toBeGreaterThan(0);
 
     // Right Pane: Article details & Metadata sections
     expect(screen.getByText(/Article Details/i)).toBeInTheDocument();
@@ -42,33 +45,44 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
     expect(screen.getByLabelText(/Add to Collection/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Notes/i }));
     expect(screen.getByText(/Research Notes/i)).toBeInTheDocument();
-
   });
 
   it("selects a paper from the left pane and updates center and right panes", async () => {
     const user = userEvent.setup();
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <DiscoverView />
       </AppProvider>
     );
 
     // Find and click on "BERT: Pre-training of Deep Bidirectional Transformers"
-    const bertCards = screen.getAllByText(/BERT: Pre-training of Deep Bidirectional Transformers/i);
+    const bertCards = screen.getAllByText(
+      /BERT: Pre-training of Deep Bidirectional Transformers/i
+    );
     await user.click(bertCards[0]);
 
     // Verify right pane displays BERT details
     await waitFor(() => {
       const rightPane = screen.getByText(/Article Details/i).closest("aside");
       expect(rightPane).not.toBeNull();
-      expect(within(rightPane!).getByText(/BERT: Pre-training of Deep Bidirectional Transformers/i)).toBeInTheDocument();
+      expect(
+        within(rightPane!).getByText(
+          /BERT: Pre-training of Deep Bidirectional Transformers/i
+        )
+      ).toBeInTheDocument();
     });
   });
 
   it("collapses and expands left and right panes using toggle buttons", async () => {
     const user = userEvent.setup();
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <DiscoverView />
       </AppProvider>
     );
@@ -105,7 +119,10 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
     });
 
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <DiscoverView />
       </AppProvider>
     );
@@ -120,15 +137,22 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
 
     expect(saveNoteSpy).toHaveBeenCalled();
     await waitFor(() => {
-      expect(screen.getByText("Key transformer architecture insight for local pipeline")).toBeInTheDocument();
+      expect(
+        screen.getByText("Key transformer architecture insight for local pipeline")
+      ).toBeInTheDocument();
     });
   });
 
   it("allows adding and removing a paper from collections in the right pane", async () => {
-    const addCollectionSpy = vi.spyOn(desktopApi, "addPaperToCollection").mockResolvedValue();
+    const addCollectionSpy = vi
+      .spyOn(desktopApi, "addPaperToCollection")
+      .mockResolvedValue();
 
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <DiscoverView />
       </AppProvider>
     );
@@ -158,13 +182,18 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
     });
 
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <DiscoverView />
       </AppProvider>
     );
 
     // Click BERT paper which is not locally downloaded in demo state
-    const bertCards = screen.getAllByText(/BERT: Pre-training of Deep Bidirectional Transformers/i);
+    const bertCards = screen.getAllByText(
+      /BERT: Pre-training of Deep Bidirectional Transformers/i
+    );
     await user.click(bertCards[0]);
 
     // In the embedded viewer, Save Offline button is available
@@ -176,7 +205,10 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
 
   it("renders draggable splitter handles between panes and allows double-click reset", async () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <DiscoverView />
       </AppProvider>
     );
@@ -185,9 +217,15 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
     expect(separators.length).toBeGreaterThanOrEqual(2);
 
     // Left separator title check
-    expect(separators[0]).toHaveAttribute("title", expect.stringContaining("Drag to resize results list"));
+    expect(separators[0]).toHaveAttribute(
+      "title",
+      expect.stringContaining("Drag to resize results list")
+    );
     // Right separator title check
-    expect(separators[1]).toHaveAttribute("title", expect.stringContaining("Drag to resize assistant panel"));
+    expect(separators[1]).toHaveAttribute(
+      "title",
+      expect.stringContaining("Drag to resize assistant panel")
+    );
 
     // Simulating double click resets widths to 380
     fireEvent.doubleClick(separators[0]);
@@ -196,12 +234,17 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
 
   it("shows drag and drop overlay when dragging files into the Discover workspace", () => {
     const { container } = render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <DiscoverView />
       </AppProvider>
     );
 
-    const workspace = container.querySelector(".flex-1.flex.min-h-0.w-full.overflow-hidden.relative");
+    const workspace = container.querySelector(
+      ".flex-1.flex.min-h-0.w-full.overflow-hidden.relative"
+    );
     expect(workspace).not.toBeNull();
 
     if (workspace) {
@@ -215,4 +258,3 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
     }
   });
 });
-

@@ -346,7 +346,11 @@ fn test_pdf_processor_extracts_metadata_from_pdf() {
     assert_eq!(meta.doi, Some("10.1109/ACCESS.2024.9876543".to_string()));
     assert_eq!(meta.publication_year, Some(2024));
     assert!(meta.abstract_text.is_some());
-    assert!(meta.abstract_text.as_ref().unwrap().contains("deep residual"));
+    assert!(meta
+        .abstract_text
+        .as_ref()
+        .unwrap()
+        .contains("deep residual"));
     assert_eq!(meta.venue, Some("IEEE Access".to_string()));
     assert_eq!(meta.license, Some("CC-BY 4.0".to_string()));
 }
@@ -356,9 +360,17 @@ fn test_pdf_processor_detects_corrupt_or_non_pdf() {
     use research_paper_scraper_lib::services::pdf_processor::PdfProcessor;
 
     // Plain text file without valid PDF structure
-    let (dir, file_path) = create_temp_test_file("corrupt.pdf", b"This is a corrupt text file, not a valid PDF.");
+    let (dir, file_path) = create_temp_test_file(
+        "corrupt.pdf",
+        b"This is a corrupt text file, not a valid PDF.",
+    );
     let meta = PdfProcessor::process_pdf_file(&file_path);
-    assert!(meta.warning.is_some() || meta.status == "corrupt" || meta.status == "no_text" || meta.status == "failed");
+    assert!(
+        meta.warning.is_some()
+            || meta.status == "corrupt"
+            || meta.status == "no_text"
+            || meta.status == "failed"
+    );
 
     let _ = remove_dir_all(&dir);
 }
@@ -382,7 +394,8 @@ fn test_pdf_processor_detects_scanned_image_only_pdf() {
 #[test]
 fn test_ieee_link_only_mode_preserves_original_path() {
     let mut conn = setup_test_db();
-    let valid_pdf_content = b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF";
+    let valid_pdf_content =
+        b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF";
     let (dir, file_path) = create_temp_test_file("downloaded_ieee.pdf", valid_pdf_content);
 
     let original_path = file_path.to_string_lossy().to_string();
@@ -434,7 +447,9 @@ fn test_ieee_link_only_mode_preserves_original_path() {
     PaperRepository::create(&mut conn, &paper).expect("create failed");
 
     // Verify paper record retrieves the original path without creating a second copy
-    let fetched = PaperRepository::get_by_id(&conn, paper_id).unwrap().unwrap();
+    let fetched = PaperRepository::get_by_id(&conn, paper_id)
+        .unwrap()
+        .unwrap();
     assert_eq!(fetched.local_pdf_path, Some(original_path));
     assert_eq!(fetched.retrieval_method, RETRIEVAL_IEEE_MANUAL);
     assert_eq!(fetched.open_access_status, OA_STATUS_USER_CONFIRMED);
@@ -478,7 +493,10 @@ fn test_ieee_license_detection_rules() {
             })
         })
     });
-    assert!(is_cc_oa, "Creative Commons license should be detected as Open Access");
+    assert!(
+        is_cc_oa,
+        "Creative Commons license should be detected as Open Access"
+    );
 
     // Standard IEEE proprietary copyright terms should NOT be recognized as OA
     let ieee_prop_lic = serde_json::json!([
@@ -494,6 +512,8 @@ fn test_ieee_license_detection_rules() {
             })
         })
     });
-    assert!(!is_prop_oa, "IEEE proprietary terms must NOT be detected as Open Access");
+    assert!(
+        !is_prop_oa,
+        "IEEE proprietary terms must NOT be detected as Open Access"
+    );
 }
-

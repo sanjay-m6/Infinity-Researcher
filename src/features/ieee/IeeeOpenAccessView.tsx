@@ -40,7 +40,8 @@ import {
 } from "lucide-react";
 
 export const IeeeOpenAccessView: React.FC = () => {
-  const { collections, setReadingPaper, setSelectedPaperId, showToast, refreshDatabase } = useApp();
+  const { collections, setReadingPaper, setSelectedPaperId, showToast, refreshDatabase } =
+    useApp();
 
   // Statistics state
   const [stats, setStats] = useState<OpenAccessStats>({
@@ -55,7 +56,9 @@ export const IeeeOpenAccessView: React.FC = () => {
   // Papers state
   const [oaPapers, setOaPapers] = useState<Paper[]>([]);
   const [isLoadingPapers, setIsLoadingPapers] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<"all" | "ieee" | "permitted">("all");
+  const [selectedFilter, setSelectedFilter] = useState<"all" | "ieee" | "permitted">(
+    "all"
+  );
   const [searchQuery, setSearchQuery] = useState("");
 
   // Import Modal state
@@ -70,7 +73,9 @@ export const IeeeOpenAccessView: React.FC = () => {
   const [abstractText, setAbstractText] = useState("");
   const [sourcePageUrl, setSourcePageUrl] = useState("");
   const [licenseName, setLicenseName] = useState("CC-BY 4.0");
-  const [licenseUrl, setLicenseUrl] = useState("https://creativecommons.org/licenses/by/4.0/");
+  const [licenseUrl, setLicenseUrl] = useState(
+    "https://creativecommons.org/licenses/by/4.0/"
+  );
   const [sourceName, setSourceName] = useState("Local File");
   const [userConfirmedOa, setUserConfirmedOa] = useState(false);
   const [userNotes, setUserNotes] = useState("");
@@ -105,7 +110,8 @@ export const IeeeOpenAccessView: React.FC = () => {
   }, [loadData]);
 
   const handleOpenIeeeXplore = () => {
-    const url = "https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=&openAccess=true";
+    const url =
+      "https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=&openAccess=true";
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -121,7 +127,9 @@ export const IeeeOpenAccessView: React.FC = () => {
     setSourcePageUrl(mode === "ieee" ? "https://ieeexplore.ieee.org/document/" : "");
     setLicenseName("CC-BY 4.0");
     setLicenseUrl("https://creativecommons.org/licenses/by/4.0/");
-    setSourceName(mode === "ieee" ? "IEEE Xplore (Manual OA Import)" : "Local PDF Import");
+    setSourceName(
+      mode === "ieee" ? "IEEE Xplore (Manual OA Import)" : "Local PDF Import"
+    );
     setUserConfirmedOa(false);
     setUserNotes("");
     setTargetCollectionId("");
@@ -141,8 +149,10 @@ export const IeeeOpenAccessView: React.FC = () => {
     try {
       const meta = await extractPdfMetadata(filePath.trim());
       if (meta.title && !title) setTitle(meta.title);
-      if (meta.authors && meta.authors.length > 0 && !authors) setAuthors(meta.authors.join(", "));
-      if (meta.publication_year && !publicationYear) setPublicationYear(String(meta.publication_year));
+      if (meta.authors && meta.authors.length > 0 && !authors)
+        setAuthors(meta.authors.join(", "));
+      if (meta.publication_year && !publicationYear)
+        setPublicationYear(String(meta.publication_year));
       if (meta.venue && !venue) setVenue(meta.venue);
       if (meta.doi && !canonicalDoi) setCanonicalDoi(meta.doi);
       if (meta.abstract_text && !abstractText) setAbstractText(meta.abstract_text);
@@ -160,7 +170,9 @@ export const IeeeOpenAccessView: React.FC = () => {
     setImportError(null);
 
     if (!filePath.trim()) {
-      setImportError("Please enter or specify the local path to the downloaded PDF file.");
+      setImportError(
+        "Please enter or specify the local path to the downloaded PDF file."
+      );
       return;
     }
     if (!title.trim()) {
@@ -168,7 +180,9 @@ export const IeeeOpenAccessView: React.FC = () => {
       return;
     }
     if (!userConfirmedOa) {
-      setImportError("You must confirm that this paper is marked as Open Access before importing.");
+      setImportError(
+        "You must confirm that this paper is marked as Open Access before importing."
+      );
       return;
     }
 
@@ -178,7 +192,9 @@ export const IeeeOpenAccessView: React.FC = () => {
         .split(",")
         .map((a) => a.trim())
         .filter((a) => a.length > 0);
-      const parsedYear = publicationYear.trim() ? parseInt(publicationYear.trim(), 10) : undefined;
+      const parsedYear = publicationYear.trim()
+        ? parseInt(publicationYear.trim(), 10)
+        : undefined;
 
       if (importMode === "ieee") {
         const payload: IeeeManualImportInput = {
@@ -203,8 +219,8 @@ export const IeeeOpenAccessView: React.FC = () => {
           result.is_duplicate
             ? "Duplicate PDF detected via SHA-256 match. Reusing existing library record."
             : copyToLibrary
-            ? "Successfully imported IEEE Open Access paper and copied to library storage!"
-            : "Successfully linked IEEE Open Access paper in place (zero copy)!",
+              ? "Successfully imported IEEE Open Access paper and copied to library storage!"
+              : "Successfully linked IEEE Open Access paper in place (zero copy)!",
           result.is_duplicate ? "info" : "success"
         );
       } else {
@@ -231,8 +247,8 @@ export const IeeeOpenAccessView: React.FC = () => {
           result.is_duplicate
             ? "Duplicate PDF detected via SHA-256 match."
             : copyToLibrary
-            ? "Successfully imported Open Access PDF and copied to library storage!"
-            : "Successfully linked Open Access paper in place (zero copy)!",
+              ? "Successfully imported Open Access PDF and copied to library storage!"
+              : "Successfully linked Open Access paper in place (zero copy)!",
           result.is_duplicate ? "info" : "success"
         );
       }
@@ -260,10 +276,16 @@ export const IeeeOpenAccessView: React.FC = () => {
   const filteredPapers = useMemo(() => {
     return oaPapers.filter((p) => {
       // Tab filter
-      if (selectedFilter === "ieee" && p.retrievalMethod !== "ieee_manual_download_import") {
+      if (
+        selectedFilter === "ieee" &&
+        p.retrievalMethod !== "ieee_manual_download_import"
+      ) {
         return false;
       }
-      if (selectedFilter === "permitted" && p.retrievalMethod !== "permitted_html_connector") {
+      if (
+        selectedFilter === "permitted" &&
+        p.retrievalMethod !== "permitted_html_connector"
+      ) {
         return false;
       }
 
@@ -303,11 +325,7 @@ export const IeeeOpenAccessView: React.FC = () => {
               <ExternalLink className="w-4 h-4 mr-2 text-sky-600 dark:text-sky-400" />
               Open IEEE Xplore
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleOpenModal("local")}
-            >
+            <Button variant="outline" size="sm" onClick={() => handleOpenModal("local")}>
               <FileCheck2 className="w-4 h-4 mr-2" />
               Import Local PDF
             </Button>
@@ -408,7 +426,8 @@ export const IeeeOpenAccessView: React.FC = () => {
               How the IEEE Open Access Workflow Works
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
-              IEEE Xplore terms prohibit automated robots or AI scraping. Our Mode A workflow ensures 100% legal compliance and reliable reading.
+              IEEE Xplore terms prohibit automated robots or AI scraping. Our Mode A
+              workflow ensures 100% legal compliance and reliable reading.
             </p>
           </div>
           <Badge variant="default" size="sm">
@@ -427,7 +446,8 @@ export const IeeeOpenAccessView: React.FC = () => {
                 Find IEEE Paper
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                Open IEEE Xplore in your browser and search manually. Tick the <strong>Open Access</strong> checkbox in search filters.
+                Open IEEE Xplore in your browser and search manually. Tick the{" "}
+                <strong>Open Access</strong> checkbox in search filters.
               </p>
             </div>
             <Button
@@ -451,7 +471,8 @@ export const IeeeOpenAccessView: React.FC = () => {
                 Confirm Open Access
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                Ensure the article displays an explicit <strong>Open Access</strong> banner and note its Creative Commons license terms.
+                Ensure the article displays an explicit <strong>Open Access</strong>{" "}
+                banner and note its Creative Commons license terms.
               </p>
             </div>
             <div className="text-xs text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1.5 pt-2">
@@ -470,7 +491,8 @@ export const IeeeOpenAccessView: React.FC = () => {
                 Download Official PDF
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                Click the official <strong>PDF</strong> button in your browser to save the file to your Downloads or Documents folder.
+                Click the official <strong>PDF</strong> button in your browser to save the
+                file to your Downloads or Documents folder.
               </p>
             </div>
             <div className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 pt-2">
@@ -489,7 +511,8 @@ export const IeeeOpenAccessView: React.FC = () => {
                 Import & Read in App
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                Import the local PDF into your workspace. The system validates the header, verifies SHA-256 hash, and launches the embedded viewer.
+                Import the local PDF into your workspace. The system validates the header,
+                verifies SHA-256 hash, and launches the embedded viewer.
               </p>
             </div>
             <Button
@@ -641,7 +664,9 @@ export const IeeeOpenAccessView: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(paper.landingUrl, "_blank", "noopener,noreferrer")}
+                    onClick={() =>
+                      window.open(paper.landingUrl, "_blank", "noopener,noreferrer")
+                    }
                     title="Open Source Page"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -676,7 +701,9 @@ export const IeeeOpenAccessView: React.FC = () => {
             <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs space-y-2">
               <div className="flex items-center gap-2 font-semibold text-sm">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                {importResult.is_duplicate ? "Duplicate PDF Matched" : "PDF Successfully Imported"}
+                {importResult.is_duplicate
+                  ? "Duplicate PDF Matched"
+                  : "PDF Successfully Imported"}
               </div>
               <div className="font-mono text-[11px] text-slate-600 dark:text-slate-400">
                 SHA-256: {importResult.content_hash}
@@ -730,7 +757,8 @@ export const IeeeOpenAccessView: React.FC = () => {
               </Button>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Path to the official PDF downloaded from IEEE Xplore or Open Access repository.
+              Path to the official PDF downloaded from IEEE Xplore or Open Access
+              repository.
             </p>
           </div>
 
@@ -952,7 +980,9 @@ export const IeeeOpenAccessView: React.FC = () => {
                 <span className="font-semibold block mb-0.5">
                   Open Access User Confirmation (Required by Policy)
                 </span>
-                I confirm that this specific paper is marked as Open Access on IEEE Xplore, that I have inspected its displayed license, and that this import adheres to permitted usage.
+                I confirm that this specific paper is marked as Open Access on IEEE
+                Xplore, that I have inspected its displayed license, and that this import
+                adheres to permitted usage.
               </div>
             </label>
           </div>
@@ -969,7 +999,9 @@ export const IeeeOpenAccessView: React.FC = () => {
             <Button
               type="submit"
               variant="primary"
-              disabled={isSubmitting || !userConfirmedOa || !filePath.trim() || !title.trim()}
+              disabled={
+                isSubmitting || !userConfirmedOa || !filePath.trim() || !title.trim()
+              }
               className="bg-sky-600 hover:bg-sky-700 text-white"
             >
               {isSubmitting ? "Importing & Verifying..." : "Confirm & Import PDF"}

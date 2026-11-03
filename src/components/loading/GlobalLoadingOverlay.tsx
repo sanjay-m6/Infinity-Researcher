@@ -53,7 +53,9 @@ export const GlobalLoadingOverlay: React.FC<GlobalLoadingOverlayProps> = ({
           aria-label={error ? `Loading failed: ${error}` : statusMessage}
         >
           {/* Particle Scene */}
-          <div className={`relative ${variant === "startup" ? "w-full h-full" : "w-full h-full max-w-3xl max-h-[70vh]"}`}>
+          <div
+            className={`relative ${variant === "startup" ? "w-full h-full" : "w-full h-full max-w-3xl max-h-[70vh]"}`}
+          >
             <ParticleField
               active={!error}
               reducedMotion={reducedMotion}
@@ -73,7 +75,13 @@ export const GlobalLoadingOverlay: React.FC<GlobalLoadingOverlayProps> = ({
                   transition={{ delay: 0.2, duration: 0.4 }}
                   className="flex justify-center mb-2"
                 >
-                  <LiveOrb size={80} interactive blink variant="webgl" className="shadow-2xl" />
+                  <LiveOrb
+                    size={80}
+                    interactive
+                    blink
+                    variant="webgl"
+                    className="shadow-2xl"
+                  />
                 </motion.div>
 
                 {/* App Identity */}
@@ -95,7 +103,9 @@ export const GlobalLoadingOverlay: React.FC<GlobalLoadingOverlayProps> = ({
                     transition={{ duration: 0.3 }}
                     className="space-y-1"
                   >
-                    <p className="text-[13px] text-slate-400 font-medium">{statusMessage}</p>
+                    <p className="text-[13px] text-slate-400 font-medium">
+                      {statusMessage}
+                    </p>
                     {subMessage && (
                       <p className="text-[11px] text-slate-500">{subMessage}</p>
                     )}
@@ -105,10 +115,14 @@ export const GlobalLoadingOverlay: React.FC<GlobalLoadingOverlayProps> = ({
                         <motion.div
                           key={i}
                           className="w-1 h-1 rounded-full bg-slate-500"
-                          animate={reducedMotion ? {} : {
-                            opacity: [0.3, 1, 0.3],
-                            scale: [0.8, 1.2, 0.8],
-                          }}
+                          animate={
+                            reducedMotion
+                              ? {}
+                              : {
+                                  opacity: [0.3, 1, 0.3],
+                                  scale: [0.8, 1.2, 0.8],
+                                }
+                          }
                           transition={{
                             duration: 1.4,
                             repeat: Infinity,
@@ -130,7 +144,9 @@ export const GlobalLoadingOverlay: React.FC<GlobalLoadingOverlayProps> = ({
                     <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 mx-auto">
                       <span className="text-lg">⚠️</span>
                     </div>
-                    <p className="text-sm text-red-300 font-medium">Initialization failed</p>
+                    <p className="text-sm text-red-300 font-medium">
+                      Initialization failed
+                    </p>
                     <p className="text-xs text-slate-400 leading-relaxed">{error}</p>
                     {onRetry && (
                       <button
@@ -152,4 +168,3 @@ export const GlobalLoadingOverlay: React.FC<GlobalLoadingOverlayProps> = ({
 };
 
 export default GlobalLoadingOverlay;
-

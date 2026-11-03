@@ -203,7 +203,15 @@ pub async fn fetch_remote_pdf_preview(
                     error = %e,
                     "IEEE Open Access resolution pipeline exhausted"
                 );
-                if let Some(oa_bytes) = try_recover_open_access_pdf(&client, clean_url, doi.as_deref(), title.as_deref(), max_bytes).await {
+                if let Some(oa_bytes) = try_recover_open_access_pdf(
+                    &client,
+                    clean_url,
+                    doi.as_deref(),
+                    title.as_deref(),
+                    max_bytes,
+                )
+                .await
+                {
                     return Ok(tauri::ipc::Response::new(oa_bytes));
                 }
                 if clean_url.contains("ieeexplore.ieee.org") {
@@ -262,7 +270,15 @@ pub async fn fetch_remote_pdf_preview(
         })?;
 
     if !resp.status().is_success() {
-        if let Some(oa_bytes) = try_recover_open_access_pdf(&client, clean_url, doi.as_deref(), title.as_deref(), max_bytes).await {
+        if let Some(oa_bytes) = try_recover_open_access_pdf(
+            &client,
+            clean_url,
+            doi.as_deref(),
+            title.as_deref(),
+            max_bytes,
+        )
+        .await
+        {
             return Ok(tauri::ipc::Response::new(oa_bytes));
         }
         return Err(CommandError::new(
@@ -358,7 +374,15 @@ pub async fn fetch_remote_pdf_preview(
             || sample_lower.contains("<head")
             || sample_lower.contains("<title")
         {
-            if let Some(oa_bytes) = try_recover_open_access_pdf(&client, clean_url, doi.as_deref(), title.as_deref(), max_bytes).await {
+            if let Some(oa_bytes) = try_recover_open_access_pdf(
+                &client,
+                clean_url,
+                doi.as_deref(),
+                title.as_deref(),
+                max_bytes,
+            )
+            .await
+            {
                 return Ok(tauri::ipc::Response::new(oa_bytes));
             }
             return Err(CommandError::new(
@@ -367,7 +391,15 @@ pub async fn fetch_remote_pdf_preview(
                 false,
             ));
         }
-        if let Some(oa_bytes) = try_recover_open_access_pdf(&client, clean_url, doi.as_deref(), title.as_deref(), max_bytes).await {
+        if let Some(oa_bytes) = try_recover_open_access_pdf(
+            &client,
+            clean_url,
+            doi.as_deref(),
+            title.as_deref(),
+            max_bytes,
+        )
+        .await
+        {
             return Ok(tauri::ipc::Response::new(oa_bytes));
         }
         return Err(CommandError::new(
@@ -379,7 +411,6 @@ pub async fn fetch_remote_pdf_preview(
 
     Ok(tauri::ipc::Response::new(bytes))
 }
-
 
 #[tauri::command]
 pub async fn search_website_sources(

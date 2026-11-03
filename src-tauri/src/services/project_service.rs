@@ -24,11 +24,17 @@ impl ProjectService {
     ) -> Result<AiProjectPlanProposal, AppError> {
         let (project, domain_name) = {
             let conn = db.lock()?;
-            let proj = ProjectRepository::get_project(&conn, project_id)?
-                .ok_or_else(|| AppError::Validation(format!("Project '{}' not found", project_id)))?;
+            let proj = ProjectRepository::get_project(&conn, project_id)?.ok_or_else(|| {
+                AppError::Validation(format!("Project '{}' not found", project_id))
+            })?;
 
             let domain_name: Option<String> = if let Some(ref did) = proj.primary_domain_id {
-                conn.query_row("SELECT name FROM research_domains WHERE id = ?1", rusqlite::params![did], |r| r.get::<_, String>(0)).ok()
+                conn.query_row(
+                    "SELECT name FROM research_domains WHERE id = ?1",
+                    rusqlite::params![did],
+                    |r| r.get::<_, String>(0),
+                )
+                .ok()
             } else {
                 None
             };
@@ -36,9 +42,17 @@ impl ProjectService {
         };
 
         let objective = project.objective.unwrap_or_else(|| project.title.clone());
-        let research_questions = project.research_questions.unwrap_or_else(|| "None specified".to_string());
-        let hypotheses = project.hypotheses.unwrap_or_else(|| "None specified".to_string());
-        let domain_str = domain_name.unwrap_or_else(|| project.custom_domain_text.unwrap_or_else(|| "Interdisciplinary".to_string()));
+        let research_questions = project
+            .research_questions
+            .unwrap_or_else(|| "None specified".to_string());
+        let hypotheses = project
+            .hypotheses
+            .unwrap_or_else(|| "None specified".to_string());
+        let domain_str = domain_name.unwrap_or_else(|| {
+            project
+                .custom_domain_text
+                .unwrap_or_else(|| "Interdisciplinary".to_string())
+        });
 
         let prompt = format!(
             "Generate a rigorous, multi-phase academic research project roadmap for the following scientific initiative:\n\n\
@@ -112,7 +126,11 @@ impl ProjectService {
         Ok(parsed_plan)
     }
 
-    fn parse_ai_plan_json(text: &str, project_title: &str, objective: &str) -> Result<AiProjectPlanProposal, AppError> {
+    fn parse_ai_plan_json(
+        text: &str,
+        project_title: &str,
+        objective: &str,
+    ) -> Result<AiProjectPlanProposal, AppError> {
         let clean_json = if let Some(start) = text.find('{') {
             if let Some(end) = text.rfind('}') {
                 &text[start..=end]
@@ -126,7 +144,10 @@ impl ProjectService {
         let val: Value = match serde_json::from_str(clean_json) {
             Ok(v) => v,
             Err(e) => {
-                info!("Failed to parse JSON plan directly: {}. Falling back to default scaffold.", e);
+                info!(
+                    "Failed to parse JSON plan directly: {}. Falling back to default scaffold.",
+                    e
+                );
                 return Ok(Self::create_default_plan_scaffold(project_title, objective));
             }
         };
@@ -134,23 +155,61 @@ impl ProjectService {
         let mut milestones = Vec::new();
         if let Some(ms_arr) = val.get("milestones").and_then(|v| v.as_array()) {
             for ms in ms_arr {
-                let ms_title = ms.get("title").and_then(|v| v.as_str()).unwrap_or("Research Phase").to_string();
-                let ms_desc = ms.get("description").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                let ms_days = ms.get("suggested_days_from_start").and_then(|v| v.as_i64()).unwrap_or(30);
+                let ms_title = ms
+                    .get("title")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Research Phase")
+                    .to_string();
+                let ms_desc = ms
+                    .get("description")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let ms_days = ms
+                    .get("suggested_days_from_start")
+                    .and_then(|v| v.as_i64())
+                    .unwrap_or(30);
 
                 let mut tasks = Vec::new();
                 if let Some(t_arr) = ms.get("tasks").and_then(|v| v.as_array()) {
                     for t in t_arr {
-                        let t_title = t.get("title").and_then(|v| v.as_str()).unwrap_or("Research Task").to_string();
-                        let t_desc = t.get("description").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                        let t_phase = t.get("phase").and_then(|v| v.as_str()).unwrap_or("planning").to_string();
-                        let t_priority = t.get("priority").and_then(|v| v.as_str()).unwrap_or("medium").to_string();
-                        let t_hours = t.get("estimated_hours").and_then(|v| v.as_f64()).unwrap_or(10.0);
-                        let t_days = t.get("suggested_days_from_start").and_then(|v| v.as_i64()).unwrap_or(14);
-                        let t_deliverable = t.get("deliverable").and_then(|v| v.as_str()).map(|s| s.to_string());
+                        let t_title = t
+                            .get("title")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("Research Task")
+                            .to_string();
+                        let t_desc = t
+                            .get("description")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        let t_phase = t
+                            .get("phase")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("planning")
+                            .to_string();
+                        let t_priority = t
+                            .get("priority")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("medium")
+                            .to_string();
+                        let t_hours = t
+                            .get("estimated_hours")
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(10.0);
+                        let t_days = t
+                            .get("suggested_days_from_start")
+                            .and_then(|v| v.as_i64())
+                            .unwrap_or(14);
+                        let t_deliverable = t
+                            .get("deliverable")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
 
                         let mut prereqs = Vec::new();
-                        if let Some(p_arr) = t.get("prerequisite_indexes").and_then(|v| v.as_array()) {
+                        if let Some(p_arr) =
+                            t.get("prerequisite_indexes").and_then(|v| v.as_array())
+                        {
                             for p in p_arr {
                                 if let Some(idx) = p.as_u64() {
                                     prereqs.push(idx as usize);
@@ -185,7 +244,10 @@ impl ProjectService {
         }
 
         let mut queries = Vec::new();
-        if let Some(q_arr) = val.get("recommended_paper_search_queries").and_then(|v| v.as_array()) {
+        if let Some(q_arr) = val
+            .get("recommended_paper_search_queries")
+            .and_then(|v| v.as_array())
+        {
             for q in q_arr {
                 if let Some(qs) = q.as_str() {
                     queries.push(qs.to_string());
@@ -194,10 +256,25 @@ impl ProjectService {
         }
 
         Ok(AiProjectPlanProposal {
-            project_title: val.get("project_title").and_then(|v| v.as_str()).unwrap_or(project_title).to_string(),
-            objective_summary: val.get("objective_summary").and_then(|v| v.as_str()).unwrap_or(objective).to_string(),
-            methodology_strategy: val.get("methodology_strategy").and_then(|v| v.as_str()).unwrap_or("Iterative scientific evaluation").to_string(),
-            estimated_total_weeks: val.get("estimated_total_weeks").and_then(|v| v.as_i64()).unwrap_or(16),
+            project_title: val
+                .get("project_title")
+                .and_then(|v| v.as_str())
+                .unwrap_or(project_title)
+                .to_string(),
+            objective_summary: val
+                .get("objective_summary")
+                .and_then(|v| v.as_str())
+                .unwrap_or(objective)
+                .to_string(),
+            methodology_strategy: val
+                .get("methodology_strategy")
+                .and_then(|v| v.as_str())
+                .unwrap_or("Iterative scientific evaluation")
+                .to_string(),
+            estimated_total_weeks: val
+                .get("estimated_total_weeks")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(16),
             milestones,
             recommended_paper_search_queries: queries,
         })
@@ -331,7 +408,11 @@ impl ProjectService {
                     parent_task_id: None,
                     milestone_id: Some(created_ms.id.clone()),
                     title: t.title.clone(),
-                    description: Some(format!("{}\nDeliverable: {}", t.description, t.deliverable.as_deref().unwrap_or("None"))),
+                    description: Some(format!(
+                        "{}\nDeliverable: {}",
+                        t.description,
+                        t.deliverable.as_deref().unwrap_or("None")
+                    )),
                     phase: Some(t.phase.clone()),
                     status: Some("todo".to_string()),
                     priority: Some(t.priority.clone()),
@@ -368,7 +449,11 @@ impl ProjectService {
             &input.project_id,
             "plan_generated",
             "Applied AI Research Roadmap",
-            Some(&format!("Created {} milestones and {} tasks", input.milestones.len(), created_task_count)),
+            Some(&format!(
+                "Created {} milestones and {} tasks",
+                input.milestones.len(),
+                created_task_count
+            )),
         )?;
 
         Ok(created_task_count)
@@ -386,11 +471,17 @@ impl ProjectService {
     ) -> Result<String, AppError> {
         let (project_context_text, domain_name) = {
             let conn = db.lock()?;
-            let proj = ProjectRepository::get_project(&conn, project_id)?
-                .ok_or_else(|| AppError::Validation(format!("Project '{}' not found", project_id)))?;
+            let proj = ProjectRepository::get_project(&conn, project_id)?.ok_or_else(|| {
+                AppError::Validation(format!("Project '{}' not found", project_id))
+            })?;
 
             let domain_name: Option<String> = if let Some(ref did) = proj.primary_domain_id {
-                conn.query_row("SELECT name FROM research_domains WHERE id = ?1", rusqlite::params![did], |r| r.get::<_, String>(0)).ok()
+                conn.query_row(
+                    "SELECT name FROM research_domains WHERE id = ?1",
+                    rusqlite::params![did],
+                    |r| r.get::<_, String>(0),
+                )
+                .ok()
             } else {
                 None
             };
@@ -447,7 +538,9 @@ impl ProjectService {
                 ctx.push_str(&format!(
                     "- \"{}\" ({}, {}) | Relationship: {}\n",
                     p.paper_title,
-                    p.publication_year.map(|y| y.to_string()).unwrap_or_else(|| "n.d.".into()),
+                    p.publication_year
+                        .map(|y| y.to_string())
+                        .unwrap_or_else(|| "n.d.".into()),
                     p.venue.as_deref().unwrap_or("Scholarly Venue"),
                     p.relationship_type
                 ));

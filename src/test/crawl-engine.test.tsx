@@ -88,11 +88,15 @@ describe("Phase 6 — Website Crawling & Scraping Engine Frontend", () => {
       </AppProvider>
     );
 
-    expect(screen.getByRole("heading", { name: "Downloads & Retrieval Jobs" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Downloads & Retrieval Jobs" })
+    ).toBeInTheDocument();
     expect(screen.getByText("New Website Crawl")).toBeInTheDocument();
 
     // Verify job start url is displayed
-    const jobUrl = await screen.findByText("https://www.biorxiv.org/content/early/recent");
+    const jobUrl = await screen.findByText(
+      "https://www.biorxiv.org/content/early/recent"
+    );
     expect(jobUrl).toBeInTheDocument();
 
     // Verify progress text

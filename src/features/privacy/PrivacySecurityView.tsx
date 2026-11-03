@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { useApp } from "../../context/AppContext";
-import {
-  ShieldCheck,
-  Database,
-  Cpu,
-  KeyRound,
-  EyeOff,
-} from "lucide-react";
+import { ShieldCheck, Database, Cpu, KeyRound, EyeOff } from "lucide-react";
 import { Badge } from "../../components/ui/Badge";
 
 export const PrivacySecurityView: React.FC = () => {
@@ -70,7 +64,8 @@ export const PrivacySecurityView: React.FC = () => {
           Privacy, Data Isolation & Security
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-          Review your local research boundary, cryptographic integrity controls, and telemetry isolation guarantees.
+          Review your local research boundary, cryptographic integrity controls, and
+          telemetry isolation guarantees.
         </p>
       </div>
 
@@ -118,7 +113,8 @@ export const PrivacySecurityView: React.FC = () => {
                 Strict Offline-Only Mode
               </span>
               <span className="text-[11px] text-slate-500">
-                Block all external academic discovery calls and restrict paper reading strictly to locally stored PDFs.
+                Block all external academic discovery calls and restrict paper reading
+                strictly to locally stored PDFs.
               </span>
             </div>
             <input
@@ -143,7 +139,8 @@ export const PrivacySecurityView: React.FC = () => {
                 Strip Local Annotator Metadata on Export
               </span>
               <span className="text-[11px] text-slate-500">
-                Automatically clean personal timestamps, workstation usernames, and local system paths from exported BibTeX and matrices.
+                Automatically clean personal timestamps, workstation usernames, and local
+                system paths from exported BibTeX and matrices.
               </span>
             </div>
             <input

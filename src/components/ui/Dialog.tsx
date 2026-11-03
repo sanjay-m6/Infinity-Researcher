@@ -1,9 +1,19 @@
-import React, { createContext, useContext, useEffect, useRef, forwardRef, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  forwardRef,
+  useCallback,
+} from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { motion, AnimatePresence, HTMLMotionProps } from "motion/react";
 import { cn } from "../../lib/utils";
-import { modalBackdropVariants, modalContentVariants } from "../../lib/animations/variants";
+import {
+  modalBackdropVariants,
+  modalContentVariants,
+} from "../../lib/animations/variants";
 import { useReducedMotionPreference } from "../../hooks/use-reduced-motion-preference";
 
 interface DialogContextValue {
@@ -161,7 +171,10 @@ export const DialogTitle = forwardRef<
 >(({ className = "", ...props }, ref) => (
   <h2
     ref={ref}
-    className={cn("text-base font-bold text-foreground leading-none tracking-tight", className)}
+    className={cn(
+      "text-base font-bold text-foreground leading-none tracking-tight",
+      className
+    )}
     {...props}
   />
 ));
@@ -184,7 +197,10 @@ export const DialogFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   ...props
 }) => (
   <div
-    className={cn("flex items-center justify-end gap-2 pt-4 border-t border-border mt-4", className)}
+    className={cn(
+      "flex items-center justify-end gap-2 pt-4 border-t border-border mt-4",
+      className
+    )}
     {...props}
   />
 );

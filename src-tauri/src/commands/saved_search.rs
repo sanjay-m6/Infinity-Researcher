@@ -1,6 +1,4 @@
-use crate::domain::saved_search::{
-    SavedSearch, SavedSearchCreateInput, SavedSearchUpdateInput,
-};
+use crate::domain::saved_search::{SavedSearch, SavedSearchCreateInput, SavedSearchUpdateInput};
 use crate::errors::CommandError;
 use crate::services::SavedSearchService;
 use crate::state::AppState;
@@ -58,4 +56,3 @@ pub async fn touch_saved_search(
     let db = state.db()?;
     SavedSearchService::touch_saved_search(db, &id).map_err(Into::into)
 }
-

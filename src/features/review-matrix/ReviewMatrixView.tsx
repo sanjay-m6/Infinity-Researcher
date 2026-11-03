@@ -44,7 +44,9 @@ export const ReviewMatrixView: React.FC<ReviewMatrixViewProps> = ({
 
   // Side-by-side Panel State
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [panelTab, setPanelTab] = useState<"ai_assistant" | "evidence_details">("ai_assistant");
+  const [panelTab, setPanelTab] = useState<"ai_assistant" | "evidence_details">(
+    "ai_assistant"
+  );
   const [panelWidth, setPanelWidth] = useState(440);
   const [isResizing, setIsResizing] = useState(false);
 
@@ -109,20 +111,23 @@ export const ReviewMatrixView: React.FC<ReviewMatrixViewProps> = ({
     }
   }, []);
 
-  const loadWorkspaceDetail = useCallback(async (id: string) => {
-    setIsLoading(true);
-    try {
-      const res = await desktopApi.getMatrixWorkspaceDetail(id);
-      setDetail(res);
-      if (res.rows.length > 0 && !selectedPaper) {
-        setSelectedPaper(res.rows[0]);
+  const loadWorkspaceDetail = useCallback(
+    async (id: string) => {
+      setIsLoading(true);
+      try {
+        const res = await desktopApi.getMatrixWorkspaceDetail(id);
+        setDetail(res);
+        if (res.rows.length > 0 && !selectedPaper) {
+          setSelectedPaper(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("Failed to load workspace detail:", err);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Failed to load workspace detail:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedPaper]);
+    },
+    [selectedPaper]
+  );
 
   useEffect(() => {
     void loadWorkspaces();
@@ -307,7 +312,9 @@ export const ReviewMatrixView: React.FC<ReviewMatrixViewProps> = ({
               <span>Columns</span>
             </Button>
             <Button
-              variant={isPanelOpen && panelTab === "ai_assistant" ? "primary" : "secondary"}
+              variant={
+                isPanelOpen && panelTab === "ai_assistant" ? "primary" : "secondary"
+              }
               size="sm"
               data-testid="toolbar-ai-assistant"
               onClick={handleToggleAiAssistant}
@@ -389,7 +396,9 @@ export const ReviewMatrixView: React.FC<ReviewMatrixViewProps> = ({
                 Your Review Matrix is Empty
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mb-5 leading-relaxed">
-                Add papers from your Research Library or Discover searches. The engine will automatically extract research questions, methodologies, datasets, sample sizes, and main findings with claim-to-page evidence.
+                Add papers from your Research Library or Discover searches. The engine
+                will automatically extract research questions, methodologies, datasets,
+                sample sizes, and main findings with claim-to-page evidence.
               </p>
               <Button
                 variant="primary"
@@ -415,7 +424,10 @@ export const ReviewMatrixView: React.FC<ReviewMatrixViewProps> = ({
                       {(detail?.columns || []).map((col) => (
                         <th
                           key={col.key}
-                          style={{ minWidth: col.width || 200, maxWidth: (col.width || 200) + 60 }}
+                          style={{
+                            minWidth: col.width || 200,
+                            maxWidth: (col.width || 200) + 60,
+                          }}
                           className="p-3.5 border-l border-slate-200/60 dark:border-slate-800"
                         >
                           <div className="flex items-center justify-between gap-1">
@@ -644,7 +656,7 @@ export const ReviewMatrixView: React.FC<ReviewMatrixViewProps> = ({
                 ) : (
                   <EvidenceDetailsPanel
                     row={selectedCell?.row || selectedPaper || null}
-                    column={selectedCell?.col || (detail?.columns[0] || null)}
+                    column={selectedCell?.col || detail?.columns[0] || null}
                     extraction={selectedCell?.extraction || null}
                     onSaveExtraction={handleSaveExtraction}
                     onNavigateToPdf={onNavigateToDiscoverPdf}

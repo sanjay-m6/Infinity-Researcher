@@ -90,12 +90,7 @@ export interface AnimatedIconProps extends AppIconProps {
  * Button variants consistent with Phase 5 Button primitives.
  */
 export type IconButtonVariant =
-  | "default"
-  | "primary"
-  | "secondary"
-  | "outline"
-  | "ghost"
-  | "destructive";
+  "default" | "primary" | "secondary" | "outline" | "ghost" | "destructive";
 
 /**
  * Size scale for icon buttons ensuring minimum accessible touch/click targets.
@@ -105,8 +100,10 @@ export type IconButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
 /**
  * Props for the accessible IconButton component.
  */
-export interface IconButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface IconButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
   /**
    * The Lucide icon component to display within the button.
    */
@@ -152,4 +149,3 @@ export interface IconButtonProps
    */
   chevronAngle?: 90 | 180;
 }
-

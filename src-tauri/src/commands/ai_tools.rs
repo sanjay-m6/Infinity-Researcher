@@ -165,8 +165,10 @@ fn compute_genuine_metrics(text: &str) -> serde_json::Value {
     let syllables_f = syllables as f64;
     let chars_f = char_count as f64;
 
-    let flesch_reading_ease = 206.835 - 1.015 * (words_f / sentences_f) - 84.6 * (syllables_f / words_f);
-    let flesch_kincaid_grade = 0.39 * (words_f / sentences_f) + 11.8 * (syllables_f / words_f) - 15.59;
+    let flesch_reading_ease =
+        206.835 - 1.015 * (words_f / sentences_f) - 84.6 * (syllables_f / words_f);
+    let flesch_kincaid_grade =
+        0.39 * (words_f / sentences_f) + 11.8 * (syllables_f / words_f) - 15.59;
     let l = (chars_f / words_f) * 100.0;
     let s = (sentences_f / words_f) * 100.0;
     let coleman_liau_index = 0.0588 * l - 0.296 * s - 15.8;
@@ -222,7 +224,11 @@ pub async fn start_analysis_job(
         return Ok(active_job);
     }
 
-    let job_id = format!("job_{}_{}", job_type, &document_hash[..8.min(document_hash.len())]);
+    let job_id = format!(
+        "job_{}_{}",
+        job_type,
+        &document_hash[..8.min(document_hash.len())]
+    );
     let job = AiToolsRepository::create_analysis_job(&conn, &job_id, &job_type, &document_hash)
         .map_err(|e| CommandError::new("ERR_DB", e.to_string(), false))?;
 
@@ -241,7 +247,9 @@ pub async fn start_analysis_job(
                 20,
                 "Retrieving ingested document text and metadata",
             );
-            AiToolsRepository::get_document_content_by_hash(&conn, &doc_hash_clone).ok().flatten()
+            AiToolsRepository::get_document_content_by_hash(&conn, &doc_hash_clone)
+                .ok()
+                .flatten()
         } else {
             None
         };
@@ -285,11 +293,18 @@ pub async fn start_analysis_job(
 
         let final_result = match job_type_clone.as_str() {
             "ai_writing_detection" | "ai_signals" => {
-                let ai_signals = crate::services::python_engine::PythonEngineService::detect_ai_signals(&raw_content).await.unwrap_or_else(|_| serde_json::json!({
-                    "status": "fallback",
-                    "overall_signal_score": 0.35,
-                    "classification": "natural_cadence"
-                }));
+                let ai_signals =
+                    crate::services::python_engine::PythonEngineService::detect_ai_signals(
+                        &raw_content,
+                    )
+                    .await
+                    .unwrap_or_else(|_| {
+                        serde_json::json!({
+                            "status": "fallback",
+                            "overall_signal_score": 0.35,
+                            "classification": "natural_cadence"
+                        })
+                    });
                 serde_json::json!({
                     "document_hash": doc_hash_clone,
                     "file_name": file_name,
@@ -381,7 +396,13 @@ pub async fn save_integrity_report(
 
     AiToolsRepository::get_integrity_report(&conn, &report.id)
         .map_err(|e| CommandError::new("ERR_DB", e.to_string(), false))?
-        .ok_or_else(|| CommandError::new("ERR_SAVE", "Failed to retrieve saved integrity report", false))
+        .ok_or_else(|| {
+            CommandError::new(
+                "ERR_SAVE",
+                "Failed to retrieve saved integrity report",
+                false,
+            )
+        })
 }
 
 #[tauri::command]
@@ -467,7 +488,9 @@ pub async fn save_citation_audit(
 
     AiToolsRepository::get_citation_audit(&conn, &audit.id)
         .map_err(|e| CommandError::new("ERR_DB", e.to_string(), false))?
-        .ok_or_else(|| CommandError::new("ERR_SAVE", "Failed to retrieve saved citation audit", false))
+        .ok_or_else(|| {
+            CommandError::new("ERR_SAVE", "Failed to retrieve saved citation audit", false)
+        })
 }
 
 #[tauri::command]
@@ -572,21 +595,16 @@ pub async fn get_readability_report_by_hash(
         .map_err(|e| CommandError::new("ERR_DB", e.to_string(), false))
 }
 
-
 // ---------------------------------------------------------------------------
 // Document Extraction & AI Signals via Python Engine
 // ---------------------------------------------------------------------------
 
 #[tauri::command]
-pub async fn extract_document_text(
-    file_path: String,
-) -> Result<serde_json::Value, CommandError> {
+pub async fn extract_document_text(file_path: String) -> Result<serde_json::Value, CommandError> {
     crate::services::python_engine::PythonEngineService::extract_document_text(&file_path).await
 }
 
 #[tauri::command]
-pub async fn detect_ai_signals(
-    text: String,
-) -> Result<serde_json::Value, CommandError> {
+pub async fn detect_ai_signals(text: String) -> Result<serde_json::Value, CommandError> {
     crate::services::python_engine::PythonEngineService::detect_ai_signals(&text).await
 }

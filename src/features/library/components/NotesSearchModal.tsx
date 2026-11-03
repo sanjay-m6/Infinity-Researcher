@@ -50,7 +50,8 @@ export const NotesSearchModal: React.FC<NotesSearchModalProps> = ({
     >
       <div className="space-y-4">
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Query across all annotations, thoughts, and extracted quotes anchored to your research papers.
+          Query across all annotations, thoughts, and extracted quotes anchored to your
+          research papers.
         </p>
 
         <form onSubmit={handleSearch} className="flex gap-2">
@@ -101,7 +102,10 @@ export const NotesSearchModal: React.FC<NotesSearchModalProps> = ({
 
                   {matchedPaper && (
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2 truncate">
-                      Paper: <span className="font-medium text-slate-700 dark:text-slate-300">{matchedPaper.title}</span>
+                      Paper:{" "}
+                      <span className="font-medium text-slate-700 dark:text-slate-300">
+                        {matchedPaper.title}
+                      </span>
                     </p>
                   )}
 

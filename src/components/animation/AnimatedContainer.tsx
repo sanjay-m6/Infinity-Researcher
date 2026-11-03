@@ -1,13 +1,11 @@
 import { forwardRef, HTMLAttributes, ReactNode } from "react";
 import { motion, HTMLMotionProps, Variants } from "motion/react";
-import {
-  getAnimationPreset,
-  AnimationPresetName,
-} from "../../lib/animations/presets";
+import { getAnimationPreset, AnimationPresetName } from "../../lib/animations/presets";
 import { useReducedMotionPreference } from "../../hooks/use-reduced-motion-preference";
 
 export interface AnimatedContainerProps
-  extends Omit<HTMLMotionProps<"div">, "children" | "variants">,
+  extends
+    Omit<HTMLMotionProps<"div">, "children" | "variants">,
     Omit<HTMLAttributes<HTMLDivElement>, keyof HTMLMotionProps<"div">> {
   children?: ReactNode;
   /**
@@ -62,7 +60,7 @@ export const AnimatedContainer = forwardRef<HTMLDivElement, AnimatedContainerPro
       ...(duration !== undefined ? { duration } : {}),
       ...(delay > 0 ? { delay } : {}),
       ...(prefersReducedMotion ? { duration: 0 } : {}),
-      ...((typeof customTransition === "object" && customTransition !== null)
+      ...(typeof customTransition === "object" && customTransition !== null
         ? customTransition
         : {}),
     };

@@ -1,10 +1,5 @@
 import React, { useState } from "react";
-import {
-  X,
-  ExternalLink,
-  Copy,
-  Check,
-} from "lucide-react";
+import { X, ExternalLink, Copy, Check } from "lucide-react";
 import { ParsedReference, CitationStyleType, InTextCitation } from "../types";
 import { formatReferenceInStyle } from "../styleFormatters";
 import { Button } from "../../../components/ui/Button";
@@ -87,25 +82,35 @@ export const ReferenceInspectorDrawer: React.FC<ReferenceInspectorDrawerProps> =
               <div>
                 <span className="text-slate-400 block">Title</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {reference.title || <span className="text-amber-500 italic">Missing Title</span>}
+                  {reference.title || (
+                    <span className="text-amber-500 italic">Missing Title</span>
+                  )}
                 </span>
               </div>
               <div>
                 <span className="text-slate-400 block">Publication Year</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {reference.year || <span className="text-rose-500 italic">Missing Year</span>}
+                  {reference.year || (
+                    <span className="text-rose-500 italic">Missing Year</span>
+                  )}
                 </span>
               </div>
               <div>
                 <span className="text-slate-400 block">Venue / Journal</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {reference.venue || <span className="text-amber-500 italic">Missing Venue</span>}
+                  {reference.venue || (
+                    <span className="text-amber-500 italic">Missing Venue</span>
+                  )}
                 </span>
               </div>
               <div>
                 <span className="text-slate-400 block">Authors</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {reference.authors.length > 0 ? reference.authors.join(", ") : <span className="text-rose-500 italic">Missing Authors</span>}
+                  {reference.authors.length > 0 ? (
+                    reference.authors.join(", ")
+                  ) : (
+                    <span className="text-rose-500 italic">Missing Authors</span>
+                  )}
                 </span>
               </div>
             </div>
@@ -117,8 +122,8 @@ export const ReferenceInspectorDrawer: React.FC<ReferenceInspectorDrawerProps> =
               reference.doiStatus.syntaxValid && reference.doiStatus.resolved
                 ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800"
                 : !reference.doiStatus.syntaxValid && reference.doi
-                ? "bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800"
-                : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800"
+                  ? "bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800"
+                  : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -130,8 +135,8 @@ export const ReferenceInspectorDrawer: React.FC<ReferenceInspectorDrawerProps> =
                   reference.doiStatus.syntaxValid && reference.doiStatus.resolved
                     ? "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200"
                     : !reference.doiStatus.syntaxValid && reference.doi
-                    ? "bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200"
-                    : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                      ? "bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200"
+                      : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
                 }`}
               >
                 {reference.doiStatus.resolutionStatusLabel}
@@ -166,13 +171,17 @@ export const ReferenceInspectorDrawer: React.FC<ReferenceInspectorDrawerProps> =
                   <div className="mt-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-800/60 text-[11px] text-emerald-900 dark:text-emerald-200 space-y-1">
                     <span className="font-bold block">Canonical Registry Record:</span>
                     <div>Title: {reference.doiStatus.verifiedMetadata.title}</div>
-                    <div>Year: {reference.doiStatus.verifiedMetadata.year} · Venue: {reference.doiStatus.verifiedMetadata.venue}</div>
+                    <div>
+                      Year: {reference.doiStatus.verifiedMetadata.year} · Venue:{" "}
+                      {reference.doiStatus.verifiedMetadata.venue}
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
               <p className="text-slate-400 text-[11px] italic">
-                No DOI attached to this reference. Adding a canonical DOI improves citation indexability.
+                No DOI attached to this reference. Adding a canonical DOI improves
+                citation indexability.
               </p>
             )}
           </div>
@@ -209,22 +218,29 @@ export const ReferenceInspectorDrawer: React.FC<ReferenceInspectorDrawerProps> =
                 Reformat in Standard Styles
               </span>
               <div className="flex items-center gap-1">
-                {(["ieee", "apa", "mla", "chicago", "harvard", "bibtex"] as CitationStyleType[]).map(
-                  (st) => (
-                    <button
-                      key={st}
-                      type="button"
-                      onClick={() => setSelectedStyle(st)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase cursor-pointer ${
-                        selectedStyle === st
-                          ? "bg-indigo-600 text-white"
-                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                      }`}
-                    >
-                      {st}
-                    </button>
-                  )
-                )}
+                {(
+                  [
+                    "ieee",
+                    "apa",
+                    "mla",
+                    "chicago",
+                    "harvard",
+                    "bibtex",
+                  ] as CitationStyleType[]
+                ).map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => setSelectedStyle(st)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase cursor-pointer ${
+                      selectedStyle === st
+                        ? "bg-indigo-600 text-white"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -238,8 +254,16 @@ export const ReferenceInspectorDrawer: React.FC<ReferenceInspectorDrawerProps> =
               onClick={handleCopy}
               className="w-full text-xs h-8"
             >
-              {hasCopied ? <Check className="w-3.5 h-3.5 text-emerald-500 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
-              <span>{hasCopied ? "Copied Reformatted Citation" : `Copy as ${selectedStyle.toUpperCase()}`}</span>
+              {hasCopied ? (
+                <Check className="w-3.5 h-3.5 text-emerald-500 mr-1" />
+              ) : (
+                <Copy className="w-3.5 h-3.5 mr-1" />
+              )}
+              <span>
+                {hasCopied
+                  ? "Copied Reformatted Citation"
+                  : `Copy as ${selectedStyle.toUpperCase()}`}
+              </span>
             </Button>
           </div>
         </div>

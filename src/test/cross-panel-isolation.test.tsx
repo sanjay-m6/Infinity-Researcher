@@ -20,19 +20,25 @@ describe("Milestone 2 Adversarial: Cross-Panel Session Isolation & Collision Pre
     sqliteDb = new Map<string, AiChatMessage[]>();
 
     // Mock desktop API to act as an actual session-isolated store
-    vi.spyOn(desktopApi, "listAiChatMessages").mockImplementation(async (sessionId: string) => {
-      return [...(sqliteDb.get(sessionId) || [])];
-    });
+    vi.spyOn(desktopApi, "listAiChatMessages").mockImplementation(
+      async (sessionId: string) => {
+        return [...(sqliteDb.get(sessionId) || [])];
+      }
+    );
 
-    vi.spyOn(desktopApi, "saveAiChatMessage").mockImplementation(async (msg: AiChatMessage) => {
-      const list = sqliteDb.get(msg.session_id) || [];
-      list.push(msg);
-      sqliteDb.set(msg.session_id, list);
-    });
+    vi.spyOn(desktopApi, "saveAiChatMessage").mockImplementation(
+      async (msg: AiChatMessage) => {
+        const list = sqliteDb.get(msg.session_id) || [];
+        list.push(msg);
+        sqliteDb.set(msg.session_id, list);
+      }
+    );
 
-    vi.spyOn(desktopApi, "clearAiChatSession").mockImplementation(async (sessionId: string) => {
-      sqliteDb.delete(sessionId);
-    });
+    vi.spyOn(desktopApi, "clearAiChatSession").mockImplementation(
+      async (sessionId: string) => {
+        sqliteDb.delete(sessionId);
+      }
+    );
   });
 
   const testPaperId = "paper_isolation_test_42";
@@ -106,9 +112,13 @@ describe("Milestone 2 Adversarial: Cross-Panel Session Isolation & Collision Pre
     expect(remainingPdf).toHaveLength(1);
     expect(remainingPdf[0].content).toBe("PDF Viewer specific citation for paper 42");
 
-    const remainingDiscover = await desktopApi.listAiChatMessages(`discover_${testPaperId}`);
+    const remainingDiscover = await desktopApi.listAiChatMessages(
+      `discover_${testPaperId}`
+    );
     expect(remainingDiscover).toHaveLength(1);
-    expect(remainingDiscover[0].content).toBe("Discover assistant search evaluation for paper 42");
+    expect(remainingDiscover[0].content).toBe(
+      "Discover assistant search evaluation for paper 42"
+    );
   });
 
   it("clearing chat in PDF Viewer leaves AI Hub and Discover Assistant messages intact", async () => {
@@ -125,9 +135,13 @@ describe("Milestone 2 Adversarial: Cross-Panel Session Isolation & Collision Pre
     expect(remainingHub).toHaveLength(1);
     expect(remainingHub[0].content).toBe("AI Hub specific insight for paper 42");
 
-    const remainingDiscover = await desktopApi.listAiChatMessages(`discover_${testPaperId}`);
+    const remainingDiscover = await desktopApi.listAiChatMessages(
+      `discover_${testPaperId}`
+    );
     expect(remainingDiscover).toHaveLength(1);
-    expect(remainingDiscover[0].content).toBe("Discover assistant search evaluation for paper 42");
+    expect(remainingDiscover[0].content).toBe(
+      "Discover assistant search evaluation for paper 42"
+    );
   });
 
   it("clearing chat in Discover Assistant leaves AI Hub and PDF Viewer messages intact", async () => {

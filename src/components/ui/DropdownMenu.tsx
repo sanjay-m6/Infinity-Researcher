@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useRef, forwardRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  forwardRef,
+  useState,
+} from "react";
 import { motion, AnimatePresence, HTMLMotionProps } from "motion/react";
 import { cn } from "../../lib/utils";
 import { dropdownVariants } from "../../lib/animations/variants";
@@ -9,7 +16,9 @@ interface DropdownMenuContextValue {
   onOpenChange: (open: boolean) => void;
 }
 
-const DropdownMenuContext = createContext<DropdownMenuContextValue | undefined>(undefined);
+const DropdownMenuContext = createContext<DropdownMenuContextValue | undefined>(
+  undefined
+);
 
 export interface DropdownMenuProps {
   open?: boolean;
@@ -35,7 +44,9 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   };
 
   return (
-    <DropdownMenuContext.Provider value={{ open: isOpen, onOpenChange: handleOpenChange }}>
+    <DropdownMenuContext.Provider
+      value={{ open: isOpen, onOpenChange: handleOpenChange }}
+    >
       <div className="relative inline-block text-left">{children}</div>
     </DropdownMenuContext.Provider>
   );
@@ -64,7 +75,10 @@ export const DropdownMenuTrigger = forwardRef<
 });
 DropdownMenuTrigger.displayName = "DropdownMenuTrigger";
 
-export interface DropdownMenuContentProps extends Omit<HTMLMotionProps<"div">, "children"> {
+export interface DropdownMenuContentProps extends Omit<
+  HTMLMotionProps<"div">,
+  "children"
+> {
   align?: "left" | "right" | "center";
   children?: React.ReactNode;
 }
@@ -137,13 +151,15 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
 );
 DropdownMenuContent.displayName = "DropdownMenuContent";
 
-export interface DropdownMenuItemProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface DropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   inset?: boolean;
 }
 
 export const DropdownMenuItem = forwardRef<HTMLButtonElement, DropdownMenuItemProps>(
-  ({ className = "", inset = false, disabled = false, onClick, children, ...props }, ref) => {
+  (
+    { className = "", inset = false, disabled = false, onClick, children, ...props },
+    ref
+  ) => {
     const context = useContext(DropdownMenuContext);
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -180,7 +196,10 @@ export const DropdownMenuLabel: React.FC<React.HTMLAttributes<HTMLDivElement>> =
   ...props
 }) => (
   <div
-    className={cn("px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground", className)}
+    className={cn(
+      "px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground",
+      className
+    )}
     {...props}
   />
 );
@@ -188,6 +207,4 @@ export const DropdownMenuLabel: React.FC<React.HTMLAttributes<HTMLDivElement>> =
 export const DropdownMenuSeparator: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className = "",
   ...props
-}) => (
-  <div className={cn("-mx-1 my-1 h-[1px] bg-border", className)} {...props} />
-);
+}) => <div className={cn("-mx-1 my-1 h-[1px] bg-border", className)} {...props} />;

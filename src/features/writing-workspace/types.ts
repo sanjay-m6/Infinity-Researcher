@@ -1,4 +1,5 @@
-export type WritingToolType = "ai_humanizer" | "academic_writing_assistant" | "paraphrasing_tool";
+export type WritingToolType =
+  "ai_humanizer" | "academic_writing_assistant" | "paraphrasing_tool";
 
 // ---------------------------------------------------------------------------
 // Tool Modes
@@ -37,7 +38,8 @@ export type ParaphrasingModeId =
   | "concision"
   | "academic_restatement";
 
-export type AnyWritingModeId = HumanizerModeId | AcademicWritingModeId | ParaphrasingModeId;
+export type AnyWritingModeId =
+  HumanizerModeId | AcademicWritingModeId | ParaphrasingModeId;
 
 export interface ToolModeOption {
   id: AnyWritingModeId;

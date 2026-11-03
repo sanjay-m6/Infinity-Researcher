@@ -71,7 +71,9 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
   const [abstractText, setAbstractText] = useState("");
   const [sourcePageUrl, setSourcePageUrl] = useState("");
   const [licenseName, setLicenseName] = useState("CC-BY 4.0");
-  const [licenseUrl, setLicenseUrl] = useState("https://creativecommons.org/licenses/by/4.0/");
+  const [licenseUrl, setLicenseUrl] = useState(
+    "https://creativecommons.org/licenses/by/4.0/"
+  );
   const [sourceName, setSourceName] = useState("IEEE Xplore");
   const [userConfirmedOa, setUserConfirmedOa] = useState(false);
   const [userNotes, setUserNotes] = useState("");
@@ -79,7 +81,9 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
   const [copyToLibrary, setCopyToLibrary] = useState(false); // Default to Link in Place (Preview Only, No Copy)
 
   const [isExtracting, setIsExtracting] = useState(false);
-  const [extractionResult, setExtractionResult] = useState<ExtractedPdfMetadata | null>(null);
+  const [extractionResult, setExtractionResult] = useState<ExtractedPdfMetadata | null>(
+    null
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -100,7 +104,10 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
       setPublicationYear(
         initialPaper.publication_year ? String(initialPaper.publication_year) : ""
       );
-      setVenue(initialPaper.venue || (initialMode === "ieee" ? "IEEE Xplore" : "Academic Journal"));
+      setVenue(
+        initialPaper.venue ||
+          (initialMode === "ieee" ? "IEEE Xplore" : "Academic Journal")
+      );
       setCanonicalDoi(initialPaper.canonical_doi || "");
       setAbstractText(initialPaper.abstract_text || "");
       setSourcePageUrl(
@@ -129,7 +136,9 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
       setFilePath("");
       setLicenseName("CC-BY 4.0");
       setLicenseUrl("https://creativecommons.org/licenses/by/4.0/");
-      setSourceName(initialMode === "ieee" ? "IEEE Xplore (Manual OA Import)" : "Local PDF Import");
+      setSourceName(
+        initialMode === "ieee" ? "IEEE Xplore (Manual OA Import)" : "Local PDF Import"
+      );
       setUserConfirmedOa(false);
       setUserNotes("");
       setTargetCollectionId("");
@@ -160,7 +169,11 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
         if (meta.title && (!title || title.trim().length === 0)) {
           setTitle(meta.title);
         }
-        if (meta.authors && meta.authors.length > 0 && (!authors || authors.trim().length === 0)) {
+        if (
+          meta.authors &&
+          meta.authors.length > 0 &&
+          (!authors || authors.trim().length === 0)
+        ) {
           setAuthors(meta.authors.join(", "));
         }
         if (meta.publication_year && !publicationYear) {
@@ -300,8 +313,8 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
           result.is_duplicate
             ? "Duplicate PDF recognized via SHA-256. Reusing existing library record."
             : copyToLibrary
-            ? "Saved paper and copied PDF to offline library!"
-            : "Successfully linked IEEE paper in place (zero copy)!",
+              ? "Saved paper and copied PDF to offline library!"
+              : "Successfully linked IEEE paper in place (zero copy)!",
           result.is_duplicate ? "info" : "success"
         );
       } else {
@@ -328,8 +341,8 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
           result.is_duplicate
             ? "Duplicate PDF recognized via SHA-256."
             : copyToLibrary
-            ? "Saved paper and copied PDF to offline library!"
-            : "Successfully linked Open Access paper in place (zero copy)!",
+              ? "Saved paper and copied PDF to offline library!"
+              : "Successfully linked Open Access paper in place (zero copy)!",
           result.is_duplicate ? "info" : "success"
         );
       }
@@ -356,8 +369,8 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
         mode === "edit"
           ? "Edit Paper Metadata"
           : mode === "ieee"
-          ? "Import IEEE Xplore Paper"
-          : "Import Open Access PDF"
+            ? "Import IEEE Xplore Paper"
+            : "Import Open Access PDF"
       }
       description={
         mode === "edit"
@@ -407,7 +420,9 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
                   <span>Compliant IEEE Workflow (No API Key Required)</span>
                 </div>
                 <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                  IEEE Xplore protects search pages with web security challenges. To respect IEEE terms of service and guarantee reliable access, search in your browser, download the Open Access PDF, and link or import it below.
+                  IEEE Xplore protects search pages with web security challenges. To
+                  respect IEEE terms of service and guarantee reliable access, search in
+                  your browser, download the Open Access PDF, and link or import it below.
                 </p>
               </div>
 
@@ -442,8 +457,8 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
                 isDragOver
                   ? "border-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/40"
                   : filePath
-                  ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50/40 dark:bg-emerald-950/20"
-                  : "border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 bg-slate-50/60 dark:bg-slate-800/40"
+                    ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50/40 dark:bg-emerald-950/20"
+                    : "border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 bg-slate-50/60 dark:bg-slate-800/40"
               }`}
             >
               <input
@@ -515,8 +530,8 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
                       extractionResult.status === "extracted"
                         ? "success"
                         : extractionResult.is_scanned
-                        ? "warning"
-                        : "destructive"
+                          ? "warning"
+                          : "destructive"
                     }
                     size="sm"
                   >
@@ -524,8 +539,12 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
                   </Badge>
                 </div>
                 <div className="text-slate-500 dark:text-slate-400 flex flex-wrap gap-x-3 gap-y-0.5">
-                  <span>Pages: <strong>{extractionResult.page_count}</strong></span>
-                  <span>Words: <strong>{extractionResult.word_count}</strong></span>
+                  <span>
+                    Pages: <strong>{extractionResult.page_count}</strong>
+                  </span>
+                  <span>
+                    Words: <strong>{extractionResult.word_count}</strong>
+                  </span>
                   {extractionResult.is_scanned && (
                     <span className="text-amber-600 font-semibold">
                       Scanned / Image-Only PDF detected
@@ -569,7 +588,8 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
                     <span>Link in Place (Zero Copy)</span>
                   </div>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
-                    Reads directly from your existing download path. No extra disk storage used.
+                    Reads directly from your existing download path. No extra disk storage
+                    used.
                   </p>
                 </div>
               </label>
@@ -768,10 +788,12 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
             />
             <div className="text-xs">
               <span className="font-semibold text-emerald-950 dark:text-emerald-200">
-                I confirm this paper is Open Access or authorized for personal academic research *
+                I confirm this paper is Open Access or authorized for personal academic
+                research *
               </span>
               <p className="text-[11px] text-emerald-800/80 dark:text-emerald-400 mt-0.5">
-                This verification establishes lawful access evidence in your local SQLite library records.
+                This verification establishes lawful access evidence in your local SQLite
+                library records.
               </p>
             </div>
           </label>
@@ -809,10 +831,10 @@ export const PaperImportModal: React.FC<PaperImportModalProps> = ({
             {isSubmitting
               ? "Saving..."
               : mode === "edit"
-              ? "Update Metadata"
-              : copyToLibrary
-              ? "Save & Copy to Library"
-              : "Link & Preview in Reader"}
+                ? "Update Metadata"
+                : copyToLibrary
+                  ? "Save & Copy to Library"
+                  : "Link & Preview in Reader"}
           </Button>
         </div>
       </form>

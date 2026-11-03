@@ -1,8 +1,5 @@
 import React, { useCallback, useState } from "react";
-import {
-  ProjectWorkspaceProvider,
-  useProjectWorkspace,
-} from "./ProjectWorkspaceContext";
+import { ProjectWorkspaceProvider, useProjectWorkspace } from "./ProjectWorkspaceContext";
 import { Panel1Collection } from "./components/Panel1Collection";
 import { Panel2Workspace } from "./components/Panel2Workspace";
 import { Panel3Evidence } from "./components/Panel3Evidence";
@@ -260,7 +257,9 @@ const WorkspaceInner: React.FC = () => {
                 ? "border-border bg-surface-subtle text-text"
                 : "border-border text-text-muted hover:text-text hover:bg-surface-hover"
             }`}
-            title={isPanel1Collapsed ? "Expand Collection Panel" : "Collapse Collection Panel"}
+            title={
+              isPanel1Collapsed ? "Expand Collection Panel" : "Collapse Collection Panel"
+            }
             aria-label="Toggle Left Panel"
           >
             {isPanel1Collapsed ? (
@@ -278,7 +277,9 @@ const WorkspaceInner: React.FC = () => {
                 ? "border-border bg-surface-subtle text-text"
                 : "border-border text-text-muted hover:text-text hover:bg-surface-hover"
             }`}
-            title={isPanel3Collapsed ? "Expand Evidence Panel" : "Collapse Evidence Panel"}
+            title={
+              isPanel3Collapsed ? "Expand Evidence Panel" : "Collapse Evidence Panel"
+            }
             aria-label="Toggle Right Panel"
           >
             {isPanel3Collapsed ? (

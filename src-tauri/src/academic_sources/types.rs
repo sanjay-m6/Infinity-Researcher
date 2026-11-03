@@ -316,10 +316,7 @@ impl NormalizedWork {
             .as_ref()
             .map_or(false, |p| !p.trim().is_empty());
         let has_authors = !self.authors.is_empty();
-        let has_venue = self
-            .venue
-            .as_ref()
-            .map_or(false, |v| !v.trim().is_empty());
+        let has_venue = self.venue.as_ref().map_or(false, |v| !v.trim().is_empty());
         let has_date = self.publication_date.is_some() || self.publication_year.is_some();
 
         let mut score: u8 = 0;

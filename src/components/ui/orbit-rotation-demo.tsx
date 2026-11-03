@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   FaApple,
@@ -11,16 +11,10 @@ import {
   FaNodeJs,
   FaReact,
   FaTwitter,
-} from "react-icons/fa"
-import {
-  SiFacebook,
-  SiNextdotjs,
-  SiRedux,
-  SiTypescript,
-  SiVercel,
-} from "react-icons/si"
+} from "react-icons/fa";
+import { SiFacebook, SiNextdotjs, SiRedux, SiTypescript, SiVercel } from "react-icons/si";
 
-import { OrbitRotation } from "@/components/ui/orbit-rotation"
+import { OrbitRotation } from "@/components/ui/orbit-rotation";
 
 export function OrbitRotationDemo() {
   const techIcons = [
@@ -39,12 +33,12 @@ export function OrbitRotationDemo() {
     { Icon: FaGoogle, name: "Google" },
     { Icon: FaApple, name: "Apple" },
     { Icon: SiFacebook, name: "Facebook" },
-  ]
+  ];
 
   const centerIcon = {
     Icon: SiNextdotjs,
     name: "Next.js",
-  }
+  };
 
   return (
     <div className="bg-background relative h-[500px] w-full overflow-hidden rounded-lg border p-8">
@@ -58,8 +52,7 @@ export function OrbitRotationDemo() {
         />
       </div>
     </div>
-  )
+  );
 }
 
-export default OrbitRotationDemo
-
+export default OrbitRotationDemo;

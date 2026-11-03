@@ -105,16 +105,22 @@ export function mergeDuplicateRecords<T extends DiscoveredSearchResult>(
   // Pick richest abstract (longest non-empty)
   const existingAbs = existing.abstract_text || "";
   const incomingAbs = incoming.abstract_text || "";
-  const bestAbstract = incomingAbs.length > existingAbs.length ? incomingAbs : existingAbs;
+  const bestAbstract =
+    incomingAbs.length > existingAbs.length ? incomingAbs : existingAbs;
 
   // Pick best PDF URL (prefer direct PDF ending with .pdf or verified link)
   const bestPdfUrl = existing.pdf_url || incoming.pdf_url;
 
   // Pick highest citation count if available
-  const citationA = (existing as unknown as Record<string, unknown>).citation_count as number | undefined;
-  const citationB = (incoming as unknown as Record<string, unknown>).citation_count as number | undefined;
+  const citationA = (existing as unknown as Record<string, unknown>).citation_count as
+    number | undefined;
+  const citationB = (incoming as unknown as Record<string, unknown>).citation_count as
+    number | undefined;
   let bestCitations = existing.citation_count;
-  if (typeof citationB === "number" && (typeof citationA !== "number" || citationB > citationA)) {
+  if (
+    typeof citationB === "number" &&
+    (typeof citationA !== "number" || citationB > citationA)
+  ) {
     bestCitations = citationB;
   }
 
@@ -174,4 +180,3 @@ export function deduplicatePaperList<T extends DiscoveredSearchResult>(papers: T
 
   return result;
 }
-

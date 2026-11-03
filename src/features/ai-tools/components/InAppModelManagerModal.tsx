@@ -31,7 +31,13 @@ import {
 } from "../../../lib/desktop-api";
 
 export interface ModelTier {
-  id: "deepseek-r1-8b" | "qwen2.5-7b" | "llama-3.1-8b" | "qwen2.5-3b" | "mistral-7b" | string;
+  id:
+    | "deepseek-r1-8b"
+    | "qwen2.5-7b"
+    | "llama-3.1-8b"
+    | "qwen2.5-3b"
+    | "mistral-7b"
+    | string;
   tierName: string;
   targetHardware: string;
   filename: string;
@@ -41,7 +47,12 @@ export interface ModelTier {
   minRamGb: number;
   badge: string;
   highlight: string;
-  category: "Reasoning SOTA" | "Flagship Academic" | "Scholarly Voice" | "High Speed" | "Function Calling";
+  category:
+    | "Reasoning SOTA"
+    | "Flagship Academic"
+    | "Scholarly Voice"
+    | "High Speed"
+    | "Function Calling";
   accentColor: string;
 }
 
@@ -270,7 +281,8 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
                 </Badge>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Run state-of-the-art open-source LLMs locally with zero telemetry. High-fidelity academic synthesis and reasoning.
+                Run state-of-the-art open-source LLMs locally with zero telemetry.
+                High-fidelity academic synthesis and reasoning.
               </p>
             </div>
           </div>
@@ -368,8 +380,11 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
         {panelTab === "catalog" && (
           <div className="flex-1 overflow-y-auto p-6 space-y-3.5">
             {MODEL_TIERS.map((tier) => {
-              const isInstalled = installedModels.some((m) => m.filename === tier.filename);
-              const isActive = engineStatus.is_running && engineStatus.active_model === tier.filename;
+              const isInstalled = installedModels.some(
+                (m) => m.filename === tier.filename
+              );
+              const isActive =
+                engineStatus.is_running && engineStatus.active_model === tier.filename;
               const isDownloading = downloadingId === tier.id;
 
               return (
@@ -387,7 +402,9 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                           {tier.tierName}
                         </h3>
-                        <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${tier.accentColor}`}>
+                        <span
+                          className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${tier.accentColor}`}
+                        >
                           {tier.badge}
                         </span>
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
@@ -468,14 +485,19 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
                     <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
                       <div className="flex justify-between text-[11px] font-mono text-slate-500">
                         <span>
-                          {(downloadProgress.downloaded_bytes / (1024 * 1024)).toFixed(1)} MB /{" "}
-                          {(downloadProgress.total_bytes / (1024 * 1024)).toFixed(1)} MB
+                          {(downloadProgress.downloaded_bytes / (1024 * 1024)).toFixed(1)}{" "}
+                          MB / {(downloadProgress.total_bytes / (1024 * 1024)).toFixed(1)}{" "}
+                          MB
                         </span>
                         <span className="font-bold text-indigo-600 dark:text-indigo-400">
                           {downloadProgress.percentage.toFixed(1)}%
                         </span>
                       </div>
-                      <Progress value={downloadProgress.percentage} max={100} className="h-1.5" />
+                      <Progress
+                        value={downloadProgress.percentage}
+                        max={100}
+                        className="h-1.5"
+                      />
                     </div>
                   )}
                 </div>
@@ -491,21 +513,28 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 <span>
-                  {installedModels.length} private model{installedModels.length === 1 ? "" : "s"} ready for offline inference.
+                  {installedModels.length} private model
+                  {installedModels.length === 1 ? "" : "s"} ready for offline inference.
                 </span>
               </div>
               <span className="font-mono text-[11px] text-slate-400">
-                Total: {(installedModels.reduce((acc, m) => acc + m.size_mb, 0) / 1024).toFixed(2)} GB
+                Total:{" "}
+                {(installedModels.reduce((acc, m) => acc + m.size_mb, 0) / 1024).toFixed(
+                  2
+                )}{" "}
+                GB
               </span>
             </div>
 
             {installedModels.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-400 border border-dashed rounded-xl border-slate-300 dark:border-slate-700">
-                No local models downloaded yet. Choose an open-source model from the catalog tab.
+                No local models downloaded yet. Choose an open-source model from the
+                catalog tab.
               </div>
             ) : (
               installedModels.map((model) => {
-                const isActive = engineStatus.is_running && engineStatus.active_model === model.filename;
+                const isActive =
+                  engineStatus.is_running && engineStatus.active_model === model.filename;
                 return (
                   <div
                     key={model.filename}
@@ -521,11 +550,19 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
                           <h3 className="text-sm font-semibold text-slate-900 dark:text-white font-mono truncate">
                             {model.filename}
                           </h3>
-                          <Badge variant="outline" size="sm" className="font-mono text-[10px]">
+                          <Badge
+                            variant="outline"
+                            size="sm"
+                            className="font-mono text-[10px]"
+                          >
                             {model.size_mb} MB
                           </Badge>
                           {isActive && (
-                            <Badge variant="success" size="sm" className="font-mono text-[10px]">
+                            <Badge
+                              variant="success"
+                              size="sm"
+                              className="font-mono text-[10px]"
+                            >
                               Active · Port 11435
                             </Badge>
                           )}
@@ -585,7 +622,8 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
                       Groq Cloud LPU Acceleration (500+ tok/s)
                     </h4>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Zero local RAM consumption. Useful for ultrabooks, battery saver mode, or rapid bulk extractions.
+                      Zero local RAM consumption. Useful for ultrabooks, battery saver
+                      mode, or rapid bulk extractions.
                     </p>
                   </div>
                 </div>
@@ -606,7 +644,12 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
                     onChange={(e) => setGroqKey(e.target.value)}
                     className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                   />
-                  <Button size="sm" variant="outline" onClick={handleSaveGroqKey} className="text-xs px-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleSaveGroqKey}
+                    className="text-xs px-4"
+                  >
                     {saveKeySuccess ? "Saved!" : "Save Key"}
                   </Button>
                 </div>
@@ -618,7 +661,8 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
                   <span>Privacy Safeguard</span>
                 </div>
                 <p>
-                  Keys are stored encrypted locally in your application storage. No tracking or telemetry is attached to your requests.
+                  Keys are stored encrypted locally in your application storage. No
+                  tracking or telemetry is attached to your requests.
                 </p>
               </div>
             </div>
@@ -629,7 +673,9 @@ export const InAppModelManagerModal: React.FC<InAppModelManagerModalProps> = ({
         <div className="px-6 py-3.5 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/70 dark:bg-white/[0.02] flex justify-between items-center text-[11px] text-slate-500">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-            <span>Auto-tunes parameters (--mmap, 4-bit KV cache, 8k context) for 8GB–16GB RAM.</span>
+            <span>
+              Auto-tunes parameters (--mmap, 4-bit KV cache, 8k context) for 8GB–16GB RAM.
+            </span>
           </div>
           <Button variant="secondary" size="sm" onClick={onClose} className="text-xs">
             Done

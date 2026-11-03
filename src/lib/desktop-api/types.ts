@@ -205,7 +205,6 @@ export interface PaperListQuery {
   page_size?: number | null;
 }
 
-
 export interface PagedResponse<T> {
   items: T[];
   total_count: number;
@@ -328,12 +327,7 @@ export interface AppSetting {
 // ---------------------------------------------------------------------------
 
 export type ProviderId =
-  | "openalex"
-  | "crossref"
-  | "semantic_scholar"
-  | "arxiv"
-  | "europe_pmc"
-  | string;
+  "openalex" | "crossref" | "semantic_scholar" | "arxiv" | "europe_pmc" | string;
 
 export interface ProviderCapabilities {
   id?: string;
@@ -359,11 +353,7 @@ export interface ProviderCapabilities {
 }
 
 export type ProviderHealthStatus =
-  | "healthy"
-  | "degraded"
-  | "unavailable"
-  | "rate_limited"
-  | "auth_required";
+  "healthy" | "degraded" | "unavailable" | "rate_limited" | "auth_required";
 
 export interface ProviderHealthCheck {
   provider_id: string;
@@ -568,12 +558,7 @@ export interface CrawlProfileUpdateInput {
 }
 
 export type CrawlJobStatus =
-  | "pending"
-  | "running"
-  | "paused"
-  | "completed"
-  | "failed"
-  | "cancelled";
+  "pending" | "running" | "paused" | "completed" | "failed" | "cancelled";
 
 export interface CrawlJob {
   id: string;
@@ -593,11 +578,7 @@ export interface CrawlJob {
 }
 
 export type CrawlQueueItemStatus =
-  | "pending"
-  | "processing"
-  | "completed"
-  | "failed"
-  | "skipped";
+  "pending" | "processing" | "completed" | "failed" | "skipped";
 
 export interface CrawlQueueItem {
   id: string;
@@ -689,16 +670,10 @@ export interface PaperFile {
 }
 
 export type DuplicateMatchTier =
-  | "exact_match"
-  | "high_confidence"
-  | "review_required"
-  | "distinct";
+  "exact_match" | "high_confidence" | "review_required" | "distinct";
 
 export type DuplicateCandidateStatus =
-  | "pending"
-  | "merged"
-  | "kept_separate"
-  | "deferred";
+  "pending" | "merged" | "kept_separate" | "deferred";
 
 export interface DuplicateCandidate {
   id: string;
@@ -831,7 +806,16 @@ export interface DownloadJob {
   paper_title: string;
   url: string;
   source_id: string;
-  status: "queued" | "resolving" | "downloading" | "validating" | "verifying_identity" | "completed" | "failed" | "cancelling" | "cancelled";
+  status:
+    | "queued"
+    | "resolving"
+    | "downloading"
+    | "validating"
+    | "verifying_identity"
+    | "completed"
+    | "failed"
+    | "cancelling"
+    | "cancelled";
   bytes_downloaded: number;
   total_bytes: number;
   progress_percent: number;
@@ -968,18 +952,18 @@ export interface SourceSearchStatus {
   source_id: string;
   source_name: string;
   status:
-  | "queued"
-  | "searching"
-  | "completed"
-  | "no_results"
-  | "blocked"
-  | "rate_limited"
-  | "unsupported"
-  | "failed"
-  | "timeout"
-  | "manual_only"
-  | "disabled"
-  | "cancelled";
+    | "queued"
+    | "searching"
+    | "completed"
+    | "no_results"
+    | "blocked"
+    | "rate_limited"
+    | "unsupported"
+    | "failed"
+    | "timeout"
+    | "manual_only"
+    | "disabled"
+    | "cancelled";
   message?: string | null;
   results_count: number;
   elapsed_ms: number;
@@ -987,111 +971,111 @@ export interface SourceSearchStatus {
 
 export type SearchStreamEvent =
   | {
-    type: "search_started";
-    session_id: string;
-    query: string;
-    sources: string[];
-  }
+      type: "search_started";
+      session_id: string;
+      query: string;
+      sources: string[];
+    }
   | {
-    type: "source_started";
-    session_id: string;
-    source_id: string;
-    source_name: string;
-  }
+      type: "source_started";
+      session_id: string;
+      source_id: string;
+      source_name: string;
+    }
   | {
-    type: "source_progress";
-    session_id: string;
-    source_id: string;
-    pages_crawled: number;
-    papers_found: number;
-  }
+      type: "source_progress";
+      session_id: string;
+      source_id: string;
+      pages_crawled: number;
+      papers_found: number;
+    }
   | {
-    type: "source_status";
-    session_id: string;
-    source_id: string;
-    source_name: string;
-    status: SourceSearchStatus["status"];
-    message?: string | null;
-    results_count: number;
-    elapsed_ms: number;
-  }
+      type: "source_status";
+      session_id: string;
+      source_id: string;
+      source_name: string;
+      status: SourceSearchStatus["status"];
+      message?: string | null;
+      results_count: number;
+      elapsed_ms: number;
+    }
   | {
-    type: "paper_found";
-    session_id: string;
-    source_id: string;
-    paper: DiscoveredSearchResult;
-  }
+      type: "paper_found";
+      session_id: string;
+      source_id: string;
+      paper: DiscoveredSearchResult;
+    }
   | {
-    type: "paper_updated";
-    session_id: string;
-    source_id: string;
-    paper: DiscoveredSearchResult;
-  }
+      type: "paper_updated";
+      session_id: string;
+      source_id: string;
+      paper: DiscoveredSearchResult;
+    }
   | {
-    type: "source_completed";
-    session_id: string;
-    source_id: string;
-    count: number;
-    elapsed_ms: number;
-  }
+      type: "source_completed";
+      session_id: string;
+      source_id: string;
+      count: number;
+      elapsed_ms: number;
+    }
   | {
-    type: "source_failed";
-    session_id: string;
-    source_id: string;
-    error?: string;
-    message?: string;
-    error_category?: string;
-    elapsed_ms: number;
-  }
+      type: "source_failed";
+      session_id: string;
+      source_id: string;
+      error?: string;
+      message?: string;
+      error_category?: string;
+      elapsed_ms: number;
+    }
   | {
-    type: "search_progress";
-    session_id: string;
-    sources_total: number;
-    sources_finished: number;
-    papers_found: number;
-  }
+      type: "search_progress";
+      session_id: string;
+      sources_total: number;
+      sources_finished: number;
+      papers_found: number;
+    }
   | {
-    type: "search_completed";
-    session_id: string;
-    total_unique: number;
-    duration_ms: number;
-  }
+      type: "search_completed";
+      session_id: string;
+      total_unique: number;
+      duration_ms: number;
+    }
   | {
-    type: "search_completed_with_errors";
-    session_id: string;
-    total_unique: number;
-    duration_ms: number;
-    failed_sources: string[];
-  }
+      type: "search_completed_with_errors";
+      session_id: string;
+      total_unique: number;
+      duration_ms: number;
+      failed_sources: string[];
+    }
   | {
-    type: "search_no_results";
-    session_id: string;
-    duration_ms: number;
-  }
+      type: "search_no_results";
+      session_id: string;
+      duration_ms: number;
+    }
   | {
-    type: "search_failed";
-    session_id: string;
-    error: string;
-    duration_ms: number;
-  }
+      type: "search_failed";
+      session_id: string;
+      error: string;
+      duration_ms: number;
+    }
   | {
-    type: "search_cancelled";
-    session_id: string;
-    total_unique: number;
-    duration_ms: number;
-  }
+      type: "search_cancelled";
+      session_id: string;
+      total_unique: number;
+      duration_ms: number;
+    }
   | {
-    type: "search_timed_out";
-    session_id: string;
-    total_unique: number;
-    duration_ms: number;
-  }
+      type: "search_timed_out";
+      session_id: string;
+      total_unique: number;
+      duration_ms: number;
+    }
   | {
-    type: "search_error";
-    session_id: string;
-    source_id?: string | null;
-    message: string;
-  };
+      type: "search_error";
+      session_id: string;
+      source_id?: string | null;
+      message: string;
+    };
 
 export interface WebsiteSearchResponse {
   results: DiscoveredSearchResult[];
@@ -1160,7 +1144,13 @@ export interface PythonEngineStatus {
 // ---------------------------------------------------------------------------
 
 export type AiProviderCategory = "local_runtime" | "cloud_hosted" | "custom_endpoint";
-export type AiAccessCategory = "local" | "hosted_free_tier" | "hosted_free_models" | "trial_or_credit" | "paid" | "self_hosted";
+export type AiAccessCategory =
+  | "local"
+  | "hosted_free_tier"
+  | "hosted_free_models"
+  | "trial_or_credit"
+  | "paid"
+  | "self_hosted";
 
 export interface AiProvider {
   id: string;
@@ -1585,15 +1575,6 @@ export interface AiSignalDetectionResult {
   uncertainty_caveat: string;
 }
 
-
-
-
-
-
-
-
-
-
 // =============================================================================
 // Research Project Management, To-Dos, Domains & AI Diagnostics (Phase 18)
 // =============================================================================
@@ -1717,7 +1698,13 @@ export interface ProjectTask {
   milestone_id?: string | null;
   title: string;
   description?: string | null;
-  phase: "planning" | "literature_review" | "methodology" | "experimentation" | "writing" | "review";
+  phase:
+    | "planning"
+    | "literature_review"
+    | "methodology"
+    | "experimentation"
+    | "writing"
+    | "review";
   status: "backlog" | "todo" | "in_progress" | "blocked" | "completed" | "cancelled";
   priority: "low" | "medium" | "high" | "critical";
   start_date?: string | null;

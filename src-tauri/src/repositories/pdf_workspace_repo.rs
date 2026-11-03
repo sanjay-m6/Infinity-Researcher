@@ -481,7 +481,15 @@ impl PdfWorkspaceRepository {
             "SELECT local_pdf_path, content_hash, pdf_url, has_file, pdf_version_type, pdf_identity_status, pdf_identity_score FROM papers WHERE id = ?1",
         )?;
 
-        let (legacy_path, legacy_hash, download_url, has_file_flag, leg_version, leg_identity, leg_score) = paper_stmt
+        let (
+            legacy_path,
+            legacy_hash,
+            download_url,
+            has_file_flag,
+            leg_version,
+            leg_identity,
+            leg_score,
+        ) = paper_stmt
             .query_row([paper_id], |row| {
                 let flag: i64 = row.get(3)?;
                 Ok((
@@ -510,7 +518,19 @@ impl PdfWorkspaceRepository {
             version_type,
             identity_status,
             identity_score,
-        ) = if let Some((f_id, f_path, f_name, f_size, f_hash, f_status, f_pages, f_ver, f_id_stat, f_score)) = primary_file {
+        ) = if let Some((
+            f_id,
+            f_path,
+            f_name,
+            f_size,
+            f_hash,
+            f_status,
+            f_pages,
+            f_ver,
+            f_id_stat,
+            f_score,
+        )) = primary_file
+        {
             let exists = std::path::Path::new(&f_path).exists();
             (
                 Some(f_id),

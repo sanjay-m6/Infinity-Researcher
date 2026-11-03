@@ -54,11 +54,17 @@ describe("IEEE Open Access Hub (Mode A & Provenance System)", () => {
     });
 
     // Verify required form fields
-    expect(screen.getByPlaceholderText(/C:\\Users\\username\\Downloads\\ieee_paper.pdf/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/e.g. Advances in Quantum Computing Architectures/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/C:\\Users\\username\\Downloads\\ieee_paper.pdf/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/e.g. Advances in Quantum Computing Architectures/i)
+    ).toBeInTheDocument();
 
     // Verify mandatory Open Access User Confirmation checkbox
-    const confirmationLabel = screen.getByText(/Open Access User Confirmation \(Required by Policy\)/i);
+    const confirmationLabel = screen.getByText(
+      /Open Access User Confirmation \(Required by Policy\)/i
+    );
     expect(confirmationLabel).toBeInTheDocument();
 
     // Verify Auto-Extract button and Storage Strategy options
@@ -86,13 +92,17 @@ describe("IEEE Open Access Hub (Mode A & Provenance System)", () => {
     );
 
     // Verify modal title
-    expect(screen.getByRole("heading", { name: /Import IEEE Xplore Paper/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Import IEEE Xplore Paper/i })
+    ).toBeInTheDocument();
 
     // Verify official browser handoff button
     expect(screen.getByRole("button", { name: /Open IEEE Xplore/i })).toBeInTheDocument();
 
     // Verify auto extract button
-    expect(screen.getByRole("button", { name: /Auto-Extract Metadata/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Auto-Extract Metadata/i })
+    ).toBeInTheDocument();
 
     // Verify Link in Place (Zero Copy) option
     expect(screen.getByText(/Link in Place \(Zero Copy\)/i)).toBeInTheDocument();

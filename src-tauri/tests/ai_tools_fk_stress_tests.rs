@@ -2,10 +2,10 @@ use std::sync::Arc;
 use std::thread;
 
 use rand::Rng;
-use rusqlite::params;
 use research_paper_scraper_lib::database::Database;
 use research_paper_scraper_lib::domain::ai_tools::*;
 use research_paper_scraper_lib::repositories::ai_tools_repo::AiToolsRepository;
+use rusqlite::params;
 use uuid::Uuid;
 
 #[test]
@@ -38,8 +38,11 @@ fn test_fk_stability_arbitrary_random_nonexistent_ids() {
         session_id: random_session_id.clone(),
         revision_number: 1,
         action_type: "clarity".to_string(),
-        original_text: "We demonstrate the efficacy of our method across diverse benchmarks.".to_string(),
-        revised_text: "Our experimental evaluation verifies efficacy across benchmark distributions.".to_string(),
+        original_text: "We demonstrate the efficacy of our method across diverse benchmarks."
+            .to_string(),
+        revised_text:
+            "Our experimental evaluation verifies efficacy across benchmark distributions."
+                .to_string(),
         diff_summary: "Formalized vocabulary and tightened syntax.".to_string(),
         preserved_numbers_ok: true,
         preserved_citations_ok: true,
@@ -65,7 +68,10 @@ fn test_fk_stability_arbitrary_random_nonexistent_ids() {
             |r| r.get(0),
         )
         .expect("check default document");
-    assert_eq!(doc_count, 1, "Parent document 'doc_default_session' must be ensured");
+    assert_eq!(
+        doc_count, 1,
+        "Parent document 'doc_default_session' must be ensured"
+    );
 
     let session_count: i64 = conn
         .query_row(
@@ -99,13 +105,14 @@ fn test_fk_stability_arbitrary_random_nonexistent_ids() {
 
     // 6. Comprehensive SQLite foreign key check
     let fk_violations: i64 = conn
-        .query_row(
-            "SELECT COUNT(*) FROM pragma_foreign_key_check()",
-            [],
-            |r| r.get(0),
-        )
+        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| {
+            r.get(0)
+        })
         .expect("pragma_foreign_key_check failed");
-    assert_eq!(fk_violations, 0, "No foreign key violations allowed in database");
+    assert_eq!(
+        fk_violations, 0,
+        "No foreign key violations allowed in database"
+    );
 }
 
 #[test]
@@ -125,9 +132,16 @@ fn test_fk_stability_stress_100_random_sessions() {
                 id: revision_id,
                 session_id: session_id.clone(),
                 revision_number: rev_num,
-                action_type: if rev_num == 1 { "academic_tone".to_string() } else { "conciseness".to_string() },
+                action_type: if rev_num == 1 {
+                    "academic_tone".to_string()
+                } else {
+                    "conciseness".to_string()
+                },
                 original_text: format!("Raw sentence number {} iteration {}", rev_num, i),
-                revised_text: format!("Refined academic sentence number {} iteration {}", rev_num, i),
+                revised_text: format!(
+                    "Refined academic sentence number {} iteration {}",
+                    rev_num, i
+                ),
                 diff_summary: format!("Revision {} of batch {}", rev_num, i),
                 preserved_numbers_ok: true,
                 preserved_citations_ok: true,
@@ -167,9 +181,14 @@ fn test_fk_stability_stress_100_random_sessions() {
 
     // Verify foreign key integrity across all 300 rows
     let fk_violations: i64 = conn
-        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| r.get(0))
+        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| {
+            r.get(0)
+        })
         .unwrap();
-    assert_eq!(fk_violations, 0, "All 200 revisions and 100 sessions must satisfy foreign key constraints");
+    assert_eq!(
+        fk_violations, 0,
+        "All 200 revisions and 100 sessions must satisfy foreign key constraints"
+    );
 }
 
 #[test]
@@ -236,7 +255,9 @@ fn test_fk_stability_with_custom_document_id_preservation() {
     );
 
     let fk_violations: i64 = conn
-        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| r.get(0))
+        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| {
+            r.get(0)
+        })
         .unwrap();
     assert_eq!(fk_violations, 0);
 }
@@ -283,7 +304,9 @@ fn test_fk_stability_edge_cases_special_characters_and_cascade() {
     }
 
     let fk_violations: i64 = conn
-        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| r.get(0))
+        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| {
+            r.get(0)
+        })
         .unwrap();
     assert_eq!(fk_violations, 0);
 
@@ -309,12 +332,18 @@ fn test_fk_stability_edge_cases_special_characters_and_cascade() {
             |r| r.get(0),
         )
         .unwrap();
-    assert_eq!(after_count, 0, "Revisions must cascade delete when session is deleted");
+    assert_eq!(
+        after_count, 0,
+        "Revisions must cascade delete when session is deleted"
+    );
 
     // Test deletion of default document:
     // Deleting doc_default_session cascades to all remaining default sessions
-    conn.execute("DELETE FROM integrity_documents WHERE id = 'doc_default_session'", [])
-        .expect("delete doc_default_session");
+    conn.execute(
+        "DELETE FROM integrity_documents WHERE id = 'doc_default_session'",
+        [],
+    )
+    .expect("delete doc_default_session");
 
     let remaining_sessions: i64 = conn
         .query_row(
@@ -323,7 +352,10 @@ fn test_fk_stability_edge_cases_special_characters_and_cascade() {
             |r| r.get(0),
         )
         .unwrap();
-    assert_eq!(remaining_sessions, 0, "Sessions referencing deleted document must cascade delete");
+    assert_eq!(
+        remaining_sessions, 0,
+        "Sessions referencing deleted document must cascade delete"
+    );
 
     // Now test resilience: Saving another revision after doc_default_session deletion
     // must recreate doc_default_session and succeed cleanly
@@ -356,7 +388,9 @@ fn test_fk_stability_edge_cases_special_characters_and_cascade() {
     assert_eq!(recovered_doc, 1, "doc_default_session must be re-created");
 
     let final_fk_violations: i64 = conn
-        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| r.get(0))
+        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| {
+            r.get(0)
+        })
         .unwrap();
     assert_eq!(final_fk_violations, 0);
 }
@@ -368,7 +402,9 @@ fn test_fk_stability_concurrent_threads_random_sessions() {
     // Verify foreign keys active
     {
         let conn = db.lock().unwrap();
-        let fk: i64 = conn.query_row("PRAGMA foreign_keys;", [], |r| r.get(0)).unwrap();
+        let fk: i64 = conn
+            .query_row("PRAGMA foreign_keys;", [], |r| r.get(0))
+            .unwrap();
         assert_eq!(fk, 1);
     }
 
@@ -423,7 +459,9 @@ fn test_fk_stability_concurrent_threads_random_sessions() {
     );
 
     let fk_violations: i64 = conn
-        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| r.get(0))
+        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check()", [], |r| {
+            r.get(0)
+        })
         .unwrap();
     assert_eq!(fk_violations, 0, "No FK violations under concurrent load");
 }

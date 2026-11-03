@@ -49,7 +49,10 @@ export const AiProjectPlannerModal: React.FC<AiProjectPlannerModalProps> = ({
       setSelectedMilestones(res.milestones);
     } catch (err: any) {
       console.error("Failed to generate AI plan:", err);
-      setError(err?.message || "Failed to generate research plan. Please ensure AI providers are configured.");
+      setError(
+        err?.message ||
+          "Failed to generate research plan. Please ensure AI providers are configured."
+      );
     } finally {
       setLoading(false);
     }
@@ -108,7 +111,8 @@ export const AiProjectPlannerModal: React.FC<AiProjectPlannerModalProps> = ({
                 AI Project Planner & Roadmap Generator
               </h2>
               <p className="text-xs text-muted-foreground">
-                Targeting Project: <span className="font-semibold text-foreground">{projectTitle}</span>
+                Targeting Project:{" "}
+                <span className="font-semibold text-foreground">{projectTitle}</span>
               </p>
             </div>
           </div>
@@ -140,9 +144,9 @@ export const AiProjectPlannerModal: React.FC<AiProjectPlannerModalProps> = ({
                   Generate Structured Research Roadmap
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                  The AI planner analyzes your project objective, hypotheses, domain, and literature
-                  to structure an actionable work breakdown with chronological milestones, tasks, and
-                  estimated effort.
+                  The AI planner analyzes your project objective, hypotheses, domain, and
+                  literature to structure an actionable work breakdown with chronological
+                  milestones, tasks, and estimated effort.
                 </p>
               </div>
               <div>
@@ -210,7 +214,8 @@ export const AiProjectPlannerModal: React.FC<AiProjectPlannerModalProps> = ({
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Proposed Milestones & Tasks ({selectedMilestones.length} milestones,{" "}
-                    {selectedMilestones.reduce((acc, m) => acc + m.tasks.length, 0)} tasks)
+                    {selectedMilestones.reduce((acc, m) => acc + m.tasks.length, 0)}{" "}
+                    tasks)
                   </h4>
                   <span className="text-xs text-muted-foreground">
                     Review and adjust tasks before approving
@@ -281,12 +286,13 @@ export const AiProjectPlannerModal: React.FC<AiProjectPlannerModalProps> = ({
                                     {task.phase}
                                   </span>
                                   <span
-                                    className={`text-[10px] px-1.5 py-0.5 rounded-sm font-semibold uppercase ${task.priority === "critical"
+                                    className={`text-[10px] px-1.5 py-0.5 rounded-sm font-semibold uppercase ${
+                                      task.priority === "critical"
                                         ? "bg-red-500/10 text-red-600"
                                         : task.priority === "high"
                                           ? "bg-amber-500/10 text-amber-600"
                                           : "bg-blue-500/10 text-blue-600"
-                                      }`}
+                                    }`}
                                   >
                                     {task.priority}
                                   </span>
@@ -299,7 +305,10 @@ export const AiProjectPlannerModal: React.FC<AiProjectPlannerModalProps> = ({
                                   {task.prerequisite_indexes &&
                                     task.prerequisite_indexes.length > 0 && (
                                       <span className="text-[10px] text-muted-foreground">
-                                        Depends on #{task.prerequisite_indexes.map((i) => i + 1).join(", #")}
+                                        Depends on #
+                                        {task.prerequisite_indexes
+                                          .map((i) => i + 1)
+                                          .join(", #")}
                                       </span>
                                     )}
                                 </div>

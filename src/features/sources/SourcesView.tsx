@@ -60,16 +60,23 @@ export const SourcesView: React.FC = () => {
   const [testUrl, setTestUrl] = useState("");
   const [testProfileId, setTestProfileId] = useState("");
   const [isPreviewing, setIsPreviewing] = useState(false);
-  const [previewResult, setPreviewResult] = useState<ExtractionPreviewResult | null>(null);
+  const [previewResult, setPreviewResult] = useState<ExtractionPreviewResult | null>(
+    null
+  );
 
   // Add Website Wizard Modal state
-  const [profileToDelete, setProfileToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [profileToDelete, setProfileToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3 | 4>(1);
   const [wizardSeedUrl, setWizardSeedUrl] = useState("");
   const [isCheckingPolicy, setIsCheckingPolicy] = useState(false);
   const [policyCheck, setPolicyCheck] = useState<WebsitePolicyCheck | null>(null);
-  const [wizardMode, setWizardMode] = useState<"public_html" | "rendered" | "manual" | "link_only">("public_html");
+  const [wizardMode, setWizardMode] = useState<
+    "public_html" | "rendered" | "manual" | "link_only"
+  >("public_html");
   const [wizardName, setWizardName] = useState("");
   const [wizardDomain, setWizardDomain] = useState("");
   const [wizardDesc, setWizardDesc] = useState("");
@@ -210,10 +217,16 @@ export const SourcesView: React.FC = () => {
       domain: wizardDomain.trim(),
       description: wizardDesc.trim() || undefined,
       allowed_patterns: wizardAllowed
-        ? wizardAllowed.split("\n").map((s) => s.trim()).filter(Boolean)
+        ? wizardAllowed
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean)
         : undefined,
       disallowed_patterns: wizardDisallowed
-        ? wizardDisallowed.split("\n").map((s) => s.trim()).filter(Boolean)
+        ? wizardDisallowed
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean)
         : undefined,
       title_selector: wizardTitleSel.trim() || undefined,
       authors_selector: wizardAuthorsSel.trim() || undefined,
@@ -343,7 +356,9 @@ export const SourcesView: React.FC = () => {
         >
           <Globe className="w-4 h-4" />
           <span>Website Scraping Profiles ({crawlProfiles.length})</span>
-          <Badge variant="success" size="sm">Active (No-API)</Badge>
+          <Badge variant="success" size="sm">
+            Active (No-API)
+          </Badge>
         </button>
 
         <button
@@ -357,7 +372,9 @@ export const SourcesView: React.FC = () => {
         >
           <Key className="w-4 h-4" />
           <span>Academic API Connectors ({sources.length})</span>
-          <Badge variant="outline" size="sm">Disabled in No-API Mode</Badge>
+          <Badge variant="outline" size="sm">
+            Disabled in No-API Mode
+          </Badge>
         </button>
       </div>
 
@@ -372,7 +389,8 @@ export const SourcesView: React.FC = () => {
                 <span>Website-Driven Paper Discovery</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Discover papers via public HTML pages, journal issue archives, and normal hyperlinks.
+                Discover papers via public HTML pages, journal issue archives, and normal
+                hyperlinks.
               </p>
             </div>
 
@@ -410,12 +428,16 @@ export const SourcesView: React.FC = () => {
                   <span>URL Extraction Sandbox (Live Test)</span>
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Verify metadata extraction, Highwire Press / Dublin Core meta tags, and Anti-SSRF safety for any scholarly web page.
+                  Verify metadata extraction, Highwire Press / Dublin Core meta tags, and
+                  Anti-SSRF safety for any scholarly web page.
                 </p>
               </div>
             </div>
 
-            <form onSubmit={handleTestExtraction} className="flex flex-col sm:flex-row gap-3">
+            <form
+              onSubmit={handleTestExtraction}
+              className="flex flex-col sm:flex-row gap-3"
+            >
               <input
                 type="url"
                 required
@@ -499,7 +521,8 @@ export const SourcesView: React.FC = () => {
 
                 {previewResult.discovered_paper_links.length > 0 && (
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500">
-                    Discovered {previewResult.discovered_paper_links.length} eligible paper links on this page.
+                    Discovered {previewResult.discovered_paper_links.length} eligible
+                    paper links on this page.
                   </div>
                 )}
 
@@ -525,7 +548,8 @@ export const SourcesView: React.FC = () => {
                   Configured Website Scraping Profiles
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Domain boundaries, allowed/disallowed URL regexes, polite rate limits, and custom CSS extraction rules.
+                  Domain boundaries, allowed/disallowed URL regexes, polite rate limits,
+                  and custom CSS extraction rules.
                 </p>
               </div>
               <Button
@@ -571,7 +595,9 @@ export const SourcesView: React.FC = () => {
                               </Badge>
                             )}
                           </div>
-                          <span className="text-xs text-slate-400 font-mono">{p.domain}</span>
+                          <span className="text-xs text-slate-400 font-mono">
+                            {p.domain}
+                          </span>
                         </div>
 
                         {!p.is_built_in && (
@@ -663,7 +689,11 @@ export const SourcesView: React.FC = () => {
             <div className="space-y-1">
               <span className="font-bold">No-API Compliance Notice</span>
               <p>
-                Academic provider APIs (OpenAlex, Crossref, Semantic Scholar, etc.) are inactive in compliance with the strict No-API Website-Driven specification. All research paper discovery is conducted via public HTML parsing, Highwire Press metadata, and Dublin Core tags under the Website Scraping Profiles tab.
+                Academic provider APIs (OpenAlex, Crossref, Semantic Scholar, etc.) are
+                inactive in compliance with the strict No-API Website-Driven
+                specification. All research paper discovery is conducted via public HTML
+                parsing, Highwire Press metadata, and Dublin Core tags under the Website
+                Scraping Profiles tab.
               </p>
             </div>
           </div>
@@ -691,7 +721,8 @@ export const SourcesView: React.FC = () => {
                         </span>
                       </div>
 
-                      {providerStatuses.find((p) => p.provider_id === source.id)?.is_configured ? (
+                      {providerStatuses.find((p) => p.provider_id === source.id)
+                        ?.is_configured ? (
                         <Badge variant="success" size="sm">
                           Configured (Inactive)
                         </Badge>
@@ -754,19 +785,43 @@ export const SourcesView: React.FC = () => {
         <div className="py-2 text-xs space-y-4 max-h-[75vh] overflow-y-auto pr-1">
           {/* Wizard Steps Indicator */}
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 text-[11px]">
-            <span className={wizardStep === 1 ? "font-bold text-indigo-600 dark:text-indigo-400" : "text-slate-400"}>
+            <span
+              className={
+                wizardStep === 1
+                  ? "font-bold text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-400"
+              }
+            >
               1. Seed URL & Policy
             </span>
             <ArrowRight className="w-3 h-3 text-slate-400" />
-            <span className={wizardStep === 2 ? "font-bold text-indigo-600 dark:text-indigo-400" : "text-slate-400"}>
+            <span
+              className={
+                wizardStep === 2
+                  ? "font-bold text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-400"
+              }
+            >
               2. Acquisition Mode
             </span>
             <ArrowRight className="w-3 h-3 text-slate-400" />
-            <span className={wizardStep === 3 ? "font-bold text-indigo-600 dark:text-indigo-400" : "text-slate-400"}>
+            <span
+              className={
+                wizardStep === 3
+                  ? "font-bold text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-400"
+              }
+            >
               3. Scope & Rules
             </span>
             <ArrowRight className="w-3 h-3 text-slate-400" />
-            <span className={wizardStep === 4 ? "font-bold text-indigo-600 dark:text-indigo-400" : "text-slate-400"}>
+            <span
+              className={
+                wizardStep === 4
+                  ? "font-bold text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-400"
+              }
+            >
               4. Review & Launch
             </span>
           </div>
@@ -798,7 +853,8 @@ export const SourcesView: React.FC = () => {
                   </Button>
                 </div>
                 <p className="text-[11px] text-slate-400">
-                  Enter a journal page, preprint archive, conference proceedings, or institutional repository URL.
+                  Enter a journal page, preprint archive, conference proceedings, or
+                  institutional repository URL.
                 </p>
               </div>
 
@@ -809,10 +865,22 @@ export const SourcesView: React.FC = () => {
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { name: "bioRxiv Biology Preprints", url: "https://www.biorxiv.org/content/early/recent" },
-                    { name: "PLOS ONE Open Access", url: "https://journals.plos.org/plosone/" },
-                    { name: "Nature Scientific Reports", url: "https://www.nature.com/srep/" },
-                    { name: "arXiv Physics & CS", url: "https://arxiv.org/list/cs/recent" },
+                    {
+                      name: "bioRxiv Biology Preprints",
+                      url: "https://www.biorxiv.org/content/early/recent",
+                    },
+                    {
+                      name: "PLOS ONE Open Access",
+                      url: "https://journals.plos.org/plosone/",
+                    },
+                    {
+                      name: "Nature Scientific Reports",
+                      url: "https://www.nature.com/srep/",
+                    },
+                    {
+                      name: "arXiv Physics & CS",
+                      url: "https://arxiv.org/list/cs/recent",
+                    },
                   ].map((p) => (
                     <button
                       key={p.name}
@@ -836,7 +904,12 @@ export const SourcesView: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{policyCheck.domain}</span>
-                    <Badge variant={policyCheck.policy_state === "allowed" ? "success" : "warning"} size="sm">
+                    <Badge
+                      variant={
+                        policyCheck.policy_state === "allowed" ? "success" : "warning"
+                      }
+                      size="sm"
+                    >
                       {policyCheck.policy_state.toUpperCase()}
                     </Badge>
                   </div>
@@ -894,7 +967,11 @@ export const SourcesView: React.FC = () => {
                         type="radio"
                         name="acquisition_mode"
                         checked={wizardMode === m.id}
-                        onChange={() => setWizardMode(m.id as "public_html" | "rendered" | "manual" | "link_only")}
+                        onChange={() =>
+                          setWizardMode(
+                            m.id as "public_html" | "rendered" | "manual" | "link_only"
+                          )
+                        }
                         className="mt-0.5"
                       />
                       <div className="space-y-0.5">
@@ -1052,15 +1129,37 @@ export const SourcesView: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-500">
-                  <div>Domain: <span className="font-mono text-slate-700 dark:text-slate-300">{wizardDomain}</span></div>
-                  <div>Delay: <span className="font-mono text-slate-700 dark:text-slate-300">{wizardDelay} ms</span></div>
-                  <div>Max Depth: <span className="font-mono text-slate-700 dark:text-slate-300">{wizardMaxDepth}</span></div>
-                  <div>Max Pages: <span className="font-mono text-slate-700 dark:text-slate-300">{wizardMaxPages}</span></div>
+                  <div>
+                    Domain:{" "}
+                    <span className="font-mono text-slate-700 dark:text-slate-300">
+                      {wizardDomain}
+                    </span>
+                  </div>
+                  <div>
+                    Delay:{" "}
+                    <span className="font-mono text-slate-700 dark:text-slate-300">
+                      {wizardDelay} ms
+                    </span>
+                  </div>
+                  <div>
+                    Max Depth:{" "}
+                    <span className="font-mono text-slate-700 dark:text-slate-300">
+                      {wizardMaxDepth}
+                    </span>
+                  </div>
+                  <div>
+                    Max Pages:{" "}
+                    <span className="font-mono text-slate-700 dark:text-slate-300">
+                      {wizardMaxPages}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Highwire Press, Dublin Core, and Anti-SSRF URL validation active.</span>
+                  <span>
+                    Highwire Press, Dublin Core, and Anti-SSRF URL validation active.
+                  </span>
                 </div>
               </div>
 
@@ -1161,7 +1260,12 @@ export const SourcesView: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button type="submit" variant="primary" size="sm" disabled={isImportingSingle}>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={isImportingSingle}
+            >
               {isImportingSingle ? "Importing..." : "Import to Library"}
             </Button>
           </div>
@@ -1191,10 +1295,24 @@ export const SourcesView: React.FC = () => {
           </div>
 
           <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 text-[11px] text-slate-500 space-y-1">
-            <div>Domain Scope: <span className="font-semibold">{crawlStartProfile?.domain}</span></div>
-            <div>Polite Request Delay: <span className="font-semibold">{crawlStartProfile?.request_delay_ms} ms</span></div>
-            <div>Maximum Depth: <span className="font-semibold">{crawlStartProfile?.max_depth}</span></div>
-            <div>Maximum Pages: <span className="font-semibold">{crawlStartProfile?.max_pages}</span></div>
+            <div>
+              Domain Scope:{" "}
+              <span className="font-semibold">{crawlStartProfile?.domain}</span>
+            </div>
+            <div>
+              Polite Request Delay:{" "}
+              <span className="font-semibold">
+                {crawlStartProfile?.request_delay_ms} ms
+              </span>
+            </div>
+            <div>
+              Maximum Depth:{" "}
+              <span className="font-semibold">{crawlStartProfile?.max_depth}</span>
+            </div>
+            <div>
+              Maximum Pages:{" "}
+              <span className="font-semibold">{crawlStartProfile?.max_pages}</span>
+            </div>
           </div>
 
           <div className="pt-3 flex justify-end gap-2 border-t border-slate-200 dark:border-slate-800">

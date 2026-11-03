@@ -70,7 +70,8 @@ export const MultiPaperComparisonPanel: React.FC<MultiPaperComparisonPanelProps>
   // Helper to load chunks for selected papers
   const loadSelectedPapersWithChunks = async () => {
     const targetPapers = papers.filter((p) => selectedIds.includes(p.id));
-    const papersWithChunks: { id: string; title: string; chunks: CandidateChunk[] }[] = [];
+    const papersWithChunks: { id: string; title: string; chunks: CandidateChunk[] }[] =
+      [];
 
     for (const p of targetPapers) {
       let chunks: CandidateChunk[];
@@ -107,7 +108,10 @@ export const MultiPaperComparisonPanel: React.FC<MultiPaperComparisonPanelProps>
 
   const runComparison = async () => {
     if (selectedIds.length < 2) {
-      showToast("Please select at least 2 papers to perform comparative synthesis.", "warning");
+      showToast(
+        "Please select at least 2 papers to perform comparative synthesis.",
+        "warning"
+      );
       return;
     }
     setIsLoading(true);
@@ -137,7 +141,9 @@ export const MultiPaperComparisonPanel: React.FC<MultiPaperComparisonPanelProps>
       setGapData(res);
       showToast("Research gap analysis complete.", "success");
     } catch (e: unknown) {
-      setErrorMessage(e instanceof Error ? e.message : "Failed to analyze research gaps.");
+      setErrorMessage(
+        e instanceof Error ? e.message : "Failed to analyze research gaps."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -175,7 +181,8 @@ export const MultiPaperComparisonPanel: React.FC<MultiPaperComparisonPanelProps>
               Select papers to compare ({selectedIds.length} selected)
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Select 2 or more papers to generate an evidence-isolated comparative matrix or gap analysis.
+              Select 2 or more papers to generate an evidence-isolated comparative matrix
+              or gap analysis.
             </p>
           </div>
 
@@ -218,7 +225,10 @@ export const MultiPaperComparisonPanel: React.FC<MultiPaperComparisonPanelProps>
                 <div className="truncate flex-1">
                   <div className="font-semibold truncate">{p.title}</div>
                   <div className="text-[10px] text-slate-500 font-mono tabular-nums">
-                    {p.year || "Year unknown"} · {Array.isArray(p.authors) ? p.authors.join(", ") : p.authors || "Unknown authors"}
+                    {p.year || "Year unknown"} ·{" "}
+                    {Array.isArray(p.authors)
+                      ? p.authors.join(", ")
+                      : p.authors || "Unknown authors"}
                   </div>
                 </div>
               </label>
@@ -332,7 +342,8 @@ export const MultiPaperComparisonPanel: React.FC<MultiPaperComparisonPanelProps>
                 Ready to Compare {selectedIds.length} Papers
               </p>
               <p className="text-[11px] text-slate-500 mt-1 max-w-md mx-auto">
-                Click &quot;Synthesize Comparison&quot; to build a dimension-by-dimension matrix with isolated citations.
+                Click &quot;Synthesize Comparison&quot; to build a dimension-by-dimension
+                matrix with isolated citations.
               </p>
             </div>
           ) : (
@@ -422,7 +433,8 @@ export const MultiPaperComparisonPanel: React.FC<MultiPaperComparisonPanelProps>
                 Identify Research Gaps Across Selected Papers
               </p>
               <p className="text-[11px] text-slate-500 mt-1 max-w-md mx-auto">
-                Examines unaddressed methodologies, dataset constraints, and conflicting findings grounded in paper text.
+                Examines unaddressed methodologies, dataset constraints, and conflicting
+                findings grounded in paper text.
               </p>
             </div>
           ) : (
@@ -452,7 +464,9 @@ export const MultiPaperComparisonPanel: React.FC<MultiPaperComparisonPanelProps>
                         <span className="font-semibold text-slate-800 dark:text-slate-200 block mb-0.5">
                           Scope Boundary:
                         </span>
-                        <span className="text-slate-600 dark:text-slate-400">{gap.scope_caveat}</span>
+                        <span className="text-slate-600 dark:text-slate-400">
+                          {gap.scope_caveat}
+                        </span>
                       </div>
 
                       <div className="p-2.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/40 text-xs">

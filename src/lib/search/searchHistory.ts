@@ -14,7 +14,9 @@ export function getRecentSearches(): string[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return parsed.filter((q) => typeof q === "string" && q.trim().length > 0).slice(0, MAX_RECENT_SEARCHES);
+      return parsed
+        .filter((q) => typeof q === "string" && q.trim().length > 0)
+        .slice(0, MAX_RECENT_SEARCHES);
     }
     return [];
   } catch {
@@ -34,10 +36,10 @@ export function addRecentSearch(query: string): string[] {
 
   try {
     const existing = getRecentSearches();
-    const updated = [clean, ...existing.filter((item) => item.toLowerCase() !== clean.toLowerCase())].slice(
-      0,
-      MAX_RECENT_SEARCHES
-    );
+    const updated = [
+      clean,
+      ...existing.filter((item) => item.toLowerCase() !== clean.toLowerCase()),
+    ].slice(0, MAX_RECENT_SEARCHES);
     localStorage.setItem(RECENT_SEARCHES_STORAGE_KEY, JSON.stringify(updated));
     return updated;
   } catch {
@@ -58,4 +60,3 @@ export function clearRecentSearches(): void {
     // Graceful fallback
   }
 }
-

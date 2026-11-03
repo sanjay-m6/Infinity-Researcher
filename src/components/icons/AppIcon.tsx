@@ -1,6 +1,10 @@
 import { forwardRef } from "react";
 import { AppIconProps } from "./iconTypes";
-import { resolveIconPixelSize, resolveStrokeWidth, resolveIconClassName } from "./iconConfig";
+import {
+  resolveIconPixelSize,
+  resolveStrokeWidth,
+  resolveIconClassName,
+} from "./iconConfig";
 import { cn } from "../../lib/utils";
 
 /**

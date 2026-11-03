@@ -498,8 +498,11 @@ impl MatrixService {
             }
             "selected_papers" | "filtered" => {
                 if let Some(ids) = selected_paper_ids {
-                    let filtered: Vec<&MatrixRow> =
-                        detail.rows.iter().filter(|r| ids.contains(&r.paper_id)).collect();
+                    let filtered: Vec<&MatrixRow> = detail
+                        .rows
+                        .iter()
+                        .filter(|r| ids.contains(&r.paper_id))
+                        .collect();
                     if filtered.is_empty() {
                         detail.rows.iter().collect()
                     } else {
@@ -526,26 +529,47 @@ impl MatrixService {
         if scope == Some("selected_cell") {
             if let Some(cell_raw) = selected_cell_json {
                 if let Ok(cell_obj) = serde_json::from_str::<serde_json::Value>(cell_raw) {
-                    let paper_title = cell_obj.get("paper_title").and_then(|v| v.as_str()).unwrap_or("Selected Paper");
-                    let col_label = cell_obj.get("col_label").and_then(|v| v.as_str()).unwrap_or("Dimension");
-                    let claim_val = cell_obj.get("extracted_value").and_then(|v| v.as_str()).unwrap_or("");
+                    let paper_title = cell_obj
+                        .get("paper_title")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("Selected Paper");
+                    let col_label = cell_obj
+                        .get("col_label")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("Dimension");
+                    let claim_val = cell_obj
+                        .get("extracted_value")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("");
                     let page_num = cell_obj.get("page_number").and_then(|v| v.as_i64());
-                    let passage = cell_obj.get("source_passage").and_then(|v| v.as_str()).unwrap_or("");
-                    let paper_id = cell_obj.get("paper_id").and_then(|v| v.as_str()).unwrap_or("");
+                    let passage = cell_obj
+                        .get("source_passage")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("");
+                    let paper_id = cell_obj
+                        .get("paper_id")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("");
 
                     if let Some(p) = page_num {
                         evidence_sources.push(EvidenceSource {
                             paper_id: paper_id.to_string(),
                             paper_title: paper_title.to_string(),
                             page_number: Some(p),
-                            passage: if !passage.is_empty() { passage.to_string() } else { claim_val.to_string() },
+                            passage: if !passage.is_empty() {
+                                passage.to_string()
+                            } else {
+                                claim_val.to_string()
+                            },
                             confidence: 0.95,
                             char_offset_start: Some(0),
                             char_offset_end: Some(passage.len() as i64),
                         });
                     }
 
-                    let page_str = page_num.map(|p| format!(" (Page {})", p)).unwrap_or_default();
+                    let page_str = page_num
+                        .map(|p| format!(" (Page {})", p))
+                        .unwrap_or_default();
                     let response = format!(
                         "### Analysis of Selected Cell: **{}** · *{}*\n\n**Extracted Claim:**\n> \"{}\"{}\n\n**Grounded Supporting Passage:**\n{}\n\n**Contextual Significance:**\nThis claim represents the verified empirical record for '{}' in the matrix. Compared across all {} papers in your matrix, this provides targeted evidence for cross-study literature synthesis.",
                         paper_title,
@@ -565,12 +589,17 @@ impl MatrixService {
         let mut add_evidence_for_field = |row: &MatrixRow, key: &str| {
             if let Some(ext) = row.extractions.get(key) {
                 if let Some(p) = ext.page_number {
-                    if !evidence_sources.iter().any(|e: &EvidenceSource| e.paper_id == row.paper_id && e.page_number == Some(p)) {
+                    if !evidence_sources.iter().any(|e: &EvidenceSource| {
+                        e.paper_id == row.paper_id && e.page_number == Some(p)
+                    }) {
                         evidence_sources.push(EvidenceSource {
                             paper_id: row.paper_id.clone(),
                             paper_title: row.paper_title.clone(),
                             page_number: Some(p),
-                            passage: ext.source_passage.clone().unwrap_or_else(|| ext.extracted_value.clone()),
+                            passage: ext
+                                .source_passage
+                                .clone()
+                                .unwrap_or_else(|| ext.extracted_value.clone()),
                             confidence: ext.confidence,
                             char_offset_start: ext.char_offset_start,
                             char_offset_end: ext.char_offset_end,
@@ -581,23 +610,41 @@ impl MatrixService {
         };
 
         // 1. Methodology Comparison
-        if q.contains("method") || q.contains("approach") || q.contains("technique") || q.contains("framework") {
+        if q.contains("method")
+            || q.contains("approach")
+            || q.contains("technique")
+            || q.contains("framework")
+        {
             let mut lines = Vec::new();
-            lines.push(format!("### Comparative Methodology Analysis ({} Papers Evaluated)\n", active_rows.len()));
+            lines.push(format!(
+                "### Comparative Methodology Analysis ({} Papers Evaluated)\n",
+                active_rows.len()
+            ));
             lines.push("Across the analyzed matrix papers, several distinct methodological approaches are evaluated:\n".to_string());
 
             for (i, row) in active_rows.iter().enumerate() {
                 add_evidence_for_field(row, "methodology");
-                let meth = row.extractions.get("methodology")
+                let meth = row
+                    .extractions
+                    .get("methodology")
                     .map(|e| e.extracted_value.as_str())
                     .unwrap_or("No methodology extracted yet");
-                let page_cite = row.extractions.get("methodology")
+                let page_cite = row
+                    .extractions
+                    .get("methodology")
                     .and_then(|e| e.page_number)
                     .map(|p| format!(" (p. {})", p))
                     .unwrap_or_default();
                 let year_str = row.year.map(|y| format!(" ({})", y)).unwrap_or_default();
 
-                lines.push(format!("{}. **{}**{}: {}{}", i + 1, row.paper_title, year_str, meth, page_cite));
+                lines.push(format!(
+                    "{}. **{}**{}: {}{}",
+                    i + 1,
+                    row.paper_title,
+                    year_str,
+                    meth,
+                    page_cite
+                ));
             }
 
             lines.push("\n#### Methodological Synthesis & Contrasts:".to_string());
@@ -612,16 +659,38 @@ impl MatrixService {
         }
 
         // 2. Datasets & Sample Sizes
-        if q.contains("dataset") || q.contains("sample") || q.contains("data") || q.contains("benchmark") || q.contains("household") || q.contains("records") {
+        if q.contains("dataset")
+            || q.contains("sample")
+            || q.contains("data")
+            || q.contains("benchmark")
+            || q.contains("household")
+            || q.contains("records")
+        {
             let mut lines = Vec::new();
-            lines.push(format!("### Dataset & Sample Size Comparison ({} Studies)\n", active_rows.len()));
+            lines.push(format!(
+                "### Dataset & Sample Size Comparison ({} Studies)\n",
+                active_rows.len()
+            ));
 
             for (i, row) in active_rows.iter().enumerate() {
                 add_evidence_for_field(row, "dataset");
                 add_evidence_for_field(row, "sample_size");
-                let ds = row.extractions.get("dataset").map(|e| e.extracted_value.as_str()).unwrap_or("Not specified");
-                let ss = row.extractions.get("sample_size").map(|e| e.extracted_value.as_str()).unwrap_or("Not specified");
-                let page_cite = row.extractions.get("dataset").and_then(|e| e.page_number).map(|p| format!(" [p. {}]", p)).unwrap_or_default();
+                let ds = row
+                    .extractions
+                    .get("dataset")
+                    .map(|e| e.extracted_value.as_str())
+                    .unwrap_or("Not specified");
+                let ss = row
+                    .extractions
+                    .get("sample_size")
+                    .map(|e| e.extracted_value.as_str())
+                    .unwrap_or("Not specified");
+                let page_cite = row
+                    .extractions
+                    .get("dataset")
+                    .and_then(|e| e.page_number)
+                    .map(|p| format!(" [p. {}]", p))
+                    .unwrap_or_default();
 
                 lines.push(format!("{}. **{}**:", i + 1, row.paper_title));
                 lines.push(format!("   - **Dataset**: {}{}", ds, page_cite));
@@ -635,52 +704,94 @@ impl MatrixService {
         }
 
         // 3. Models & Architectures
-        if q.contains("model") || q.contains("architecture") || q.contains("network") || q.contains("dqn") || q.contains("gnn") || q.contains("smart contract") {
+        if q.contains("model")
+            || q.contains("architecture")
+            || q.contains("network")
+            || q.contains("dqn")
+            || q.contains("gnn")
+            || q.contains("smart contract")
+        {
             let mut lines = Vec::new();
-            lines.push(format!("### Model & Computational Architecture Analysis ({} Papers)\n", active_rows.len()));
+            lines.push(format!(
+                "### Model & Computational Architecture Analysis ({} Papers)\n",
+                active_rows.len()
+            ));
 
             for (i, row) in active_rows.iter().enumerate() {
                 add_evidence_for_field(row, "model_architecture");
-                let arch = row.extractions.get("model_architecture")
+                let arch = row
+                    .extractions
+                    .get("model_architecture")
                     .or_else(|| row.extractions.get("model"))
                     .map(|e| e.extracted_value.as_str())
                     .unwrap_or("Architecture details not extracted");
-                let page_cite = row.extractions.get("model_architecture")
+                let page_cite = row
+                    .extractions
+                    .get("model_architecture")
                     .and_then(|e| e.page_number)
                     .map(|p| format!(" (p. {})", p))
                     .unwrap_or_default();
 
-                lines.push(format!("{}. **{}**: {}{}", i + 1, row.paper_title, arch, page_cite));
+                lines.push(format!(
+                    "{}. **{}**: {}{}",
+                    i + 1,
+                    row.paper_title,
+                    arch,
+                    page_cite
+                ));
             }
 
             return (lines.join("\n"), evidence_sources);
         }
 
         // 4. Research Gaps & Recurring Limitations
-        if q.contains("gap") || q.contains("limitation") || q.contains("weakness") || q.contains("future") || q.contains("underrepresented") || q.contains("challenge") {
+        if q.contains("gap")
+            || q.contains("limitation")
+            || q.contains("weakness")
+            || q.contains("future")
+            || q.contains("underrepresented")
+            || q.contains("challenge")
+        {
             let mut lines = Vec::new();
-            lines.push(format!("### Research Gap & Limitation Analysis ({} Papers Evaluated)\n", active_rows.len()));
+            lines.push(format!(
+                "### Research Gap & Limitation Analysis ({} Papers Evaluated)\n",
+                active_rows.len()
+            ));
             lines.push("#### 1. Explicitly Stated Limitations (Direct from Authors):".to_string());
 
             for (i, row) in active_rows.iter().enumerate() {
                 add_evidence_for_field(row, "limitations");
-                let lim = row.extractions.get("limitations")
+                let lim = row
+                    .extractions
+                    .get("limitations")
                     .map(|e| e.extracted_value.as_str())
                     .unwrap_or("No limitations explicitly documented in current matrix row");
-                let page_cite = row.extractions.get("limitations")
+                let page_cite = row
+                    .extractions
+                    .get("limitations")
                     .and_then(|e| e.page_number)
                     .map(|p| format!(" (Page {})", p))
                     .unwrap_or_default();
 
-                lines.push(format!("{}. **{}**: \"{}\"{}", i + 1, row.paper_title, lim, page_cite));
+                lines.push(format!(
+                    "{}. **{}**: \"{}\"{}",
+                    i + 1,
+                    row.paper_title,
+                    lim,
+                    page_cite
+                ));
             }
 
-            lines.push("\n#### 2. Synthesized Matrix Patterns (Observed Cross-Study Gaps):".to_string());
+            lines.push(
+                "\n#### 2. Synthesized Matrix Patterns (Observed Cross-Study Gaps):".to_string(),
+            );
             lines.push("• **Scalability Bottlenecks**: Multiple studies cite performance and transaction latency degradation when scaling to large-scale deployments.".to_string());
             lines.push("• **Cross-Regional Generalization**: Predictive and decision-making accuracy drops when evaluated outside the original training geography or climate zone.".to_string());
             lines.push("• **Real-World Policy & Regulatory Barriers**: Algorithmic benefits frequently rely on idealized market assumptions that lack existing regulatory framework support.".to_string());
 
-            lines.push("\n#### 3. Actionable Research Opportunities (Grounded Hypotheses):".to_string());
+            lines.push(
+                "\n#### 3. Actionable Research Opportunities (Grounded Hypotheses):".to_string(),
+            );
             lines.push("• **Hybrid Architectures**: Combining decentralized consensus protocols with lightweight edge reinforcement learning to minimize latency without sacrificing trust.".to_string());
             lines.push("• **Multi-Region Benchmarking**: Testing existing forecasting models against heterogeneous multi-continent grid datasets to assess transferability.".to_string());
 
@@ -688,9 +799,18 @@ impl MatrixService {
         }
 
         // 5. Literature Review Drafting & Synthesis
-        if q.contains("literature review") || q.contains("draft") || q.contains("synthesize") || q.contains("summary") || q.contains("summarize") || q.contains("overview") {
+        if q.contains("literature review")
+            || q.contains("draft")
+            || q.contains("synthesize")
+            || q.contains("summary")
+            || q.contains("summarize")
+            || q.contains("overview")
+        {
             let mut lines = Vec::new();
-            lines.push(format!("## Synthesized Literature Review: Matrix Portfolio ({} Studies)\n", active_rows.len()));
+            lines.push(format!(
+                "## Synthesized Literature Review: Matrix Portfolio ({} Studies)\n",
+                active_rows.len()
+            ));
 
             lines.push("### 1. Introduction & Research Landscape".to_string());
             lines.push(format!("This literature review analyzes {} foundational studies in the research matrix. Across these works, the primary objective centers on balancing efficiency, autonomy, and security in complex systems.\n", active_rows.len()));
@@ -699,18 +819,46 @@ impl MatrixService {
             for row in &active_rows {
                 add_evidence_for_field(row, "methodology");
                 add_evidence_for_field(row, "main_findings");
-                let meth = row.extractions.get("methodology").map(|e| e.extracted_value.as_str()).unwrap_or("unspecified methodology");
-                let auth_str = if !row.authors.is_empty() { row.authors[0].clone() } else { "Authors".to_string() };
-                let yr_str = row.year.map(|y| y.to_string()).unwrap_or_else(|| "n.d.".to_string());
-                let p_meth = row.extractions.get("methodology").and_then(|e| e.page_number).map(|p| format!(", p. {}", p)).unwrap_or_default();
+                let meth = row
+                    .extractions
+                    .get("methodology")
+                    .map(|e| e.extracted_value.as_str())
+                    .unwrap_or("unspecified methodology");
+                let auth_str = if !row.authors.is_empty() {
+                    row.authors[0].clone()
+                } else {
+                    "Authors".to_string()
+                };
+                let yr_str = row
+                    .year
+                    .map(|y| y.to_string())
+                    .unwrap_or_else(|| "n.d.".to_string());
+                let p_meth = row
+                    .extractions
+                    .get("methodology")
+                    .and_then(|e| e.page_number)
+                    .map(|p| format!(", p. {}", p))
+                    .unwrap_or_default();
 
-                lines.push(format!("• **{} et al. ({}{})** proposes {}.", auth_str, yr_str, p_meth, meth));
+                lines.push(format!(
+                    "• **{} et al. ({}{})** proposes {}.",
+                    auth_str, yr_str, p_meth, meth
+                ));
             }
 
             lines.push("\n### 3. Empirical Results & Performance Metrics".to_string());
             for row in &active_rows {
-                let finding = row.extractions.get("main_findings").map(|e| e.extracted_value.as_str()).unwrap_or("positive empirical improvements");
-                let p_find = row.extractions.get("main_findings").and_then(|e| e.page_number).map(|p| format!(" (p. {})", p)).unwrap_or_default();
+                let finding = row
+                    .extractions
+                    .get("main_findings")
+                    .map(|e| e.extracted_value.as_str())
+                    .unwrap_or("positive empirical improvements");
+                let p_find = row
+                    .extractions
+                    .get("main_findings")
+                    .and_then(|e| e.page_number)
+                    .map(|p| format!(" (p. {})", p))
+                    .unwrap_or_default();
                 lines.push(format!("• **{}**: {}{}", row.paper_title, finding, p_find));
             }
 
@@ -718,8 +866,14 @@ impl MatrixService {
             for row in &active_rows {
                 add_evidence_for_field(row, "limitations");
                 if let Some(lim) = row.extractions.get("limitations") {
-                    let p_lim = lim.page_number.map(|p| format!(" (p. {})", p)).unwrap_or_default();
-                    lines.push(format!("• In **{}**, limitations include {}{}.", row.paper_title, lim.extracted_value, p_lim));
+                    let p_lim = lim
+                        .page_number
+                        .map(|p| format!(" (p. {})", p))
+                        .unwrap_or_default();
+                    lines.push(format!(
+                        "• In **{}**, limitations include {}{}.",
+                        row.paper_title, lim.extracted_value, p_lim
+                    ));
                 }
             }
 
@@ -727,22 +881,37 @@ impl MatrixService {
         }
 
         // 6. Matrix Audit & Completeness
-        if q.contains("how many") || q.contains("missing") || q.contains("incomplete") || q.contains("audit") || q.contains("status") {
+        if q.contains("how many")
+            || q.contains("missing")
+            || q.contains("incomplete")
+            || q.contains("audit")
+            || q.contains("status")
+        {
             let total_cols = detail.columns.len();
             let mut lines = Vec::new();
-            lines.push(format!("### Literature Review Matrix Audit & Completeness\n"));
+            lines.push(format!(
+                "### Literature Review Matrix Audit & Completeness\n"
+            ));
             lines.push(format!("• **Total Papers**: {}", active_rows.len()));
             lines.push(format!("• **Configured Dimensions**: {}", total_cols));
 
             let mut missing_items = Vec::new();
             for row in &active_rows {
                 let ext_count = row.extractions.len();
-                let pct = if total_cols > 0 { (ext_count as f64 / total_cols as f64 * 100.0) as i64 } else { 0 };
-                lines.push(format!("• **{}**: {}/{} dimensions extracted ({}% complete)", row.paper_title, ext_count, total_cols, pct));
+                let pct = if total_cols > 0 {
+                    (ext_count as f64 / total_cols as f64 * 100.0) as i64
+                } else {
+                    0
+                };
+                lines.push(format!(
+                    "• **{}**: {}/{} dimensions extracted ({}% complete)",
+                    row.paper_title, ext_count, total_cols, pct
+                ));
 
                 for col in &detail.columns {
                     if !row.extractions.contains_key(&col.key) {
-                        missing_items.push(format!("{} ➔ Missing '{}'", row.paper_title, col.label));
+                        missing_items
+                            .push(format!("{} ➔ Missing '{}'", row.paper_title, col.label));
                     }
                 }
             }
@@ -753,7 +922,9 @@ impl MatrixService {
                     lines.push(format!("- {}", m));
                 }
             } else {
-                lines.push("\n✓ **All configured matrix dimensions have extracted claims.**".to_string());
+                lines.push(
+                    "\n✓ **All configured matrix dimensions have extracted claims.**".to_string(),
+                );
             }
 
             return (lines.join("\n"), evidence_sources);
@@ -761,17 +932,36 @@ impl MatrixService {
 
         // 7. General Matrix Question Answering (Default)
         let mut lines = Vec::new();
-        lines.push(format!("### Literature Review Matrix Analysis ({} Papers Included)\n", active_rows.len()));
-        lines.push(format!("I analyzed the matrix records for **\"{}\"** across all included dimensions:\n", question));
+        lines.push(format!(
+            "### Literature Review Matrix Analysis ({} Papers Included)\n",
+            active_rows.len()
+        ));
+        lines.push(format!(
+            "I analyzed the matrix records for **\"{}\"** across all included dimensions:\n",
+            question
+        ));
 
         for (i, row) in active_rows.iter().enumerate() {
             add_evidence_for_field(row, "main_findings");
             add_evidence_for_field(row, "methodology");
             add_evidence_for_field(row, "limitations");
 
-            let meth = row.extractions.get("methodology").map(|e| e.extracted_value.as_str()).unwrap_or("Methodology not specified");
-            let finding = row.extractions.get("main_findings").map(|e| e.extracted_value.as_str()).unwrap_or("Findings not specified");
-            let p_cite = row.extractions.get("main_findings").and_then(|e| e.page_number).map(|p| format!(" (p. {})", p)).unwrap_or_default();
+            let meth = row
+                .extractions
+                .get("methodology")
+                .map(|e| e.extracted_value.as_str())
+                .unwrap_or("Methodology not specified");
+            let finding = row
+                .extractions
+                .get("main_findings")
+                .map(|e| e.extracted_value.as_str())
+                .unwrap_or("Findings not specified");
+            let p_cite = row
+                .extractions
+                .get("main_findings")
+                .and_then(|e| e.page_number)
+                .map(|p| format!(" (p. {})", p))
+                .unwrap_or_default();
 
             lines.push(format!("{}. **{}**:", i + 1, row.paper_title));
             lines.push(format!("   - **Methodology**: {}", meth));

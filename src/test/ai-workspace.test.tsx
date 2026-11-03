@@ -16,13 +16,23 @@ describe("AI Workspace, Multi-Provider & RAG Knowledge (Part L)", () => {
     expect(screen.getByText(/Shared RAG Library Pipeline/i)).toBeInTheDocument();
 
     // Verify all 7 navigation tabs exist
-    expect(screen.getByRole("button", { name: /Providers & Models/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Reading Assistant & Chat/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Providers & Models/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Reading Assistant & Chat/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Recommendations/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Library Indexing \(RAG\)/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Library Indexing \(RAG\)/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Fine-Tuning Lab/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Evaluations & Quality/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Privacy & Storage/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Evaluations & Quality/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Privacy & Storage/i })
+    ).toBeInTheDocument();
   });
 
   it("displays local and cloud provider badges and task routing options", async () => {
@@ -34,7 +44,9 @@ describe("AI Workspace, Multi-Provider & RAG Knowledge (Part L)", () => {
 
     // Default tab is providers
     expect(screen.getByText("AI Provider Catalog & Routing")).toBeInTheDocument();
-    expect(screen.getByText(/Local runtimes \(Ollama, LM Studio\) run entirely offline/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Local runtimes \(Ollama, LM Studio\) run entirely offline/i)
+    ).toBeInTheDocument();
     expect(screen.getByText("Task-to-Model Routing Rules")).toBeInTheDocument();
   });
 
@@ -50,8 +62,12 @@ describe("AI Workspace, Multi-Provider & RAG Knowledge (Part L)", () => {
 
     // Conceptual distinction callout
     expect(screen.getByText("Important: RAG vs. Model Fine-Tuning")).toBeInTheDocument();
-    expect(screen.getByText(/RAG \(Retrieval-Augmented Generation\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Local Hardware & Capability Pre-Flight Check/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/RAG \(Retrieval-Augmented Generation\)/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Local Hardware & Capability Pre-Flight Check/i)
+    ).toBeInTheDocument();
   });
 
   it("navigates to Privacy & Storage and exposes local-only and paid API toggles", async () => {

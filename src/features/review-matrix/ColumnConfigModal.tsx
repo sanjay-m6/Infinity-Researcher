@@ -77,15 +77,69 @@ export const ColumnConfigModal: React.FC<ColumnConfigModalProps> = ({
 
   const handleResetDefaults = () => {
     setCols([
-      { key: "research_question", label: "Research Question", col_type: "text", required: true, width: 240 },
-      { key: "methodology", label: "Methodology", col_type: "text", required: true, width: 220 },
-      { key: "dataset", label: "Dataset / Benchmark", col_type: "text", required: false, width: 180 },
-      { key: "sample_size", label: "Sample Size", col_type: "text", required: false, width: 130 },
-      { key: "model_architecture", label: "Model / Architecture", col_type: "text", required: false, width: 190 },
-      { key: "eval_metrics", label: "Key Metrics", col_type: "text", required: false, width: 160 },
-      { key: "main_findings", label: "Main Findings", col_type: "text", required: true, width: 260 },
-      { key: "limitations", label: "Limitations", col_type: "text", required: false, width: 200 },
-      { key: "future_work", label: "Future Work", col_type: "text", required: false, width: 180 },
+      {
+        key: "research_question",
+        label: "Research Question",
+        col_type: "text",
+        required: true,
+        width: 240,
+      },
+      {
+        key: "methodology",
+        label: "Methodology",
+        col_type: "text",
+        required: true,
+        width: 220,
+      },
+      {
+        key: "dataset",
+        label: "Dataset / Benchmark",
+        col_type: "text",
+        required: false,
+        width: 180,
+      },
+      {
+        key: "sample_size",
+        label: "Sample Size",
+        col_type: "text",
+        required: false,
+        width: 130,
+      },
+      {
+        key: "model_architecture",
+        label: "Model / Architecture",
+        col_type: "text",
+        required: false,
+        width: 190,
+      },
+      {
+        key: "eval_metrics",
+        label: "Key Metrics",
+        col_type: "text",
+        required: false,
+        width: 160,
+      },
+      {
+        key: "main_findings",
+        label: "Main Findings",
+        col_type: "text",
+        required: true,
+        width: 260,
+      },
+      {
+        key: "limitations",
+        label: "Limitations",
+        col_type: "text",
+        required: false,
+        width: 200,
+      },
+      {
+        key: "future_work",
+        label: "Future Work",
+        col_type: "text",
+        required: false,
+        width: 180,
+      },
     ]);
   };
 
@@ -124,7 +178,9 @@ export const ColumnConfigModal: React.FC<ColumnConfigModalProps> = ({
               className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-sm"
             >
               <div>
-                <span className="font-medium text-slate-900 dark:text-white">{col.label}</span>
+                <span className="font-medium text-slate-900 dark:text-white">
+                  {col.label}
+                </span>
                 <span className="text-xs text-slate-400 ml-2 font-mono">({col.key})</span>
               </div>
               <div className="flex items-center gap-2">

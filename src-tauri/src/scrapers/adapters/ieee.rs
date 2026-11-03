@@ -130,7 +130,11 @@ impl SourceAdapter for IeeeAdapter {
         })
     }
 
-    fn extract_papers_from_html(&self, _html: &str, _page_url: &str) -> Vec<DiscoveredSearchResult> {
+    fn extract_papers_from_html(
+        &self,
+        _html: &str,
+        _page_url: &str,
+    ) -> Vec<DiscoveredSearchResult> {
         Vec::new()
     }
 
@@ -201,7 +205,10 @@ impl SourceAdapter for IeeeAdapter {
                                 let mut authors = Vec::new();
                                 if let Some(author_list) = rec["authors"].as_array() {
                                     for a in author_list {
-                                        if let Some(name) = a["preferredName"].as_str().or(a["normalizedName"].as_str()) {
+                                        if let Some(name) = a["preferredName"]
+                                            .as_str()
+                                            .or(a["normalizedName"].as_str())
+                                        {
                                             let cleaned = name.trim().to_string();
                                             if !cleaned.is_empty() {
                                                 authors.push(cleaned);
@@ -236,7 +243,8 @@ impl SourceAdapter for IeeeAdapter {
                                     format!("https://ieeexplore.ieee.org/search/searchresult.jsp?queryText={}", Self::url_encode(&title))
                                 };
 
-                                let is_oa = rec["accessType"]["type"].as_str() == Some("open-access")
+                                let is_oa = rec["accessType"]["type"].as_str()
+                                    == Some("open-access")
                                     || rec["isOpenAccess"].as_bool().unwrap_or(false);
 
                                 if let Some(true) = query.open_access_only {
@@ -246,15 +254,13 @@ impl SourceAdapter for IeeeAdapter {
                                 }
 
                                 let pdf_url = if is_oa {
-                                    rec["pdfLink"]
-                                        .as_str()
-                                        .map(|pl| {
-                                            if pl.starts_with("http") {
-                                                pl.to_string()
-                                            } else {
-                                                format!("https://ieeexplore.ieee.org{}", pl)
-                                            }
-                                        })
+                                    rec["pdfLink"].as_str().map(|pl| {
+                                        if pl.starts_with("http") {
+                                            pl.to_string()
+                                        } else {
+                                            format!("https://ieeexplore.ieee.org{}", pl)
+                                        }
+                                    })
                                 } else {
                                     None
                                 };
@@ -267,7 +273,9 @@ impl SourceAdapter for IeeeAdapter {
                                 let article_id = rec["articleNumber"]
                                     .as_str()
                                     .map(|n| n.to_string())
-                                    .or_else(|| rec["articleNumber"].as_i64().map(|n| n.to_string()))
+                                    .or_else(|| {
+                                        rec["articleNumber"].as_i64().map(|n| n.to_string())
+                                    })
                                     .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
                                 results.push(DiscoveredSearchResult {
@@ -283,9 +291,16 @@ impl SourceAdapter for IeeeAdapter {
                                     pdf_url,
                                     source_id: "ieee_xplore".to_string(),
                                     source_name: "IEEE Xplore".to_string(),
-                                    content_type: rec["contentType"].as_str().unwrap_or("journal_article").to_string(),
+                                    content_type: rec["contentType"]
+                                        .as_str()
+                                        .unwrap_or("journal_article")
+                                        .to_string(),
                                     is_open_access: is_oa,
-                                    license_name: if is_oa { Some("IEEE Open Access".to_string()) } else { None },
+                                    license_name: if is_oa {
+                                        Some("IEEE Open Access".to_string())
+                                    } else {
+                                        None
+                                    },
                                     peer_reviewed: Some(true),
                                     subject_tags: vec!["IEEE".to_string()],
                                     language: Some("en".to_string()),
@@ -296,7 +311,10 @@ impl SourceAdapter for IeeeAdapter {
                             }
 
                             if !results.is_empty() {
-                                info!(count = results.len(), "Successfully discovered IEEE papers via IEEE REST search");
+                                info!(
+                                    count = results.len(),
+                                    "Successfully discovered IEEE papers via IEEE REST search"
+                                );
                                 return Ok(results);
                             }
                         }
@@ -319,14 +337,20 @@ impl SourceAdapter for IeeeAdapter {
 
         let cr_resp = client
             .get(validated_crossref.as_str())
-            .header("User-Agent", "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)")
+            .header(
+                "User-Agent",
+                "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
+            )
             .header("Accept", "application/json")
             .send()
             .await
             .map_err(|e| format!("Failed reaching Crossref for IEEE index: {e}"))?;
 
         if !cr_resp.status().is_success() {
-            return Err(format!("IEEE search returned HTTP status: {}", cr_resp.status()));
+            return Err(format!(
+                "IEEE search returned HTTP status: {}",
+                cr_resp.status()
+            ));
         }
 
         let cr_body = CrawlEngine::read_response_body_bounded(cr_resp)
@@ -392,7 +416,12 @@ impl SourceAdapter for IeeeAdapter {
                 .as_str()
                 .map(|u| u.to_string())
                 .or_else(|| doi.as_ref().map(|d| format!("https://doi.org/{}", d)))
-                .unwrap_or_else(|| format!("https://ieeexplore.ieee.org/search/searchresult.jsp?queryText={}", Self::url_encode(&title)));
+                .unwrap_or_else(|| {
+                    format!(
+                        "https://ieeexplore.ieee.org/search/searchresult.jsp?queryText={}",
+                        Self::url_encode(&title)
+                    )
+                });
 
             let abstract_text = item["abstract"]
                 .as_str()
@@ -417,11 +446,19 @@ impl SourceAdapter for IeeeAdapter {
             }
 
             let item_id = doi.as_deref().unwrap_or(&landing_url);
-            let id_slug: String = item_id.chars().filter(|c| c.is_alphanumeric()).take(12).collect();
+            let id_slug: String = item_id
+                .chars()
+                .filter(|c| c.is_alphanumeric())
+                .take(12)
+                .collect();
             let unique_part = uuid::Uuid::new_v4().to_string();
 
             results.push(DiscoveredSearchResult {
-                id: format!("ieee-{}-{}", if id_slug.is_empty() { "work" } else { &id_slug }, &unique_part[..8]),
+                id: format!(
+                    "ieee-{}-{}",
+                    if id_slug.is_empty() { "work" } else { &id_slug },
+                    &unique_part[..8]
+                ),
                 title,
                 authors,
                 publication_date: pub_year.map(|y| format!("{}-01-01", y)),
@@ -433,9 +470,16 @@ impl SourceAdapter for IeeeAdapter {
                 pdf_url: None,
                 source_id: "ieee_xplore".to_string(),
                 source_name: "IEEE Xplore".to_string(),
-                content_type: item["type"].as_str().unwrap_or("journal_article").to_string(),
+                content_type: item["type"]
+                    .as_str()
+                    .unwrap_or("journal_article")
+                    .to_string(),
                 is_open_access: is_oa,
-                license_name: if is_oa { Some("Open Access".to_string()) } else { None },
+                license_name: if is_oa {
+                    Some("Open Access".to_string())
+                } else {
+                    None
+                },
                 peer_reviewed: Some(true),
                 subject_tags: vec!["IEEE".to_string()],
                 language: Some("en".to_string()),
@@ -445,7 +489,10 @@ impl SourceAdapter for IeeeAdapter {
             });
         }
 
-        info!(count = results.len(), "Successfully discovered IEEE papers via Crossref prefix index");
+        info!(
+            count = results.len(),
+            "Successfully discovered IEEE papers via Crossref prefix index"
+        );
         Ok(results)
     }
 }

@@ -33,7 +33,9 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
     expect(screen.getByText(/3-Panel Literature Hub/i)).toBeInTheDocument();
 
     // Panel 1: Document Collection & Discovery
-    expect(screen.getByRole("region", { name: /Panel 1 Collection/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: /Panel 1 Collection/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Project \(/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^Discover$/i })).toBeInTheDocument();
 
@@ -46,7 +48,9 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
     expect(screen.getByRole("button", { name: /Figures & Tables/i })).toBeInTheDocument();
 
     // Panel 3: Details & Evidence Review
-    expect(screen.getByRole("complementary", { name: /Panel 3 Evidence and Details/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("complementary", { name: /Panel 3 Evidence and Details/i })
+    ).toBeInTheDocument();
   });
 
   it("switches tabs in Panel 2 smoothly", async () => {
@@ -55,7 +59,9 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
 
     // 1. Survey Matrix by default
     expect(screen.getByText(/Literature Survey Matrix/i)).toBeInTheDocument();
-    expect(screen.getByText(/Every cell is grounded in verbatim source evidence/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Every cell is grounded in verbatim source evidence/i)
+    ).toBeInTheDocument();
 
     // 2. Switch to Comparison Tab
     const compareTab = screen.getByRole("button", { name: /Comparison/i });
@@ -66,12 +72,16 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
     const gapsTab = screen.getByRole("button", { name: /Research Gaps/i });
     await user.click(gapsTab);
     expect(screen.getByText(/Synthesized Potential Research Gaps/i)).toBeInTheDocument();
-    expect(screen.getByText(/Trade-Off Between Adversarial Hardening/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Trade-Off Between Adversarial Hardening/i)
+    ).toBeInTheDocument();
 
     // 4. Switch to Paper Writer Tab
     const writerTab = screen.getByRole("button", { name: /Paper Writer/i });
     await user.click(writerTab);
-    expect(screen.getByText(/Evidence-Linked Academic Manuscript Editor/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Evidence-Linked Academic Manuscript Editor/i)
+    ).toBeInTheDocument();
     expect(screen.getAllByText(/Title & Abstract/i).length).toBeGreaterThan(0);
 
     // 5. Switch to Notes Tab
@@ -82,7 +92,9 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
     // 6. Switch to Figures & Tables Tab
     const figuresTab = screen.getByRole("button", { name: /Figures & Tables/i });
     await user.click(figuresTab);
-    expect(screen.getByText(/Extracted Figures & Structured Tables Gallery/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Extracted Figures & Structured Tables Gallery/i)
+    ).toBeInTheDocument();
   });
 
   it("synchronizes evidence to Panel 3 when clicking a Literature Survey cell", async () => {
@@ -118,7 +130,9 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
     // Panel 3 displays the claim's linked ground truth evidence
     expect(screen.getByText(/Ground Truth Source/i)).toBeInTheDocument();
     expect(
-      screen.getAllByText(/Deep Neural Network Architectures for Cloud Intrusion Detection/i).length
+      screen.getAllByText(
+        /Deep Neural Network Architectures for Cloud Intrusion Detection/i
+      ).length
     ).toBeGreaterThan(0);
   });
 
@@ -134,7 +148,9 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
     expect(screen.getByText(/Matches Found/i)).toBeInTheDocument();
 
     // Find "Properly Quoted" button for a match
-    const properlyQuotedBtns = screen.getAllByRole("button", { name: /Properly Quoted/i });
+    const properlyQuotedBtns = screen.getAllByRole("button", {
+      name: /Properly Quoted/i,
+    });
     expect(properlyQuotedBtns.length).toBeGreaterThan(0);
 
     // Click "Properly Quoted"
@@ -185,12 +201,17 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
 
     // Expand Left Panel back
     await user.click(screen.getByTitle(/Expand Left Panel/i));
-    expect(screen.getByRole("region", { name: /Panel 1 Collection/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: /Panel 1 Collection/i })
+    ).toBeInTheDocument();
   });
 
   it("is accessible via the Two-Column Sidebar under RESEARCH category", () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <Sidebar />
       </AppProvider>
     );
@@ -203,7 +224,11 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
 
   it("renders LiteratureWorkspaceView inside AppShell when activeSection is literature_workspace", () => {
     render(
-      <AppProvider initialSection="literature_workspace" initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialSection="literature_workspace"
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <AppShell />
       </AppProvider>
     );
@@ -220,7 +245,9 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
     expect(screen.getByText(/Literature Survey Matrix is Empty/i)).toBeInTheDocument();
     expect(screen.getByText(/No Paper Evidence Selected/i)).toBeInTheDocument();
     expect(
-      screen.queryByText(/Deep Neural Network Architectures for Cloud Intrusion Detection/i)
+      screen.queryByText(
+        /Deep Neural Network Architectures for Cloud Intrusion Detection/i
+      )
     ).not.toBeInTheDocument();
   });
 
@@ -231,7 +258,8 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
       title: "Renewable Energy Forecasting Using Graph Neural Networks",
       authors: ["E. Vance", "S. Morales"],
       publicationYear: 2025,
-      abstract: "We propose a spatio-temporal GNN to forecast solar farm irradiance with 98% accuracy.",
+      abstract:
+        "We propose a spatio-temporal GNN to forecast solar farm irradiance with 98% accuracy.",
       venue: "IEEE Trans. Sustainable Energy",
       hasFullText: true,
       isOpenAccess: true,
@@ -250,11 +278,15 @@ describe("Infinity Researcher — 3-Panel Literature Survey & Academic Workspace
     await user.click(aiReviewBtn);
 
     // Survey matrix now has the paper row
-    expect(screen.getAllByText(/Renewable Energy Forecasting Using Graph Neural Networks/i).length).toBeGreaterThanOrEqual(2);
+    expect(
+      screen.getAllByText(/Renewable Energy Forecasting Using Graph Neural Networks/i)
+        .length
+    ).toBeGreaterThanOrEqual(2);
     // Evidence panel displays ground truth evidence for this specific paper
     expect(screen.getByText(/Evidence for:/i)).toBeInTheDocument();
     expect(
-      screen.getAllByText(/Renewable Energy Forecasting Using Graph Neural Networks/i).length
+      screen.getAllByText(/Renewable Energy Forecasting Using Graph Neural Networks/i)
+        .length
     ).toBeGreaterThan(0);
   });
 });

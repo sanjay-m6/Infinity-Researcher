@@ -36,7 +36,8 @@ const MOCK_PAPERS: Paper[] = [
     id: "paper-2",
     title: "Attention Is All You Need",
     authors: ["Ashish Vaswani", "Noam Shazeer", "Niki Parmar"],
-    abstract: "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.",
+    abstract:
+      "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.",
     publicationDate: "2017-06-12",
     year: 2017,
     venue: "NeurIPS",
@@ -60,7 +61,8 @@ const MOCK_PAPERS: Paper[] = [
     id: "paper-3",
     title: "Language Models are Few-Shot Learners",
     authors: ["Tom B. Brown", "Benjamin Mann"],
-    abstract: "Recent work has demonstrated substantial gains on many NLP tasks and benchmarks.",
+    abstract:
+      "Recent work has demonstrated substantial gains on many NLP tasks and benchmarks.",
     publicationDate: "2020-05-28",
     year: 2020,
     venue: "NeurIPS",
@@ -124,9 +126,13 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
         "aria-pressed",
         "true"
       );
-      expect(screen.getByText("Deep Residual Learning for Image Recognition")).toBeInTheDocument();
+      expect(
+        screen.getByText("Deep Residual Learning for Image Recognition")
+      ).toBeInTheDocument();
       expect(screen.getByText("Attention Is All You Need")).toBeInTheDocument();
-      expect(screen.getByText("Language Models are Few-Shot Learners")).toBeInTheDocument();
+      expect(
+        screen.getByText("Language Models are Few-Shot Learners")
+      ).toBeInTheDocument();
     });
 
     it("switches to Card/Grid view and renders rich cards with reading progress", async () => {
@@ -144,7 +150,9 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
       expect(localStorage.getItem("infinity_library_view_mode")).toBe("grid");
 
       // Verify abstract snippets render in grid mode
-      expect(screen.getByText("Deeper neural networks are more difficult to train.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Deeper neural networks are more difficult to train.")
+      ).toBeInTheDocument();
     });
 
     it("switches to Compact view and persists choice to localStorage", async () => {
@@ -175,9 +183,13 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
         </AppProvider>
       );
 
-      const statusFilter = screen.getAllByRole("combobox").find((el) =>
-        Array.from((el as HTMLSelectElement).options).some((o) => o.value === "in_progress")
-      );
+      const statusFilter = screen
+        .getAllByRole("combobox")
+        .find((el) =>
+          Array.from((el as HTMLSelectElement).options).some(
+            (o) => o.value === "in_progress"
+          )
+        );
       expect(statusFilter).toBeDefined();
 
       if (statusFilter) {
@@ -186,8 +198,12 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
 
       // Only Attention Is All You Need is "in_progress"
       expect(screen.getByText("Attention Is All You Need")).toBeInTheDocument();
-      expect(screen.queryByText("Deep Residual Learning for Image Recognition")).not.toBeInTheDocument();
-      expect(screen.queryByText("Language Models are Few-Shot Learners")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Deep Residual Learning for Image Recognition")
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Language Models are Few-Shot Learners")
+      ).not.toBeInTheDocument();
     });
 
     it("updates paper reading status inline via dropdown", async () => {
@@ -199,9 +215,9 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
       );
 
       // Locate reading status select for first paper
-      const inlineSelects = screen.getAllByRole("combobox").filter((el) =>
-        (el as HTMLSelectElement).value === "unread"
-      );
+      const inlineSelects = screen
+        .getAllByRole("combobox")
+        .filter((el) => (el as HTMLSelectElement).value === "unread");
       expect(inlineSelects.length).toBeGreaterThan(0);
 
       await user.selectOptions(inlineSelects[0], "read");
@@ -221,16 +237,22 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
         </AppProvider>
       );
 
-      const tagFilter = screen.getAllByRole("combobox").find((el) =>
-        Array.from((el as HTMLSelectElement).options).some((o) => o.value === "Computer Vision")
-      );
+      const tagFilter = screen
+        .getAllByRole("combobox")
+        .find((el) =>
+          Array.from((el as HTMLSelectElement).options).some(
+            (o) => o.value === "Computer Vision"
+          )
+        );
       expect(tagFilter).toBeDefined();
 
       if (tagFilter) {
         await user.selectOptions(tagFilter, "Computer Vision");
       }
 
-      expect(screen.getByText("Deep Residual Learning for Image Recognition")).toBeInTheDocument();
+      expect(
+        screen.getByText("Deep Residual Learning for Image Recognition")
+      ).toBeInTheDocument();
       expect(screen.queryByText("Attention Is All You Need")).not.toBeInTheDocument();
     });
 
@@ -270,7 +292,9 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
 
       expect(screen.getByText("Saved Search Configurations")).toBeInTheDocument();
       expect(
-        screen.getByText("Saved searches preserve query terms, source filters, and sorting criteria for repeatable academic research.")
+        screen.getByText(
+          "Saved searches preserve query terms, source filters, and sorting criteria for repeatable academic research."
+        )
       ).toBeInTheDocument();
     });
 
@@ -317,9 +341,11 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
           id: "note-1",
           paper_id: "paper-2",
           title: "Multi-Head Attention Scaling",
-          content_markdown: "Attention is scaled by 1/sqrt(d_k) to avoid vanishing gradients in dot product.",
+          content_markdown:
+            "Attention is scaled by 1/sqrt(d_k) to avoid vanishing gradients in dot product.",
           page_number: 4,
-          highlighted_text: "We compute the matrix of outputs as Softmax(QK^T / sqrt(d_k))V",
+          highlighted_text:
+            "We compute the matrix of outputs as Softmax(QK^T / sqrt(d_k))V",
           created_at: "2024-02-10T12:00:00Z",
           updated_at: "2024-02-10T12:00:00Z",
         },
@@ -338,7 +364,9 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
 
       expect(screen.getByText("Global Research Notes Search")).toBeInTheDocument();
 
-      const input = screen.getByPlaceholderText(/Search note contents, keywords, quotes/i);
+      const input = screen.getByPlaceholderText(
+        /Search note contents, keywords, quotes/i
+      );
       await user.type(input, "scaling");
 
       const submitBtn = screen.getByRole("button", { name: /^Search Notes$/i });
@@ -368,7 +396,9 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
       await user.click(exportBtn);
 
       const dialog = screen.getByRole("dialog");
-      expect(within(dialog).getByText("Library Backup & Citation Export")).toBeInTheDocument();
+      expect(
+        within(dialog).getByText("Library Backup & Citation Export")
+      ).toBeInTheDocument();
 
       // Verify JSON payload contains 3 papers and schema version 1.0
       const textarea = within(dialog).getByRole("textbox") as HTMLTextAreaElement;
@@ -406,7 +436,9 @@ describe("Phase 15: Research Library, Collections, and Knowledge Management", ()
       );
 
       // Verify initial collection count and paper count
-      expect(screen.getByText("Deep Residual Learning for Image Recognition")).toBeInTheDocument();
+      expect(
+        screen.getByText("Deep Residual Learning for Image Recognition")
+      ).toBeInTheDocument();
       expect(screen.getByText("Attention Is All You Need")).toBeInTheDocument();
     });
 

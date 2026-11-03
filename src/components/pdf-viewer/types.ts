@@ -79,4 +79,3 @@ export interface EmbeddedPdfViewerProps {
   initialRightTab?: "ai" | "metadata" | "notes";
   hideRightPanel?: boolean; // When rendered in views with existing side-by-side right panes (e.g. DiscoverView)
 }
-

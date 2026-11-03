@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  Sparkles,
-  StickyNote,
-  Search,
-  Copy,
-  Check,
-  Quote,
-  X,
-} from "lucide-react";
+import { Sparkles, StickyNote, Search, Copy, Check, Quote, X } from "lucide-react";
 
 export interface TextSelectionMenuProps {
   selectedText: string;
@@ -149,4 +141,3 @@ export const TextSelectionMenu: React.FC<TextSelectionMenuProps> = ({
     </div>
   );
 };
-

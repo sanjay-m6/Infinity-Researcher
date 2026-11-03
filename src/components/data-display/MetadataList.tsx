@@ -35,7 +35,9 @@ export const MetadataItem: React.FC<MetadataItemProps> = ({
         className
       )}
     >
-      <span className="font-medium text-muted-foreground shrink-0 select-none">{label}</span>
+      <span className="font-medium text-muted-foreground shrink-0 select-none">
+        {label}
+      </span>
       <div className="flex items-center gap-1.5 text-right font-normal text-foreground truncate">
         <span className="truncate">{value}</span>
         {copyValue && (
@@ -82,4 +84,3 @@ export const MetadataList: React.FC<MetadataListProps> = ({
 };
 
 export default MetadataList;
-

@@ -7,7 +7,8 @@ use crate::academic_sources::adapter::{AcademicSourceAdapter, AdapterSearchResul
 use crate::academic_sources::errors::AcademicError;
 use crate::academic_sources::types::{
     AcademicSearchQuery, MetadataCompleteness, NormalizedAuthor, NormalizedWork,
-    ProviderCapabilities, ProviderHealthCheck, ProviderHealthStatus, ProviderId, ProviderProvenance,
+    ProviderCapabilities, ProviderHealthCheck, ProviderHealthStatus, ProviderId,
+    ProviderProvenance,
 };
 use crate::domain::paper::{compute_clean_title_key, normalize_doi};
 
@@ -351,8 +352,16 @@ impl AcademicSourceAdapter for EuropePmcAdapter {
                 }],
                 metadata_score: 0,
                 completeness: MetadataCompleteness::default(),
-                version_type: Some(if is_oa { "accepted_manuscript".to_string() } else { "published_version".to_string() }),
-                pdf_status: if is_oa { Some("open_access_available".to_string()) } else { None },
+                version_type: Some(if is_oa {
+                    "accepted_manuscript".to_string()
+                } else {
+                    "published_version".to_string()
+                }),
+                pdf_status: if is_oa {
+                    Some("open_access_available".to_string())
+                } else {
+                    None
+                },
             };
             work.compute_completeness();
             works.push(work);

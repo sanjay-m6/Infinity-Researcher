@@ -1,7 +1,5 @@
 use crate::database::Database;
-use crate::domain::saved_search::{
-    SavedSearch, SavedSearchCreateInput, SavedSearchUpdateInput,
-};
+use crate::domain::saved_search::{SavedSearch, SavedSearchCreateInput, SavedSearchUpdateInput};
 use crate::errors::AppError;
 use crate::repositories::SavedSearchRepository;
 
@@ -57,4 +55,3 @@ impl SavedSearchService {
             .map_err(|e| AppError::Internal(format!("Failed to touch saved search: {}", e)))
     }
 }
-

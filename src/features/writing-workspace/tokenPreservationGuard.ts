@@ -10,8 +10,10 @@ import {
 // ---------------------------------------------------------------------------
 
 // Citations: [1], [1, 2], [1-4], [Vaswani et al., 2017], (Smith & Jones, 2021), (Doe et al., 2019)
-const BRACKET_CITATION_REGEX = /\[(?:\d+(?:[–\-,\s]+\d+)*|[A-Z][a-zA-Z\s.&-]+(?:et\s+al\.)?,?\s*(?:19|20)\d{2}[a-z]?)\]/g;
-const PARENTHETICAL_CITATION_REGEX = /\((?:[A-Z][a-zA-Z\s.&-]+(?:et\s+al\.)?,?\s*(?:19|20)\d{2}[a-z]?(?:;\s*)?)+\)/g;
+const BRACKET_CITATION_REGEX =
+  /\[(?:\d+(?:[–\-,\s]+\d+)*|[A-Z][a-zA-Z\s.&-]+(?:et\s+al\.)?,?\s*(?:19|20)\d{2}[a-z]?)\]/g;
+const PARENTHETICAL_CITATION_REGEX =
+  /\((?:[A-Z][a-zA-Z\s.&-]+(?:et\s+al\.)?,?\s*(?:19|20)\d{2}[a-z]?(?:;\s*)?)+\)/g;
 
 // Equations & Mathematical Notation: $...$, $$...$$, or equation patterns like f(x) = y, \alpha, etc.
 const LATEX_INLINE_MATH_REGEX = /\$[^$\n]+\$/g;
@@ -22,19 +24,23 @@ const DOI_REGEX = /\b10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+\b/gi;
 const URL_REGEX = /https?:\/\/[^\s)\]]+/gi;
 
 // Quantities with units: e.g. "14.2%", "250 mg", "3.5 GHz", "100 ms", "45 nm", "22 °C"
-const QUANTITY_UNIT_REGEX = /\b\d+(?:[.,]\d+)?\s*(?:mg|g|kg|kHz|MHz|GHz|THz|Hz|ms|ns|μs|us|s|min|h|nm|μm|um|mm|cm|m|km|°C|K|V|mV|mA|A|W|kW|MW|dB|dBm|bps|kbps|Mbps|Gbps|%|percent)(?!\w)/gi;
+const QUANTITY_UNIT_REGEX =
+  /\b\d+(?:[.,]\d+)?\s*(?:mg|g|kg|kHz|MHz|GHz|THz|Hz|ms|ns|μs|us|s|min|h|nm|μm|um|mm|cm|m|km|°C|K|V|mV|mA|A|W|kW|MW|dB|dBm|bps|kbps|Mbps|Gbps|%|percent)(?!\w)/gi;
 
 // Standalone numbers & percentages
 const STANDALONE_NUMBER_REGEX = /\b\d+(?:[.,]\d+)?%?(?!\w)/g;
 
 // Dates: e.g. "2024", "October 2021", "May 14, 2020", "1998-05-12"
-const DATE_REGEX = /\b(?:(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+)?(?:19|20)\d{2}(?:-\d{2}-\d{2})?\b/gi;
+const DATE_REGEX =
+  /\b(?:(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+)?(?:19|20)\d{2}(?:-\d{2}-\d{2})?\b/gi;
 
 // Technical Identifiers & Architecture Names
-const TECH_IDENTIFIER_REGEX = /\b(?:GPT-[34o.-]+|BERT(?:-[A-Za-z0-9]+)?|ResNet-\d+|LLaMA(?:-[0-9.]+)?|IEEE\s*\d+(?:\.\d+[a-z]*)?|AdamW|SGD|CUDA(?:\s*\d+(?:\.\d+)?)?|Transformer|LSTM|CNN|RNN|U-Net|ViT|BERT-Large|PyTorch|TensorFlow)\b/gi;
+const TECH_IDENTIFIER_REGEX =
+  /\b(?:GPT-[34o.-]+|BERT(?:-[A-Za-z0-9]+)?|ResNet-\d+|LLaMA(?:-[0-9.]+)?|IEEE\s*\d+(?:\.\d+[a-z]*)?|AdamW|SGD|CUDA(?:\s*\d+(?:\.\d+)?)?|Transformer|LSTM|CNN|RNN|U-Net|ViT|BERT-Large|PyTorch|TensorFlow)\b/gi;
 
 // Named Entities (frequent academic entities & publishers)
-const NAMED_ENTITY_REGEX = /\b(?:IEEE|ACM|Springer|Nature|Elsevier|ArXiv|PubMed|Crossref|OpenAlex|Google|Stanford|MIT|DeepMind|OpenAI|Harvard|Oxford)\b/g;
+const NAMED_ENTITY_REGEX =
+  /\b(?:IEEE|ACM|Springer|Nature|Elsevier|ArXiv|PubMed|Crossref|OpenAlex|Google|Stanford|MIT|DeepMind|OpenAI|Harvard|Oxford)\b/g;
 
 // Negations
 const NEGATION_WORDS = [
@@ -76,7 +82,8 @@ const HEDGING_WORDS = [
 ];
 
 // Statistical Formulations
-const STATISTICAL_RESULT_REGEX = /\b(?:p\s*[<>=]\s*0?\.\d+|t\s*\(\d+\)\s*=\s*-?\d+(?:\.\d+)?|F\s*\(\d+,\s*\d+\)\s*=\s*\d+(?:\.\d+)?|R²\s*=\s*0?\.\d+|95%\s*CI\s*(?:\[[^\]]+\]|\([^)]+\)))\b/gi;
+const STATISTICAL_RESULT_REGEX =
+  /\b(?:p\s*[<>=]\s*0?\.\d+|t\s*\(\d+\)\s*=\s*-?\d+(?:\.\d+)?|F\s*\(\d+,\s*\d+\)\s*=\s*\d+(?:\.\d+)?|R²\s*=\s*0?\.\d+|95%\s*CI\s*(?:\[[^\]]+\]|\([^)]+\)))\b/gi;
 
 /**
  * Extracts invariant tokens from academic text.
@@ -194,7 +201,13 @@ export function validatePreservationAndSemantics(
   let missingCount = 0;
 
   // 1. Invariant Tokens Check: Citations, DOIs, URLs, Equations
-  const strictInvariants: TokenType[] = ["citation", "doi", "url", "equation", "statistical_result"];
+  const strictInvariants: TokenType[] = [
+    "citation",
+    "doi",
+    "url",
+    "equation",
+    "statistical_result",
+  ];
   for (const invType of strictInvariants) {
     const origList = origByType.get(invType) || [];
     const revList = revByType.get(invType) || [];
@@ -279,7 +292,12 @@ export function validatePreservationAndSemantics(
   const lowerRev = revisedText.toLowerCase();
 
   // A. Correlation vs Causation Inversion
-  const correlationPhrases = ["correlated with", "correlation", "associated with", "linked to"];
+  const correlationPhrases = [
+    "correlated with",
+    "correlation",
+    "associated with",
+    "linked to",
+  ];
   const causationPhrases = ["causes", "caused by", "causing", "causation", "proves that"];
 
   const origHasCorrelation = correlationPhrases.some((p) => lowerOrig.includes(p));
@@ -302,8 +320,13 @@ export function validatePreservationAndSemantics(
   }
 
   // B. Inversion of Statistical Significance
-  const origNotSig = lowerOrig.includes("not statistically significant") || lowerOrig.includes("no statistically significant");
-  const revIsSig = lowerRev.includes("statistically significant") && !lowerRev.includes("not statistically significant") && !lowerRev.includes("no statistically significant");
+  const origNotSig =
+    lowerOrig.includes("not statistically significant") ||
+    lowerOrig.includes("no statistically significant");
+  const revIsSig =
+    lowerRev.includes("statistically significant") &&
+    !lowerRev.includes("not statistically significant") &&
+    !lowerRev.includes("no statistically significant");
 
   if (origNotSig && revIsSig) {
     issues.push({
@@ -318,8 +341,12 @@ export function validatePreservationAndSemantics(
 
   // C. Removed Hedging / Scientific Uncertainty Language
   // e.g. "may improve" vs "improves", "could potentially" vs "will"
-  const origHedges = (origByType.get("uncertainty") || []).map((t) => t.value.toLowerCase());
-  const revHedges = (revByType.get("uncertainty") || []).map((t) => t.value.toLowerCase());
+  const origHedges = (origByType.get("uncertainty") || []).map((t) =>
+    t.value.toLowerCase()
+  );
+  const revHedges = (revByType.get("uncertainty") || []).map((t) =>
+    t.value.toLowerCase()
+  );
 
   if (origHedges.length > 0 && revHedges.length === 0 && origHedges.length >= 2) {
     issues.push({
@@ -336,7 +363,10 @@ export function validatePreservationAndSemantics(
   const origNegations = origByType.get("negation") || [];
   const revNegations = revByType.get("negation") || [];
   if (origNegations.length > revNegations.length) {
-    const diffNegs = origNegations.filter((on) => !revNegations.some((rn) => rn.value.toLowerCase() === on.value.toLowerCase()));
+    const diffNegs = origNegations.filter(
+      (on) =>
+        !revNegations.some((rn) => rn.value.toLowerCase() === on.value.toLowerCase())
+    );
     if (diffNegs.length > 0) {
       issues.push({
         id: "drift_negation_missing",
@@ -351,7 +381,13 @@ export function validatePreservationAndSemantics(
   }
 
   // E. Removed Study Limitations Check
-  const limitationKeywords = ["limitation", "preliminary", "constrained by", "further research is warranted", "small sample size"];
+  const limitationKeywords = [
+    "limitation",
+    "preliminary",
+    "constrained by",
+    "further research is warranted",
+    "small sample size",
+  ];
   const origHasLimitations = limitationKeywords.some((k) => lowerOrig.includes(k));
   const revHasLimitations = limitationKeywords.some((k) => lowerRev.includes(k));
 

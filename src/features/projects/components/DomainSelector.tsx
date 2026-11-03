@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  Search,
-  Check,
-  ChevronRight,
-  Plus,
-  X,
-} from "lucide-react";
+import { Search, Check, ChevronRight, Plus, X } from "lucide-react";
 import {
   ResearchDomain,
   listResearchDomains,
@@ -17,7 +11,11 @@ interface DomainSelectorProps {
   selectedDomainId: string | null;
   selectedSubdomainId: string | null;
   customDomainText?: string | null;
-  onChange: (domainId: string | null, subdomainId: string | null, customText?: string) => void;
+  onChange: (
+    domainId: string | null,
+    subdomainId: string | null,
+    customText?: string
+  ) => void;
   allowCustom?: boolean;
 }
 
@@ -76,7 +74,9 @@ export const DomainSelector: React.FC<DomainSelectorProps> = ({
     if (!searchQuery.trim()) return primaryDomains;
     const q = searchQuery.toLowerCase();
     return primaryDomains.filter((p) => {
-      const matchP = p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q);
+      const matchP =
+        p.name.toLowerCase().includes(q) ||
+        (p.description || "").toLowerCase().includes(q);
       const subs = subdomainsMap.get(p.id) || [];
       const matchSub = subs.some((s) => s.name.toLowerCase().includes(q));
       return matchP || matchSub;
@@ -130,7 +130,9 @@ export const DomainSelector: React.FC<DomainSelectorProps> = ({
             {selectedSub && (
               <>
                 <ChevronRight className="w-3 h-3 text-indigo-400" />
-                <span className="font-bold text-indigo-900 dark:text-indigo-100">{selectedSub.name}</span>
+                <span className="font-bold text-indigo-900 dark:text-indigo-100">
+                  {selectedSub.name}
+                </span>
               </>
             )}
             <button
@@ -142,7 +144,9 @@ export const DomainSelector: React.FC<DomainSelectorProps> = ({
             </button>
           </div>
         ) : (
-          <span className="text-[11px] text-slate-400">No domain selected (defaults to Interdisciplinary)</span>
+          <span className="text-[11px] text-slate-400">
+            No domain selected (defaults to Interdisciplinary)
+          </span>
         )}
 
         {customDomainText && (
@@ -207,7 +211,10 @@ export const DomainSelector: React.FC<DomainSelectorProps> = ({
                       onClick={() => handleSelectPrimary(p.id)}
                       className="flex items-center gap-2 text-left font-semibold text-slate-900 dark:text-slate-100 hover:text-indigo-600"
                     >
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || "#6366f1" }} />
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: p.color || "#6366f1" }}
+                      />
                       <span>{p.name}</span>
                     </button>
 
@@ -219,7 +226,9 @@ export const DomainSelector: React.FC<DomainSelectorProps> = ({
                   </div>
 
                   {p.description && (
-                    <p className="text-[11px] text-slate-400 mt-0.5 ml-4">{p.description}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 ml-4">
+                      {p.description}
+                    </p>
                   )}
 
                   {/* Subdomain Chips */}
@@ -262,7 +271,13 @@ export const DomainSelector: React.FC<DomainSelectorProps> = ({
                     onChange={(e) => setNewCustomName(e.target.value)}
                     className="flex-1 px-2.5 py-1 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                   />
-                  <Button type="button" size="sm" variant="primary" onClick={handleCreateCustom} className="text-xs h-7">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="primary"
+                    onClick={handleCreateCustom}
+                    className="text-xs h-7"
+                  >
                     Add
                   </Button>
                   <Button

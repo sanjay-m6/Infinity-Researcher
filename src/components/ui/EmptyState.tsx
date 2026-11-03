@@ -42,10 +42,20 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         </div>
       )}
       <div className="space-y-1">
-        <h3 className={cn("font-semibold text-foreground tracking-tight", compact ? "text-xs" : "text-sm")}>
+        <h3
+          className={cn(
+            "font-semibold text-foreground tracking-tight",
+            compact ? "text-xs" : "text-sm"
+          )}
+        >
           {title}
         </h3>
-        <p className={cn("text-muted-foreground max-w-sm leading-relaxed", compact ? "text-[11px]" : "text-xs")}>
+        <p
+          className={cn(
+            "text-muted-foreground max-w-sm leading-relaxed",
+            compact ? "text-[11px]" : "text-xs"
+          )}
+        >
           {description}
         </p>
       </div>

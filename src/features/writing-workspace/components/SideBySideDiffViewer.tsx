@@ -1,13 +1,5 @@
 import React, { useState, useMemo } from "react";
-import {
-  Columns,
-  GitCompare,
-  ListFilter,
-  Check,
-  X,
-  Copy,
-  Sparkles,
-} from "lucide-react";
+import { Columns, GitCompare, ListFilter, Check, X, Copy, Sparkles } from "lucide-react";
 import { computeWordDiff, computeTextStatistics } from "../writingEngine";
 import { Button } from "../../../components/ui/Button";
 
@@ -109,16 +101,29 @@ export const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
 
         <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
           <span>
-            Original: <strong className="text-slate-700 dark:text-slate-200">{origStats.wordCount}</strong> words
+            Original:{" "}
+            <strong className="text-slate-700 dark:text-slate-200">
+              {origStats.wordCount}
+            </strong>{" "}
+            words
           </span>
           <span>·</span>
           <span>
-            Revised: <strong className="text-slate-700 dark:text-slate-200">{revStats.wordCount}</strong> words
+            Revised:{" "}
+            <strong className="text-slate-700 dark:text-slate-200">
+              {revStats.wordCount}
+            </strong>{" "}
+            words
             {revStats.wordCount > 0 && (
-              <span className={`ml-1 text-[11px] font-semibold ${
-                revStats.wordCount >= origStats.wordCount ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
-              }`}>
-                ({revStats.wordCount >= origStats.wordCount ? "+" : ""}{revStats.wordCount - origStats.wordCount})
+              <span
+                className={`ml-1 text-[11px] font-semibold ${
+                  revStats.wordCount >= origStats.wordCount
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-amber-600 dark:text-amber-400"
+                }`}
+              >
+                ({revStats.wordCount >= origStats.wordCount ? "+" : ""}
+                {revStats.wordCount - origStats.wordCount})
               </span>
             )}
           </span>
@@ -173,7 +178,11 @@ export const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
                   disabled={!revisedText}
                   className="h-7 text-xs"
                 >
-                  {hasCopied ? <Check className="w-3 h-3 text-emerald-500 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
+                  {hasCopied ? (
+                    <Check className="w-3 h-3 text-emerald-500 mr-1" />
+                  ) : (
+                    <Copy className="w-3 h-3 mr-1" />
+                  )}
                   <span>{hasCopied ? "Copied" : "Copy"}</span>
                 </Button>
               </div>
@@ -225,7 +234,8 @@ export const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
 
           {!originalText || !revisedText ? (
             <p className="text-xs text-slate-400 italic py-6 text-center">
-              Provide original text and generate a revision to view word-level diff highlights.
+              Provide original text and generate a revision to view word-level diff
+              highlights.
             </p>
           ) : (
             <div className="text-sm leading-relaxed font-sans p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-200/50 dark:border-slate-700/50 whitespace-pre-wrap select-text">
@@ -276,13 +286,17 @@ export const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
                 className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-800/20 space-y-3"
               >
                 <div className="flex items-center justify-between text-xs text-slate-400">
-                  <span className="font-mono font-semibold">Paragraph {pair.index + 1}</span>
+                  <span className="font-mono font-semibold">
+                    Paragraph {pair.index + 1}
+                  </span>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => {
                         // Accept this revised paragraph: replace original paragraph with revised
-                        const origParas = originalText.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
+                        const origParas = originalText
+                          .split(/\n\s*\n/)
+                          .filter((p) => p.trim().length > 0);
                         origParas[pair.index] = pair.rev;
                         onOriginalChange(origParas.join("\n\n"));
                       }}
@@ -296,7 +310,9 @@ export const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
                       type="button"
                       onClick={() => {
                         // Reject this revised paragraph: keep original
-                        const revParas = revisedText.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
+                        const revParas = revisedText
+                          .split(/\n\s*\n/)
+                          .filter((p) => p.trim().length > 0);
                         revParas[pair.index] = pair.orig;
                         onRevisedChange(revParas.join("\n\n"));
                       }}
@@ -313,14 +329,18 @@ export const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
                     <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
                       Original
                     </span>
-                    <p className="text-slate-700 dark:text-slate-300">{pair.orig || "—"}</p>
+                    <p className="text-slate-700 dark:text-slate-300">
+                      {pair.orig || "—"}
+                    </p>
                   </div>
 
                   <div className="p-3 rounded-lg bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-800/50">
                     <span className="text-[10px] uppercase font-bold text-indigo-500 block mb-1">
                       Revised
                     </span>
-                    <p className="text-slate-800 dark:text-slate-200 font-medium">{pair.rev || "—"}</p>
+                    <p className="text-slate-800 dark:text-slate-200 font-medium">
+                      {pair.rev || "—"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -331,4 +351,3 @@ export const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
     </div>
   );
 };
-

@@ -107,7 +107,13 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
               onClick={(e) => handleSelect(opt.value, e)}
               onKeyDown={(e) => handleKeyDown(e, idx)}
               title={`${opt.label}: ${opt.description}`}
-              aria-label={opt.value === "light" ? "Light mode" : opt.value === "dark" ? "Dark mode" : "System theme"}
+              aria-label={
+                opt.value === "light"
+                  ? "Light mode"
+                  : opt.value === "dark"
+                    ? "Dark mode"
+                    : "System theme"
+              }
               className={cn(
                 "relative flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 cursor-pointer select-none",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
@@ -119,9 +125,15 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
               <Icon
                 className={cn(
                   "w-3.5 h-3.5 shrink-0 transition-transform duration-300 ease-out",
-                  opt.value === "light" && isSelected && "text-amber-500 rotate-12 scale-110",
-                  opt.value === "dark" && isSelected && "text-primary -rotate-12 scale-110",
-                  opt.value === "system" && isSelected && "text-muted-foreground scale-105"
+                  opt.value === "light" &&
+                    isSelected &&
+                    "text-amber-500 rotate-12 scale-110",
+                  opt.value === "dark" &&
+                    isSelected &&
+                    "text-primary -rotate-12 scale-110",
+                  opt.value === "system" &&
+                    isSelected &&
+                    "text-muted-foreground scale-105"
                 )}
               />
               <span className="capitalize">{opt.value}</span>
@@ -166,8 +178,8 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
                 opt.value === "light"
                   ? "bg-amber-500/10 text-amber-500"
                   : opt.value === "dark"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted text-muted-foreground"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground"
               )}
             >
               <Icon className="w-5 h-5" />
@@ -176,7 +188,10 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
               <div className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <span>{opt.label}</span>
                 {isSelected && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" aria-hidden="true" />
+                  <span
+                    className="w-1.5 h-1.5 rounded-full bg-primary shrink-0"
+                    aria-hidden="true"
+                  />
                 )}
               </div>
               <div className="text-xs text-muted-foreground mt-0.5 truncate">

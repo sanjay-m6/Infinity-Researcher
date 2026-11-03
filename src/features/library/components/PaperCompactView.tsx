@@ -27,7 +27,8 @@ export const PaperCompactView: React.FC<PaperCompactViewProps> = ({
       {papers.map((paper) => {
         const isSelected = selectedPaperIds.includes(paper.id);
         const status = (paper.readingStatus || "unread") as ReadingStatus;
-        const statusConfig = READING_STATUS_CONFIG[status] || READING_STATUS_CONFIG.unread;
+        const statusConfig =
+          READING_STATUS_CONFIG[status] || READING_STATUS_CONFIG.unread;
 
         return (
           <div
@@ -104,7 +105,9 @@ export const PaperCompactView: React.FC<PaperCompactViewProps> = ({
                   );
                 })}
               {paper.tags && paper.tags.length > 2 && (
-                <span className="text-[10px] text-slate-400">+{paper.tags.length - 2}</span>
+                <span className="text-[10px] text-slate-400">
+                  +{paper.tags.length - 2}
+                </span>
               )}
             </div>
 
@@ -156,4 +159,3 @@ export const PaperCompactView: React.FC<PaperCompactViewProps> = ({
     </div>
   );
 };
-

@@ -12,7 +12,11 @@ import {
   Sparkles,
   ExternalLink,
 } from "lucide-react";
-import { MatrixExtraction, MatrixRow, MatrixColumnConfig } from "../../lib/desktop-api/types";
+import {
+  MatrixExtraction,
+  MatrixRow,
+  MatrixColumnConfig,
+} from "../../lib/desktop-api/types";
 import { Button } from "../../components/ui/Button";
 
 interface EvidenceDetailsPanelProps {
@@ -36,7 +40,9 @@ export const EvidenceDetailsPanel: React.FC<EvidenceDetailsPanelProps> = ({
 }) => {
   const [value, setValue] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [status, setStatus] = useState<"extracted" | "user_verified" | "flagged">("extracted");
+  const [status, setStatus] = useState<"extracted" | "user_verified" | "flagged">(
+    "extracted"
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
   const [showFullContext, setShowFullContext] = useState(false);
@@ -56,9 +62,12 @@ export const EvidenceDetailsPanel: React.FC<EvidenceDetailsPanelProps> = ({
     return (
       <div className="h-full flex flex-col items-center justify-center p-6 text-center text-slate-400 dark:text-slate-500">
         <FileText className="w-10 h-10 mb-2 opacity-50 text-cyan-600" />
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">No cell selected</p>
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          No cell selected
+        </p>
         <p className="text-xs max-w-xs mt-1">
-          Click on any matrix cell to inspect source passages, page references, and verification metadata.
+          Click on any matrix cell to inspect source passages, page references, and
+          verification metadata.
         </p>
       </div>
     );
@@ -127,7 +136,10 @@ export const EvidenceDetailsPanel: React.FC<EvidenceDetailsPanelProps> = ({
             Evidence details
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Dimension: <span className="font-medium text-cyan-600 dark:text-cyan-400">{column.label}</span>
+            Dimension:{" "}
+            <span className="font-medium text-cyan-600 dark:text-cyan-400">
+              {column.label}
+            </span>
           </p>
         </div>
         <button
@@ -276,7 +288,9 @@ export const EvidenceDetailsPanel: React.FC<EvidenceDetailsPanelProps> = ({
 
             {showFullContext && (
               <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-600 dark:text-slate-300 space-y-1">
-                <p className="font-semibold text-slate-800 dark:text-slate-200">Surrounding Context:</p>
+                <p className="font-semibold text-slate-800 dark:text-slate-200">
+                  Surrounding Context:
+                </p>
                 <p className="italic text-[11px] leading-relaxed">
                   {extraction?.source_passage
                     ? `...prior work demonstrated limited throughput under variable loads. ${extraction.source_passage} This improvement is primarily due to the decentralized verification protocol, confirming higher throughput and resistance to network jitter under peak operations...`
@@ -294,7 +308,11 @@ export const EvidenceDetailsPanel: React.FC<EvidenceDetailsPanelProps> = ({
             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <span>Evidence metadata</span>
-            {isMetadataExpanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+            {isMetadataExpanded ? (
+              <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            )}
           </button>
 
           {isMetadataExpanded && (
@@ -302,13 +320,21 @@ export const EvidenceDetailsPanel: React.FC<EvidenceDetailsPanelProps> = ({
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-slate-500 dark:text-slate-400">Section</span>
                 <span className="font-medium text-slate-800 dark:text-slate-200">
-                  {column.key.includes("finding") ? "5.2 Experimental Results" : column.key.includes("method") ? "3. Methodology & System Design" : "4. Evaluation & Setup"}
+                  {column.key.includes("finding")
+                    ? "5.2 Experimental Results"
+                    : column.key.includes("method")
+                      ? "3. Methodology & System Design"
+                      : "4. Evaluation & Setup"}
                 </span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-slate-500 dark:text-slate-400">Figure / Table</span>
                 <span className="font-medium text-slate-800 dark:text-slate-200">
-                  {column.key.includes("metric") ? "Table 3" : column.key.includes("finding") ? "Figure 6" : "Table 1"}
+                  {column.key.includes("metric")
+                    ? "Table 3"
+                    : column.key.includes("finding")
+                      ? "Figure 6"
+                      : "Table 1"}
                 </span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
@@ -369,4 +395,3 @@ export const EvidenceDetailsPanel: React.FC<EvidenceDetailsPanelProps> = ({
     </div>
   );
 };
-

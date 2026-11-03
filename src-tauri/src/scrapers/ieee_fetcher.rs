@@ -8,9 +8,9 @@
 //! 5. Quaternary Tier: Browser-Mimic Stamp Session Handshake & IFRAME Extraction
 //! 6. Strict Binary Validation: Verify %PDF- signature and stream to memory or disk.
 
+use regex::Regex;
 use std::sync::OnceLock;
 use std::time::Duration;
-use regex::Regex;
 use tracing::{debug, info, warn};
 
 use crate::scrapers::url_guard::UrlGuard;
@@ -67,10 +67,7 @@ pub fn normalize_doi(raw_doi: &str) -> String {
 }
 
 /// Resolves the canonical DOI for an IEEE paper if only a title or arnumber is available.
-pub async fn resolve_ieee_doi_by_title(
-    title: &str,
-    client: &reqwest::Client,
-) -> Option<String> {
+pub async fn resolve_ieee_doi_by_title(title: &str, client: &reqwest::Client) -> Option<String> {
     let clean_title = title.trim();
     if clean_title.is_empty() {
         return None;
@@ -153,7 +150,11 @@ pub async fn resolve_ieee_direct_pdf_url(
             {
                 if resp.status().is_success() {
                     if let Ok(json) = resp.json::<serde_json::Value>().await {
-                        if let Some(links) = json.get("message").and_then(|m| m.get("link")).and_then(|l| l.as_array()) {
+                        if let Some(links) = json
+                            .get("message")
+                            .and_then(|m| m.get("link"))
+                            .and_then(|l| l.as_array())
+                        {
                             for l in links {
                                 if let Some(raw_link) = l.get("URL").and_then(|u| u.as_str()) {
                                     let candidate_url = if raw_link.starts_with("http://") {
@@ -162,8 +163,10 @@ pub async fn resolve_ieee_direct_pdf_url(
                                         raw_link.to_string()
                                     };
 
-                                    if (candidate_url.contains("xplorestaging.ieee.org") || candidate_url.contains("ieeexplore.ieee.org"))
-                                        && (candidate_url.contains(".pdf") || candidate_url.contains("arnumber="))
+                                    if (candidate_url.contains("xplorestaging.ieee.org")
+                                        || candidate_url.contains("ieeexplore.ieee.org"))
+                                        && (candidate_url.contains(".pdf")
+                                            || candidate_url.contains("arnumber="))
                                     {
                                         debug!(url = %candidate_url, "Tier 1: Verifying xplorestaging direct PDF stream");
                                         if verify_pdf_endpoint(&candidate_url, client).await {
@@ -198,10 +201,15 @@ pub async fn resolve_ieee_direct_pdf_url(
                 if resp.status().is_success() {
                     if let Ok(json) = resp.json::<serde_json::Value>().await {
                         let mut candidates = Vec::new();
-                        if let Some(best) = json.get("best_oa_location").and_then(|b| b.get("url_for_pdf")).and_then(|u| u.as_str()) {
+                        if let Some(best) = json
+                            .get("best_oa_location")
+                            .and_then(|b| b.get("url_for_pdf"))
+                            .and_then(|u| u.as_str())
+                        {
                             candidates.push(best.to_string());
                         }
-                        if let Some(locations) = json.get("oa_locations").and_then(|l| l.as_array()) {
+                        if let Some(locations) = json.get("oa_locations").and_then(|l| l.as_array())
+                        {
                             for loc in locations {
                                 if let Some(u) = loc.get("url_for_pdf").and_then(|u| u.as_str()) {
                                     let s = u.to_string();
@@ -246,7 +254,11 @@ pub async fn resolve_ieee_direct_pdf_url(
             {
                 if resp.status().is_success() {
                     if let Ok(json) = resp.json::<serde_json::Value>().await {
-                        if let Some(pdf_u) = json.get("openAccessPdf").and_then(|p| p.get("url")).and_then(|u| u.as_str()) {
+                        if let Some(pdf_u) = json
+                            .get("openAccessPdf")
+                            .and_then(|p| p.get("url"))
+                            .and_then(|u| u.as_str())
+                        {
                             let cand_https = if pdf_u.starts_with("http://") {
                                 pdf_u.replacen("http://", "https://", 1)
                             } else {
@@ -267,7 +279,10 @@ pub async fn resolve_ieee_direct_pdf_url(
     let stamp_target = if url.contains("/stamp/stamp.jsp") {
         Some(url.to_string())
     } else if let Some(arnumber) = extract_arnumber(url) {
-        Some(format!("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber={}", arnumber))
+        Some(format!(
+            "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber={}",
+            arnumber
+        ))
     } else {
         None
     };

@@ -205,7 +205,9 @@ impl PdfProcessor {
         } else {
             meta.status = PdfVerificationStatus::NoText.as_str().to_string();
             meta.is_scanned = true;
-            meta.warning = Some("PDF contains no extractable page streams (scanned or image-only)".to_string());
+            meta.warning = Some(
+                "PDF contains no extractable page streams (scanned or image-only)".to_string(),
+            );
         }
 
         meta
@@ -275,7 +277,9 @@ impl PdfProcessor {
 
         // 2. Abstract extraction
         if meta.abstract_text.is_none() {
-            if let Ok(re) = Regex::new(r"(?is)\babstract[:\.\s—-]+(.*?)(?:\n\s*\n\s*(?:[I1]\.|\bindex terms\b|\bkeywords\b|\bintroduction\b)|$)") {
+            if let Ok(re) = Regex::new(
+                r"(?is)\babstract[:\.\s—-]+(.*?)(?:\n\s*\n\s*(?:[I1]\.|\bindex terms\b|\bkeywords\b|\bintroduction\b)|$)",
+            ) {
                 if let Some(cap) = re.captures(text) {
                     let raw_abs = cap[1].trim();
                     if raw_abs.len() > 30 {
@@ -349,7 +353,10 @@ impl PdfProcessor {
         // 6. License detection
         if meta.license.is_none() {
             let lower = text[..text.len().min(4000)].to_lowercase();
-            if lower.contains("creative commons attribution") || lower.contains("cc by 4.0") || lower.contains("cc-by") {
+            if lower.contains("creative commons attribution")
+                || lower.contains("cc by 4.0")
+                || lower.contains("cc-by")
+            {
                 meta.license = Some("CC-BY 4.0".to_string());
             } else if lower.contains("open access") {
                 meta.license = Some("Open Access".to_string());
@@ -443,18 +450,30 @@ impl PdfProcessor {
         if let (Some(ext_doi), Some(exp_doi)) = (&extracted.doi, expected_doi) {
             let clean_ext = ext_doi.trim().to_lowercase();
             let clean_exp = exp_doi.trim().to_lowercase();
-            if clean_ext == clean_exp || clean_ext.contains(&clean_exp) || clean_exp.contains(&clean_ext) {
+            if clean_ext == clean_exp
+                || clean_ext.contains(&clean_exp)
+                || clean_exp.contains(&clean_ext)
+            {
                 extracted.identity_reconciled = true;
                 extracted.identity_score = 1.0;
                 extracted.identity_status = "verified_match".to_string();
-                extracted.reconciliation_notes = Some(format!("Exact DOI match confirmed from document body: {}", ext_doi));
+                extracted.reconciliation_notes = Some(format!(
+                    "Exact DOI match confirmed from document body: {}",
+                    ext_doi
+                ));
                 return true;
-            } else if clean_ext.starts_with("10.") && clean_exp.starts_with("10.") && clean_ext != clean_exp {
+            } else if clean_ext.starts_with("10.")
+                && clean_exp.starts_with("10.")
+                && clean_ext != clean_exp
+            {
                 // Conflicting explicit DOI found in extracted document!
                 extracted.identity_reconciled = false;
                 extracted.identity_score = 0.0;
                 extracted.identity_status = "wrong_document".to_string();
-                extracted.reconciliation_notes = Some(format!("Conflicting DOI found in PDF text: {} (expected {})", ext_doi, exp_doi));
+                extracted.reconciliation_notes = Some(format!(
+                    "Conflicting DOI found in PDF text: {} (expected {})",
+                    ext_doi, exp_doi
+                ));
                 return false;
             }
         }
@@ -462,7 +481,11 @@ impl PdfProcessor {
         // 2. Title matching
         let mut best_title_sim: f64 = 0.0;
         if let Some(ref doc_title) = extracted.title {
-            let sim = crate::services::candidate_verifier::CandidateVerifier::compute_title_similarity(expected_title, doc_title);
+            let sim =
+                crate::services::candidate_verifier::CandidateVerifier::compute_title_similarity(
+                    expected_title,
+                    doc_title,
+                );
             best_title_sim = best_title_sim.max(sim);
         }
 
@@ -479,8 +502,15 @@ impl PdfProcessor {
             let doc_author_text = extracted.author.as_deref().unwrap_or("");
             let preview_text = extracted.text_preview.as_deref().unwrap_or("");
             for author in expected_authors {
-                let surname = author.split_whitespace().last().unwrap_or(author).to_lowercase();
-                if surname.len() >= 3 && (doc_author_text.to_lowercase().contains(&surname) || preview_text.to_lowercase().contains(&surname)) {
+                let surname = author
+                    .split_whitespace()
+                    .last()
+                    .unwrap_or(author)
+                    .to_lowercase();
+                if surname.len() >= 3
+                    && (doc_author_text.to_lowercase().contains(&surname)
+                        || preview_text.to_lowercase().contains(&surname))
+                {
                     author_matched = true;
                     break;
                 }
@@ -495,7 +525,11 @@ impl PdfProcessor {
             extracted.reconciliation_notes = Some(format!(
                 "High confidence match ({:.0}%){}",
                 best_title_sim * 100.0,
-                if author_matched { " with matching author surname" } else { "" }
+                if author_matched {
+                    " with matching author surname"
+                } else {
+                    ""
+                }
             ));
             true
         } else if best_title_sim >= 0.70 || (best_title_sim >= 0.60 && author_matched) {
@@ -504,10 +538,17 @@ impl PdfProcessor {
             extracted.reconciliation_notes = Some(format!(
                 "Probable match ({:.0}% title overlap){}",
                 best_title_sim * 100.0,
-                if author_matched { " with author verification" } else { "" }
+                if author_matched {
+                    " with author verification"
+                } else {
+                    ""
+                }
             ));
             true
-        } else if best_title_sim >= 0.35 || extracted.is_scanned || extracted.text_preview.as_ref().map_or(0, |t| t.len()) < 150 {
+        } else if best_title_sim >= 0.35
+            || extracted.is_scanned
+            || extracted.text_preview.as_ref().map_or(0, |t| t.len()) < 150
+        {
             extracted.identity_reconciled = false;
             extracted.identity_status = "identity_uncertain".to_string();
             extracted.reconciliation_notes = Some(format!(
@@ -596,7 +637,10 @@ mod tests {
         let mut meta_wrong = ExtractedPdfMetadata {
             title: Some("Quantum Error Correction with Surface Codes".to_string()),
             author: Some("John Preskill".to_string()),
-            text_preview: Some("We analyze fault-tolerant quantum computation using 2D topological codes".to_string()),
+            text_preview: Some(
+                "We analyze fault-tolerant quantum computation using 2D topological codes"
+                    .to_string(),
+            ),
             ..Default::default()
         };
 

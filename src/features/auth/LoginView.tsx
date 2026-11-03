@@ -105,7 +105,11 @@ export const LoginView: React.FC<LoginModalProps> = ({ onSwitchToSignup }) => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {showPassword ? (
+                  <EyeOff className="w-3.5 h-3.5" />
+                ) : (
+                  <Eye className="w-3.5 h-3.5" />
+                )}
               </button>
             </div>
           </div>
@@ -119,7 +123,9 @@ export const LoginView: React.FC<LoginModalProps> = ({ onSwitchToSignup }) => {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-3.5 h-3.5 rounded-sm border-slate-300 dark:border-white/20 text-indigo-600 focus:ring-indigo-500 dark:bg-white/5"
               />
-              <span className="text-xs text-slate-600 dark:text-slate-400">Remember Me</span>
+              <span className="text-xs text-slate-600 dark:text-slate-400">
+                Remember Me
+              </span>
             </label>
           </div>
 
@@ -167,4 +173,3 @@ export const LoginView: React.FC<LoginModalProps> = ({ onSwitchToSignup }) => {
     </div>
   );
 };
-

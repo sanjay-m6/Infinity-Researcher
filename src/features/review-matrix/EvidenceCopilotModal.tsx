@@ -120,7 +120,10 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
       console.error("Copilot request failed:", err);
-      const msg = desktopApi.getErrorMessage(err, "Failed to communicate with local AI assistant.");
+      const msg = desktopApi.getErrorMessage(
+        err,
+        "Failed to communicate with local AI assistant."
+      );
       const errorMsg: EvidenceCopilotMessage = {
         id: generateId("err"),
         session_id: sessionId,
@@ -245,8 +248,14 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
                         className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-600 dark:text-cyan-400 hover:underline"
                       >
                         <FileText className="w-3.5 h-3.5" />
-                        <span>Show Supporting Evidence ({evidenceList.length} passages)</span>
-                        {isEvidenceOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        <span>
+                          Show Supporting Evidence ({evidenceList.length} passages)
+                        </span>
+                        {isEvidenceOpen ? (
+                          <ChevronUp className="w-3 h-3" />
+                        ) : (
+                          <ChevronDown className="w-3 h-3" />
+                        )}
                       </button>
 
                       {isEvidenceOpen && (
@@ -276,7 +285,9 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
                               </p>
                               {onNavigateToPdf && ev.page_number && (
                                 <button
-                                  onClick={() => onNavigateToPdf(ev.paper_id, ev.page_number!)}
+                                  onClick={() =>
+                                    onNavigateToPdf(ev.paper_id, ev.page_number!)
+                                  }
                                   className="inline-flex items-center gap-1 text-[11px] text-cyan-600 dark:text-cyan-400 hover:underline pt-0.5 font-medium"
                                 >
                                   <ExternalLink className="w-3 h-3" />
@@ -334,7 +345,11 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
               disabled={!inputQuery.trim() || isLoading}
               className="px-5 py-3 rounded-xl flex items-center gap-2"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
               <span>Ask</span>
             </Button>
           </form>

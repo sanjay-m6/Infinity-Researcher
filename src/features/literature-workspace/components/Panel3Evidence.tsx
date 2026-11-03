@@ -20,10 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { useProjectWorkspace } from "../ProjectWorkspaceContext";
-import {
-  SourceEvidenceItem,
-  LiteraturePaper,
-} from "../types";
+import { SourceEvidenceItem, LiteraturePaper } from "../types";
 import { EmbeddedPdfViewer } from "../../../components/pdf-viewer/EmbeddedPdfViewer";
 
 export const Panel3Evidence: React.FC = () => {
@@ -46,7 +43,9 @@ export const Panel3Evidence: React.FC = () => {
   } = useProjectWorkspace();
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [citationFormat, setCitationFormat] = useState<"apa" | "ieee" | "acm" | "bibtex">("apa");
+  const [citationFormat, setCitationFormat] = useState<"apa" | "ieee" | "acm" | "bibtex">(
+    "apa"
+  );
   const [filterSimilarityStatus, setFilterSimilarityStatus] = useState<string>("all");
   const [pdfModalOpen, setPdfModalOpen] = useState<boolean>(false);
   const [modalTargetPage, setModalTargetPage] = useState<number>(1);
@@ -83,7 +82,10 @@ export const Panel3Evidence: React.FC = () => {
   };
 
   // Helper formatting for citations
-  const formatCitation = (paper: LiteraturePaper, format: "apa" | "ieee" | "acm" | "bibtex") => {
+  const formatCitation = (
+    paper: LiteraturePaper,
+    format: "apa" | "ieee" | "acm" | "bibtex"
+  ) => {
     const firstAuthor = paper.authors[0] || "Unknown Author";
     const year = paper.publicationYear || 2024;
     const title = paper.title;
@@ -124,9 +126,7 @@ export const Panel3Evidence: React.FC = () => {
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-surface-subtle">
         <div className="flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-text-muted" />
-          <span className="text-xs font-medium text-text-muted">
-            Evidence & review
-          </span>
+          <span className="text-xs font-medium text-text-muted">Evidence & review</span>
         </div>
         <button
           onClick={() => setIsPanel3Collapsed(true)}
@@ -151,9 +151,7 @@ export const Panel3Evidence: React.FC = () => {
         >
           <BookmarkCheck className="w-3.5 h-3.5" />
           <span>Evidence</span>
-          {activeEvidence && (
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          )}
+          {activeEvidence && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
         </button>
 
         <button
@@ -213,7 +211,10 @@ export const Panel3Evidence: React.FC = () => {
                 {/* Active Evidence Inspection Header */}
                 <div className="flex items-center justify-between text-xs pb-0.5">
                   <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
-                    Evidence for: <strong className="text-slate-800 dark:text-slate-200">{activeEvidence.paperTitle}</strong>
+                    Evidence for:{" "}
+                    <strong className="text-slate-800 dark:text-slate-200">
+                      {activeEvidence.paperTitle}
+                    </strong>
                   </span>
                   <button
                     type="button"
@@ -223,7 +224,9 @@ export const Panel3Evidence: React.FC = () => {
                     title="Re-run AI review to refresh extracted dimensions and evidence"
                   >
                     <FileSearch className="w-3 h-3" />
-                    {reviewingPaperId === activeEvidence.paperId ? "Reviewing..." : "Re-Review with AI"}
+                    {reviewingPaperId === activeEvidence.paperId
+                      ? "Reviewing..."
+                      : "Re-Review with AI"}
                   </button>
                 </div>
 
@@ -239,19 +242,19 @@ export const Panel3Evidence: React.FC = () => {
                           activeEvidence.supportRating === "direct"
                             ? "bg-emerald-500"
                             : activeEvidence.supportRating === "related"
-                            ? "bg-blue-500"
-                            : activeEvidence.supportRating === "contradictory"
-                            ? "bg-rose-500"
-                            : "bg-slate-400"
+                              ? "bg-blue-500"
+                              : activeEvidence.supportRating === "contradictory"
+                                ? "bg-rose-500"
+                                : "bg-slate-400"
                         }`}
                       />
                       {activeEvidence.supportRating === "direct"
                         ? "Directly Supports Claim"
                         : activeEvidence.supportRating === "related"
-                        ? "Contextual / Related"
-                        : activeEvidence.supportRating === "contradictory"
-                        ? "Contradictory / Discrepancy"
-                        : "Unverified Evidence"}
+                          ? "Contextual / Related"
+                          : activeEvidence.supportRating === "contradictory"
+                            ? "Contradictory / Discrepancy"
+                            : "Unverified Evidence"}
                     </span>
                   </div>
 
@@ -358,9 +361,9 @@ export const Panel3Evidence: React.FC = () => {
                     Support Classification & Integrity
                   </span>
                   <p className="text-xs text-text-muted">
-                    This excerpt directly substantiates the recorded claim.
-                    Claims in Infinity Researcher are tied to exact page coordinates
-                    to prevent hallucinated attributions.
+                    This excerpt directly substantiates the recorded claim. Claims in
+                    Infinity Researcher are tied to exact page coordinates to prevent
+                    hallucinated attributions.
                   </p>
 
                   <div className="grid grid-cols-2 gap-1.5 pt-1 text-[11px]">
@@ -411,7 +414,9 @@ export const Panel3Evidence: React.FC = () => {
                       disabled={reviewingPaperId === selectedPaper.id}
                       className="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 rounded-lg font-medium text-xs flex items-center justify-center gap-2 transition-colors shadow-xs"
                     >
-                      <FileSearch className={`w-3.5 h-3.5 ${reviewingPaperId === selectedPaper.id ? "animate-spin" : ""}`} />
+                      <FileSearch
+                        className={`w-3.5 h-3.5 ${reviewingPaperId === selectedPaper.id ? "animate-spin" : ""}`}
+                      />
                       {reviewingPaperId === selectedPaper.id
                         ? "Synthesizing evidence with AI..."
                         : "AI Review for this Paper"}
@@ -424,7 +429,8 @@ export const Panel3Evidence: React.FC = () => {
                     No cell selected in survey matrix
                   </p>
                   <p className="text-[11px] text-slate-500">
-                    Click any cell in Panel 2 to inspect its specific page-grounded excerpt, or run Quick AI Review above to generate a new synthesis.
+                    Click any cell in Panel 2 to inspect its specific page-grounded
+                    excerpt, or run Quick AI Review above to generate a new synthesis.
                   </p>
                 </div>
               </div>
@@ -437,7 +443,10 @@ export const Panel3Evidence: React.FC = () => {
                   No Paper Evidence Selected
                 </h4>
                 <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
-                  Select a paper from Panel 1 or click any cell in the <strong>Literature Survey Matrix</strong> to inspect real extracted ground-truth evidence, or click <strong>Quick AI Review</strong> to analyze papers.
+                  Select a paper from Panel 1 or click any cell in the{" "}
+                  <strong>Literature Survey Matrix</strong> to inspect real extracted
+                  ground-truth evidence, or click <strong>Quick AI Review</strong> to
+                  analyze papers.
                 </p>
                 {surveyRows.length > 0 && (
                   <button
@@ -510,8 +519,8 @@ export const Panel3Evidence: React.FC = () => {
                         selectedPaper.extractionStatus === "extracted"
                           ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                           : selectedPaper.extractionStatus === "ocr_required"
-                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                          : "bg-blue-500/10 text-blue-600"
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            : "bg-blue-500/10 text-blue-600"
                       }`}
                     >
                       {selectedPaper.extractionStatus.replace("_", " ").toUpperCase()}
@@ -618,9 +627,9 @@ export const Panel3Evidence: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-text-muted leading-relaxed">
-                Matches are detected using local-first Winnowing n-gram
-                fingerprinting against your project literature. Verified locally
-                without external cloud leakage.
+                Matches are detected using local-first Winnowing n-gram fingerprinting
+                against your project literature. Verified locally without external cloud
+                leakage.
               </p>
 
               {/* Status Filters */}
@@ -644,9 +653,7 @@ export const Panel3Evidence: React.FC = () => {
                         : "bg-surface border border-border text-text-muted hover:text-text"
                     }`}
                   >
-                    {status === "all"
-                      ? "All"
-                      : status.replace("_", " ").toUpperCase()}
+                    {status === "all" ? "All" : status.replace("_", " ").toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -681,7 +688,9 @@ export const Panel3Evidence: React.FC = () => {
 
                     <div className="p-2 rounded bg-blue-500/5 dark:bg-blue-950/20 border border-blue-500/20 space-y-0.5">
                       <div className="flex items-center justify-between text-[10px] font-semibold text-blue-800 dark:text-blue-300">
-                        <span>Source ({match.sourcePaperTitle}, Pg {match.sourcePageNumber}):</span>
+                        <span>
+                          Source ({match.sourcePaperTitle}, Pg {match.sourcePageNumber}):
+                        </span>
                         <button
                           onClick={() =>
                             handleOpenPdfAtPage(
@@ -711,9 +720,7 @@ export const Panel3Evidence: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-1 text-[10px]">
                       <button
-                        onClick={() =>
-                          updateSimilarityStatus(match.id, "acknowledged")
-                        }
+                        onClick={() => updateSimilarityStatus(match.id, "acknowledged")}
                         className={`py-1 px-1.5 rounded border text-center transition-colors ${
                           match.reviewStatus === "acknowledged"
                             ? "bg-amber-500 text-white font-semibold border-amber-600"
@@ -747,9 +754,7 @@ export const Panel3Evidence: React.FC = () => {
                         Attach Citation
                       </button>
                       <button
-                        onClick={() =>
-                          updateSimilarityStatus(match.id, "false_positive")
-                        }
+                        onClick={() => updateSimilarityStatus(match.id, "false_positive")}
                         className={`py-1 px-1.5 rounded border text-center transition-colors ${
                           match.reviewStatus === "false_positive"
                             ? "bg-slate-600 text-white font-semibold border-slate-700"
@@ -783,8 +788,8 @@ export const Panel3Evidence: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-text-muted leading-relaxed">
-                Cross-checking in-text citations against the collected project
-                literature matrix.
+                Cross-checking in-text citations against the collected project literature
+                matrix.
               </p>
 
               <div className="grid grid-cols-2 gap-2 pt-1 text-xs">

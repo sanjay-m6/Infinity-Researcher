@@ -128,9 +128,12 @@ export const AddPapersModal: React.FC<AddPapersModalProps> = ({
             <PaperCardSkeleton count={3} />
           ) : filteredPapers.length === 0 ? (
             <div className="p-8 text-center text-sm text-slate-500 space-y-1">
-              <p className="font-medium text-slate-700 dark:text-slate-300">No matching papers found</p>
+              <p className="font-medium text-slate-700 dark:text-slate-300">
+                No matching papers found
+              </p>
               <p className="text-xs text-slate-400">
-                Discover and save papers from Search, IEEE Open Access, or import PDFs into your Library.
+                Discover and save papers from Search, IEEE Open Access, or import PDFs
+                into your Library.
               </p>
             </div>
           ) : (

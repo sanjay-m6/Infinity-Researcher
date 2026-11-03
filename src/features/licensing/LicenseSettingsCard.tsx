@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
+import React, { useEffect, useState } from "react";
+import { Button } from "../../components/ui/Button";
+import { Badge } from "../../components/ui/Badge";
 import {
   KeyRound,
   ShieldCheck,
@@ -11,16 +11,16 @@ import {
   Trash2,
   Upload,
   Layers,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   loadSavedLicense,
   saveLicense,
   clearSavedLicense,
   validateLicense,
   generateDiagnosticReport,
-} from './licensing-service';
-import { LicenseValidationResult, SignedLicense } from './types';
-import { getErrorMessage } from '../../lib/desktop-api';
+} from "./licensing-service";
+import { LicenseValidationResult, SignedLicense } from "./types";
+import { getErrorMessage } from "../../lib/desktop-api";
 
 export interface LicenseSettingsCardProps {
   appVersion?: string;
@@ -28,17 +28,17 @@ export interface LicenseSettingsCardProps {
 }
 
 export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
-  appVersion = '0.1.0',
-  osPlatform = 'Windows 10/11 x64',
+  appVersion = "0.1.0",
+  osPlatform = "Windows 10/11 x64",
 }) => {
   const [result, setResult] = useState<LicenseValidationResult>({
     valid: true,
-    tier: 'community',
-    status: 'community_default',
+    tier: "community",
+    status: "community_default",
     entitlements: [],
   });
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [licenseInputText, setLicenseInputText] = useState('');
+  const [licenseInputText, setLicenseInputText] = useState("");
   const [inputError, setInputError] = useState<string | null>(null);
   const [copiedReport, setCopiedReport] = useState(false);
 
@@ -57,16 +57,20 @@ export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
     try {
       const parsed = JSON.parse(licenseInputText.trim());
       if (!parsed.payload || !parsed.signature) {
-        throw new Error('Invalid format: Signed license must contain "payload" and "signature" fields.');
+        throw new Error(
+          'Invalid format: Signed license must contain "payload" and "signature" fields.'
+        );
       }
       const validation = await validateLicense(parsed as SignedLicense);
-      if (!validation.valid && validation.status !== 'expired') {
-        throw new Error(validation.errorMessage || 'Failed to validate cryptographic license signature.');
+      if (!validation.valid && validation.status !== "expired") {
+        throw new Error(
+          validation.errorMessage || "Failed to validate cryptographic license signature."
+        );
       }
       saveLicense(parsed as SignedLicense);
       setResult(validation);
       setIsImportModalOpen(false);
-      setLicenseInputText('');
+      setLicenseInputText("");
     } catch (err: unknown) {
       const msg = getErrorMessage(err, "Invalid license JSON format.");
       setInputError(msg);
@@ -88,10 +92,10 @@ export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
           setResult(validation);
           setIsImportModalOpen(false);
         } else {
-          setInputError(validation.errorMessage || 'Invalid license content.');
+          setInputError(validation.errorMessage || "Invalid license content.");
         }
       } catch {
-        setInputError('Could not parse license file as JSON.');
+        setInputError("Could not parse license file as JSON.");
       }
     };
     reader.readAsText(file);
@@ -117,13 +121,13 @@ export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
 
   const tierBadgeVariant = (tier: string) => {
     switch (tier) {
-      case 'enterprise':
-      case 'pro':
-        return 'primary';
-      case 'trial':
-        return 'warning';
+      case "enterprise":
+      case "pro":
+        return "primary";
+      case "trial":
+        return "warning";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
@@ -201,14 +205,15 @@ export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
           <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-              License Status: {result.status.replace(/_/g, ' ').toUpperCase()}
+              License Status: {result.status.replace(/_/g, " ").toUpperCase()}
             </h4>
             <p className="text-xs text-amber-700 dark:text-amber-300">
               {result.errorMessage ||
-                'The current license could not be validated. Premium entitlements are disabled.'}
+                "The current license could not be validated. Premium entitlements are disabled."}
             </p>
             <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-              Data Guarantee: Your saved research papers, notes, PDFs, and local SQLite library remain 100% accessible.
+              Data Guarantee: Your saved research papers, notes, PDFs, and local SQLite
+              library remain 100% accessible.
             </p>
           </div>
         </div>
@@ -226,7 +231,7 @@ export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
           <div>
             <span className="text-slate-400 block mb-0.5">Licensee</span>
             <span className="font-medium text-slate-700 dark:text-slate-200">
-              {result.license.payload.customer?.name || 'Authorized Scholar'}
+              {result.license.payload.customer?.name || "Authorized Scholar"}
             </span>
           </div>
           <div>
@@ -240,13 +245,13 @@ export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
             <span className="font-medium text-slate-700 dark:text-slate-200">
               {result.license.payload.expiresAt
                 ? new Date(result.license.payload.expiresAt).toLocaleDateString()
-                : 'Perpetual (No Expiration)'}
+                : "Perpetual (No Expiration)"}
             </span>
           </div>
           <div>
             <span className="text-slate-400 block mb-0.5">Organization</span>
             <span className="font-medium text-slate-700 dark:text-slate-200">
-              {result.license.payload.customer?.organization || 'Individual Researcher'}
+              {result.license.payload.customer?.organization || "Individual Researcher"}
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
@@ -267,32 +272,48 @@ export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
             <span className="text-slate-700 dark:text-slate-300 font-medium">
               Local Library & SQLite WAL Storage
             </span>
-            <Badge variant="success" size="sm">Always Included</Badge>
+            <Badge variant="success" size="sm">
+              Always Included
+            </Badge>
           </div>
           <div className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
             <span className="text-slate-700 dark:text-slate-300 font-medium">
               Multi-Source Paper Discovery (7 Engines)
             </span>
-            <Badge variant="success" size="sm">Always Included</Badge>
+            <Badge variant="success" size="sm">
+              Always Included
+            </Badge>
           </div>
           <div className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
             <span className="text-slate-700 dark:text-slate-300 font-medium">
               Batch Synthesis & Deep Matrix
             </span>
-            {result.entitlements.includes('feature:batch_synthesis') || result.tier === 'pro' || result.tier === 'enterprise' ? (
-              <Badge variant="primary" size="sm">Unlocked</Badge>
+            {result.entitlements.includes("feature:batch_synthesis") ||
+            result.tier === "pro" ||
+            result.tier === "enterprise" ? (
+              <Badge variant="primary" size="sm">
+                Unlocked
+              </Badge>
             ) : (
-              <Badge variant="outline" size="sm">Pro Tier</Badge>
+              <Badge variant="outline" size="sm">
+                Pro Tier
+              </Badge>
             )}
           </div>
           <div className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
             <span className="text-slate-700 dark:text-slate-300 font-medium">
               Automated Integrity & Retraction Auditing
             </span>
-            {result.entitlements.includes('feature:deep_integrity_audit') || result.tier === 'pro' || result.tier === 'enterprise' ? (
-              <Badge variant="primary" size="sm">Unlocked</Badge>
+            {result.entitlements.includes("feature:deep_integrity_audit") ||
+            result.tier === "pro" ||
+            result.tier === "enterprise" ? (
+              <Badge variant="primary" size="sm">
+                Unlocked
+              </Badge>
             ) : (
-              <Badge variant="outline" size="sm">Pro Tier</Badge>
+              <Badge variant="outline" size="sm">
+                Pro Tier
+              </Badge>
             )}
           </div>
         </div>
@@ -302,7 +323,8 @@ export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
       <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-400">
         <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
         <span>
-          Infinity Researcher operates completely offline. No telemetry, account tracking, or periodic server phone-homes are required.
+          Infinity Researcher operates completely offline. No telemetry, account tracking,
+          or periodic server phone-homes are required.
         </span>
       </div>
 
@@ -324,7 +346,9 @@ export const LicenseSettingsCard: React.FC<LicenseSettingsCardProps> = ({
             </div>
 
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Paste your signed license JSON payload or import an offline license file (<code className="font-mono">.lic</code> / <code className="font-mono">.json</code>).
+              Paste your signed license JSON payload or import an offline license file (
+              <code className="font-mono">.lic</code> /{" "}
+              <code className="font-mono">.json</code>).
             </p>
 
             <div className="space-y-2">

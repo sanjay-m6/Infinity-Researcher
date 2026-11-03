@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { UnifiedIntegrityReport } from "../types";
-import {
-  loadSavedReportsFromStorage,
-  deleteReportFromStorage,
-} from "../reportStore";
+import { loadSavedReportsFromStorage, deleteReportFromStorage } from "../reportStore";
 import {
   History,
   X,
@@ -79,7 +76,8 @@ export const PreviousReportsDrawer: React.FC<PreviousReportsDrawerProps> = ({
                 No saved audit reports yet.
               </p>
               <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-                Audits you run can be saved locally to review and track findings over time.
+                Audits you run can be saved locally to review and track findings over
+                time.
               </p>
             </div>
           ) : (

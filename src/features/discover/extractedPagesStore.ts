@@ -7,7 +7,9 @@ class ExtractedPagesStore {
     if (!key || !pages || pages.length === 0) return;
     this.cache.set(key, pages);
     if (typeof window !== "undefined") {
-      (window as unknown as { __extractedPdfPages?: Map<string, PageTextItem[]> }).__extractedPdfPages = this.cache;
+      (
+        window as unknown as { __extractedPdfPages?: Map<string, PageTextItem[]> }
+      ).__extractedPdfPages = this.cache;
     }
   }
 
@@ -27,4 +29,3 @@ class ExtractedPagesStore {
 }
 
 export const extractedPagesStore = new ExtractedPagesStore();
-

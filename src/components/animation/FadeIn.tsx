@@ -6,7 +6,8 @@ import { useReducedMotionPreference } from "../../hooks/use-reduced-motion-prefe
 export type FadeInDirection = "up" | "down" | "left" | "right" | "none";
 
 export interface FadeInProps
-  extends Omit<HTMLMotionProps<"div">, "children" | "direction">,
+  extends
+    Omit<HTMLMotionProps<"div">, "children" | "direction">,
     Omit<HTMLAttributes<HTMLDivElement>, keyof HTMLMotionProps<"div">> {
   children?: ReactNode;
   direction?: FadeInDirection;
@@ -69,7 +70,7 @@ export const FadeIn = forwardRef<HTMLDivElement, FadeInProps>(
           duration: prefersReducedMotion ? 0 : duration,
           ease: motionEase.enter,
           delay,
-          ...((typeof customTransition === "object" && customTransition !== null)
+          ...(typeof customTransition === "object" && customTransition !== null
             ? customTransition
             : {}),
         },

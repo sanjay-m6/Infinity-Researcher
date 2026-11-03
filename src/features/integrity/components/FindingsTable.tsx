@@ -165,7 +165,9 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           {/* Dimension Selector */}
           <select
             value={selectedDimension}
-            onChange={(e) => onSelectDimension(e.target.value as IntegrityDimension | "all")}
+            onChange={(e) =>
+              onSelectDimension(e.target.value as IntegrityDimension | "all")
+            }
             className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="all">All Dimensions</option>
@@ -207,7 +209,11 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
         </div>
 
         <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-          Showing <span className="font-bold text-slate-800 dark:text-slate-200">{filteredFindings.length}</span> of {findings.length} findings
+          Showing{" "}
+          <span className="font-bold text-slate-800 dark:text-slate-200">
+            {filteredFindings.length}
+          </span>{" "}
+          of {findings.length} findings
         </div>
       </div>
 
@@ -219,7 +225,8 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
             No matching findings
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-            Try adjusting your search query, status, or dimension filters to view other diagnostics.
+            Try adjusting your search query, status, or dimension filters to view other
+            diagnostics.
           </p>
         </div>
       ) : (
@@ -238,10 +245,10 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                   finding.isReviewed
                     ? "border-slate-200 dark:border-slate-800/80 bg-slate-50/40 dark:bg-slate-900/40 opacity-80"
                     : finding.status === "concern"
-                    ? "border-rose-200 dark:border-rose-900/60 hover:border-rose-300"
-                    : finding.status === "technical_error"
-                    ? "border-sky-200 dark:border-sky-900/60 hover:border-sky-300"
-                    : "border-slate-200 dark:border-slate-800 hover:border-slate-300"
+                      ? "border-rose-200 dark:border-rose-900/60 hover:border-rose-300"
+                      : finding.status === "technical_error"
+                        ? "border-sky-200 dark:border-sky-900/60 hover:border-sky-300"
+                        : "border-slate-200 dark:border-slate-800 hover:border-slate-300"
                 }`}
               >
                 {/* Header row */}
@@ -254,7 +261,10 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                     {getStatusBadge(finding.status, finding.isReviewed)}
                     {getSeverityBadge(finding.severity)}
                     <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      Location: <code className="text-slate-700 dark:text-slate-300 font-semibold">{finding.location}</code>
+                      Location:{" "}
+                      <code className="text-slate-700 dark:text-slate-300 font-semibold">
+                        {finding.location}
+                      </code>
                     </span>
                   </div>
 
@@ -303,7 +313,10 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                     {finding.title}
                   </h4>
                   <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 shrink-0">
-                    Confidence: <span className="text-slate-600 dark:text-slate-300">{finding.confidence}</span>
+                    Confidence:{" "}
+                    <span className="text-slate-600 dark:text-slate-300">
+                      {finding.confidence}
+                    </span>
                   </span>
                 </div>
 
@@ -340,7 +353,8 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                         Auditor / Reviewer Notes
                         {finding.reviewedAt && (
                           <span className="text-[11px] text-slate-400 font-normal">
-                            (Reviewed on {new Date(finding.reviewedAt).toLocaleDateString()})
+                            (Reviewed on{" "}
+                            {new Date(finding.reviewedAt).toLocaleDateString()})
                           </span>
                         )}
                       </span>

@@ -15,7 +15,10 @@ export interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
-  ({ defaultValue = "", value, onValueChange, className = "", children, ...props }, ref) => {
+  (
+    { defaultValue = "", value, onValueChange, className = "", children, ...props },
+    ref
+  ) => {
     const [internalValue, setInternalValue] = useState(defaultValue);
     const currentValue = value !== undefined ? value : internalValue;
 
@@ -27,7 +30,9 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
     };
 
     return (
-      <TabsContext.Provider value={{ value: currentValue, onValueChange: handleValueChange }}>
+      <TabsContext.Provider
+        value={{ value: currentValue, onValueChange: handleValueChange }}
+      >
         <div ref={ref} className={cn("flex flex-col space-y-3", className)} {...props}>
           {children}
         </div>
@@ -117,4 +122,3 @@ export const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(
 TabsContent.displayName = "TabsContent";
 
 export default Tabs;
-

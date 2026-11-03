@@ -248,19 +248,23 @@ export const Sidebar: React.FC = () => {
   );
 
   // Derive initial active category from activeSection
-  const findCategoryForSection = useCallback((section: NavSection): NavCategory => {
-    if (section === "dashboard") return "research";
-    for (const cat of categories) {
-      if (cat.items.some((item) => item.id === section)) {
-        return cat.id;
+  const findCategoryForSection = useCallback(
+    (section: NavSection): NavCategory => {
+      if (section === "dashboard") return "research";
+      for (const cat of categories) {
+        if (cat.items.some((item) => item.id === section)) {
+          return cat.id;
+        }
       }
-    }
-    // Default fallback
-    if (section === "review_matrix") return "research";
-    if (section === "downloads" || section === "collections" || section === "activity") return "workspace";
-    if (section === "ai_hub") return "system";
-    return "research";
-  }, [categories]);
+      // Default fallback
+      if (section === "review_matrix") return "research";
+      if (section === "downloads" || section === "collections" || section === "activity")
+        return "workspace";
+      if (section === "ai_hub") return "system";
+      return "research";
+    },
+    [categories]
+  );
 
   const [activeCategory, setActiveCategory] = useState<NavCategory>(() =>
     findCategoryForSection(activeSection)
@@ -407,8 +411,12 @@ export const Sidebar: React.FC = () => {
           {/* Quick Collapse Secondary Column Toggle */}
           <IconButton
             icon={isSecondaryCollapsed ? ChevronRight : ChevronLeft}
-            aria-label={isSecondaryCollapsed ? "Expand sidebar panel" : "Collapse sidebar panel"}
-            tooltip={isSecondaryCollapsed ? "Expand sidebar panel" : "Collapse sidebar panel"}
+            aria-label={
+              isSecondaryCollapsed ? "Expand sidebar panel" : "Collapse sidebar panel"
+            }
+            tooltip={
+              isSecondaryCollapsed ? "Expand sidebar panel" : "Collapse sidebar panel"
+            }
             tooltipSide="right"
             size="sm"
             variant="ghost"
@@ -479,7 +487,11 @@ export const Sidebar: React.FC = () => {
                     }}
                     className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-500 font-medium"
                   >
-                    <AppIcon icon={Heart} size="xs" className="fill-current text-rose-500" />
+                    <AppIcon
+                      icon={Heart}
+                      size="xs"
+                      className="fill-current text-rose-500"
+                    />
                     <span>Support & Donate</span>
                   </button>
 
@@ -535,7 +547,8 @@ export const Sidebar: React.FC = () => {
                 activeSection === item.id ||
                 (item.id === "paper_comparison" && activeSection === "review_matrix") ||
                 (item.id === "projects" && activeSection === "collections") ||
-                (item.id === "history" && (activeSection === "activity" || activeSection === "downloads")) ||
+                (item.id === "history" &&
+                  (activeSection === "activity" || activeSection === "downloads")) ||
                 (item.id === "ai_models" && activeSection === "ai_hub");
 
               return (
@@ -556,7 +569,9 @@ export const Sidebar: React.FC = () => {
                     icon={Icon}
                     size="sm"
                     className={`transition-colors ${
-                      isActive ? "text-indigo-600 dark:text-slate-200" : "text-slate-400 dark:text-slate-400"
+                      isActive
+                        ? "text-indigo-600 dark:text-slate-200"
+                        : "text-slate-400 dark:text-slate-400"
                     }`}
                   />
 

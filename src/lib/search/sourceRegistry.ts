@@ -192,7 +192,9 @@ export function getSourceCapability(sourceId: string): AcademicSourceCapability 
     nativePaginationType: "none",
     maxPageSize: 25,
     defaultRateLimitMs: 2000,
-    knownLimitations: ["Source capabilities unverified; falling back to generic post-filter pipeline."],
+    knownLimitations: [
+      "Source capabilities unverified; falling back to generic post-filter pipeline.",
+    ],
   };
 }
 
@@ -211,11 +213,12 @@ export function evaluateSourcesForQuery(
   const skippedSources: Array<{ sourceId: string; reason: string }> = [];
 
   // If query explicitly specified a source (e.g. source:arxiv or source:arxiv,plos)
-  const explicitSources = requestedSources && requestedSources.length > 0
-    ? requestedSources
-    : requestedSource
-    ? [requestedSource]
-    : null;
+  const explicitSources =
+    requestedSources && requestedSources.length > 0
+      ? requestedSources
+      : requestedSource
+        ? [requestedSource]
+        : null;
 
   for (const src of sourceIds) {
     const norm = src.toLowerCase().trim();
@@ -235,4 +238,3 @@ export function evaluateSourcesForQuery(
 
   return { activeSources, skippedSources };
 }
-

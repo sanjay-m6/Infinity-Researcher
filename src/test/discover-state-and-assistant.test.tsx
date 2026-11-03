@@ -23,7 +23,9 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
     expect(discoverSessionStore.getState().searchQuery).toBe("");
 
     discoverSessionStore.setSearchQuery("quantum computing error mitigation");
-    expect(discoverSessionStore.getState().searchQuery).toBe("quantum computing error mitigation");
+    expect(discoverSessionStore.getState().searchQuery).toBe(
+      "quantum computing error mitigation"
+    );
 
     discoverSessionStore.setSelectedPaperId("paper-test-1");
     expect(discoverSessionStore.getState().selectedPaperId).toBe("paper-test-1");
@@ -42,13 +44,16 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
       created_at: new Date().toISOString(),
     });
 
-    expect(discoverSessionStore.getState().chatHistoryByPaper["paper-test-1"]).toHaveLength(1);
+    expect(
+      discoverSessionStore.getState().chatHistoryByPaper["paper-test-1"]
+    ).toHaveLength(1);
 
     // Cache an insight
     discoverSessionStore.setInsight("paper-test-1", "beginner_eli5", {
       type: "beginner_eli5",
       title: "Beginner Explanation (ELI5)",
-      content: "Think of quantum error correction like checking spelling in three copies of a letter.",
+      content:
+        "Think of quantum error correction like checking spelling in three copies of a letter.",
       citations: [
         {
           chunk_id: "chk-1",
@@ -62,7 +67,8 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
       createdAt: new Date().toISOString(),
     });
 
-    const cachedInsight = discoverSessionStore.getState().insightsByPaper["paper-test-1"]["beginner_eli5"];
+    const cachedInsight =
+      discoverSessionStore.getState().insightsByPaper["paper-test-1"]["beginner_eli5"];
     expect(cachedInsight).toBeDefined();
     expect(cachedInsight.content).toContain("Think of quantum error correction");
     expect(cachedInsight.citations[0].page_number).toBe(3);
@@ -75,7 +81,10 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
     const user = userEvent.setup();
 
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <AppShell />
       </AppProvider>
     );
@@ -86,16 +95,22 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
     const discoverNavBtn = within(nav).getByRole("button", { name: /Discover/i });
     await user.click(discoverNavBtn);
 
-    expect(screen.getByRole("heading", { name: /Discover Research Papers/i, level: 1 })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Discover Research Papers/i, level: 1 })
+    ).toBeInTheDocument();
 
     // 2. Type search query in Discover search input
     const searchInput = screen.getByPlaceholderText(/Search by topic, title, author/i);
-    fireEvent.change(searchInput, { target: { value: "deep reinforcement learning robotics" } });
+    fireEvent.change(searchInput, {
+      target: { value: "deep reinforcement learning robotics" },
+    });
     expect(searchInput).toHaveValue("deep reinforcement learning robotics");
 
     // Verify state stored in session store
     await waitFor(() => {
-      expect(discoverSessionStore.getState().searchQuery).toBe("deep reinforcement learning robotics");
+      expect(discoverSessionStore.getState().searchQuery).toBe(
+        "deep reinforcement learning robotics"
+      );
     });
 
     // 3. Navigate away to Library
@@ -103,7 +118,9 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
     await user.click(libraryNavBtn);
 
     // Verify Library view is displayed
-    expect(screen.getByRole("heading", { name: /Saved Paper Library/i, level: 1 })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Saved Paper Library/i, level: 1 })
+    ).toBeInTheDocument();
 
     // 4. Return to Discover
     await user.click(discoverNavBtn);
@@ -111,7 +128,9 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
     // 5. Verify query was NOT wiped out and remains completely intact
     const restoredInput = screen.getByPlaceholderText(/Search by topic, title, author/i);
     expect(restoredInput).toHaveValue("deep reinforcement learning robotics");
-    expect(screen.getByRole("heading", { name: /Discover Research Papers/i, level: 1 })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Discover Research Papers/i, level: 1 })
+    ).toBeInTheDocument();
   });
 
   // ---------------------------------------------------------------------------
@@ -183,7 +202,8 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
       is_downloaded: true,
       is_open_access: true,
       source_name: "arXiv Preprints",
-      abstract_text: "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.",
+      abstract_text:
+        "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.",
     };
 
     render(
@@ -201,15 +221,21 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
     });
 
     // Verify starter questions are rendered
-    expect(screen.getByText(/What is the main hypothesis and contribution\?/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/What is the main hypothesis and contribution\?/i)
+    ).toBeInTheDocument();
 
     // Type a question in chat input
-    const chatInput = screen.getByPlaceholderText(/Ask about equations, datasets, findings, or limitations/i);
+    const chatInput = screen.getByPlaceholderText(
+      /Ask about equations, datasets, findings, or limitations/i
+    );
     await user.type(chatInput, "What is the key architecture contribution?{Enter}");
 
     // Verify assistant response rendered
     await waitFor(() => {
-      expect(screen.getByText(/The paper introduces multi-head self-attention/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/The paper introduces multi-head self-attention/i)
+      ).toBeInTheDocument();
     });
 
     // Verify citations are clickable
@@ -267,7 +293,8 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
       is_downloaded: true,
       is_open_access: true,
       source_name: "arXiv Preprints",
-      abstract_text: "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.",
+      abstract_text:
+        "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.",
     };
 
     render(
@@ -294,7 +321,9 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
     expect(screen.getAllByText("Replication Checklist").length).toBeGreaterThan(0);
 
     // Click "Replication Checklist"
-    const replicationToolBtn = screen.getByRole("button", { name: /Replication Checklist/i });
+    const replicationToolBtn = screen.getByRole("button", {
+      name: /Replication Checklist/i,
+    });
     await user.click(replicationToolBtn);
 
     // Verify generated content appears

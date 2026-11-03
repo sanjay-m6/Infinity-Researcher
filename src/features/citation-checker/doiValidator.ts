@@ -7,7 +7,16 @@ import { DoiStatus, VerifiedDoiMetadata } from "./types";
 export const CANONICAL_DOI_REGISTRY: Record<string, VerifiedDoiMetadata> = {
   "10.48550/arxiv.1706.03762": {
     title: "Attention Is All You Need",
-    authors: ["Ashish Vaswani", "Noam Shazeer", "Niki Parmar", "Jakob Uszkoreit", "Llion Jones", "Aidan N. Gomez", "Lukasz Kaiser", "Illia Polosukhin"],
+    authors: [
+      "Ashish Vaswani",
+      "Noam Shazeer",
+      "Niki Parmar",
+      "Jakob Uszkoreit",
+      "Llion Jones",
+      "Aidan N. Gomez",
+      "Lukasz Kaiser",
+      "Illia Polosukhin",
+    ],
     year: 2017,
     venue: "Advances in Neural Information Processing Systems (NeurIPS)",
     publisher: "Curran Associates, Inc.",
@@ -15,7 +24,8 @@ export const CANONICAL_DOI_REGISTRY: Record<string, VerifiedDoiMetadata> = {
     sourceUrl: "https://arxiv.org/abs/1706.03762",
   },
   "10.48550/arxiv.1810.04805": {
-    title: "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+    title:
+      "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
     authors: ["Jacob Devlin", "Ming-Wei Chang", "Kenton Lee", "Kristina Toutanova"],
     year: 2018,
     venue: "NAACL-HLT 2019",
@@ -126,7 +136,8 @@ export function validateDoiSyntax(raw: string): DoiSyntaxResult {
     return {
       isValid: false,
       canonicalDoi: null,
-      errorNote: "Malformed syntax: Missing forward slash '/' separating registrant and suffix.",
+      errorNote:
+        "Malformed syntax: Missing forward slash '/' separating registrant and suffix.",
     };
   }
 
@@ -144,7 +155,8 @@ export function validateDoiSyntax(raw: string): DoiSyntaxResult {
     return {
       isValid: false,
       canonicalDoi: null,
-      errorNote: "Malformed suffix: DOI suffix cannot be empty or fewer than 2 characters.",
+      errorNote:
+        "Malformed suffix: DOI suffix cannot be empty or fewer than 2 characters.",
     };
   }
 
@@ -212,4 +224,3 @@ export function evaluateDoi(raw: string): DoiStatus {
     resolutionStatusLabel: "Valid Syntax · Unverified (Offline)",
   };
 }
-

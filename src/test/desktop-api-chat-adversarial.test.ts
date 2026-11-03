@@ -91,7 +91,8 @@ describe("Adversarial Testing: Desktop API Chat Persistence & UI Context Bridge"
     it("generateAiResponse in preview returns grounded mock response with ui_context accepted", async () => {
       const input: GenerateRequestInput = {
         prompt: "Explain transformer architecture",
-        ui_context: "Active Tab: PDF Viewer, Current Zoom: 125%, Active Paper: Transformer Attention",
+        ui_context:
+          "Active Tab: PDF Viewer, Current Zoom: 125%, Active Paper: Transformer Attention",
       };
 
       const res = await generateAiResponse(input);
@@ -254,7 +255,9 @@ describe("Adversarial Testing: Desktop API Chat Persistence & UI Context Bridge"
     });
 
     it("normalizes string IPC errors thrown by Tauri backend", async () => {
-      vi.mocked(tauriCore.invoke).mockRejectedValueOnce("database disk image is malformed");
+      vi.mocked(tauriCore.invoke).mockRejectedValueOnce(
+        "database disk image is malformed"
+      );
 
       await expect(listAiChatSessions()).rejects.toMatchObject({
         code: "ERR_COMMAND",
@@ -264,7 +267,9 @@ describe("Adversarial Testing: Desktop API Chat Persistence & UI Context Bridge"
     });
 
     it("normalizes Error exception thrown by Tauri backend", async () => {
-      vi.mocked(tauriCore.invoke).mockRejectedValueOnce(new Error("Connection reset by peer"));
+      vi.mocked(tauriCore.invoke).mockRejectedValueOnce(
+        new Error("Connection reset by peer")
+      );
 
       await expect(listAiChatMessages("sess-1")).rejects.toMatchObject({
         code: "ERR_EXCEPTION",

@@ -12,12 +12,16 @@ describe("Phase 7 — Paper Processing, Deduplication & PDF Integrity Frontend",
     );
 
     // Verify main heading
-    expect(screen.getByRole("heading", { name: "Saved Paper Library" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Saved Paper Library" })
+    ).toBeInTheDocument();
 
     // Verify tab buttons
     expect(screen.getByRole("button", { name: /Library Papers/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Duplicate Review/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Document Integrity & Pipeline/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Document Integrity & Pipeline/i })
+    ).toBeInTheDocument();
   });
 
   it("switches to Duplicate Review tab and renders queue controls", async () => {
@@ -36,7 +40,9 @@ describe("Phase 7 — Paper Processing, Deduplication & PDF Integrity Frontend",
     });
 
     // Check action buttons in duplicate review
-    expect(screen.getByRole("button", { name: /Scan for Duplicates/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Scan for Duplicates/i })
+    ).toBeInTheDocument();
   });
 
   it("switches to Document Integrity & Pipeline tab and renders pipeline controls and file table", async () => {
@@ -46,7 +52,9 @@ describe("Phase 7 — Paper Processing, Deduplication & PDF Integrity Frontend",
       </AppProvider>
     );
 
-    const pipelineTab = screen.getByRole("button", { name: /Document Integrity & Pipeline/i });
+    const pipelineTab = screen.getByRole("button", {
+      name: /Document Integrity & Pipeline/i,
+    });
     fireEvent.click(pipelineTab);
 
     // Verify Pipeline Overview cards
@@ -54,7 +62,11 @@ describe("Phase 7 — Paper Processing, Deduplication & PDF Integrity Frontend",
       expect(screen.getByText(/Persistent Processing Pipeline/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("button", { name: /Normalize All Metadata/i })).toBeInTheDocument();
-    expect(screen.getByText(/Local Document Storage & Verified Integrity Files/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Normalize All Metadata/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Local Document Storage & Verified Integrity Files/i)
+    ).toBeInTheDocument();
   });
 });

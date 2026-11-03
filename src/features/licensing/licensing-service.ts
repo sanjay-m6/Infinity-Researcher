@@ -8,42 +8,42 @@ import type {
   SignedLicense,
   LicenseValidationResult,
   DiagnosticReportOptions,
-} from './types';
+} from "./types";
 
 export const TRUSTED_PUBLIC_KEYS: Record<string, string> = {
   // Production verification key for Infinity Researcher 2026 releases
-  'ir-pubkey-2026': 'e68689321226181074f999df5781e265a780ad2aeb26c0fe6c10b480985f01ba',
+  "ir-pubkey-2026": "e68689321226181074f999df5781e265a780ad2aeb26c0fe6c10b480985f01ba",
 };
 
-export const PRODUCT_ID = 'infinity-researcher';
-const STORAGE_KEY = 'infinity_researcher_license';
+export const PRODUCT_ID = "infinity-researcher";
+const STORAGE_KEY = "infinity_researcher_license";
 
 /**
  * Deterministically serialize a license payload into canonical JSON.
  * Sorts all object keys lexicographically to ensure signature reproducibility.
  */
 export function canonicalizePayload(obj: unknown): string {
-  if (obj === null || typeof obj !== 'object') {
+  if (obj === null || typeof obj !== "object") {
     return JSON.stringify(obj);
   }
   if (Array.isArray(obj)) {
-    return '[' + obj.map(canonicalizePayload).join(',') + ']';
+    return "[" + obj.map(canonicalizePayload).join(",") + "]";
   }
   const record = obj as Record<string, unknown>;
   const sortedKeys = Object.keys(record).sort();
   const pairs = sortedKeys.map(
     (k) => `${JSON.stringify(k)}:${canonicalizePayload(record[k])}`
   );
-  return '{' + pairs.join(',') + '}';
+  return "{" + pairs.join(",") + "}";
 }
 
 /**
  * Convert hex string to Uint8Array.
  */
 function hexToBytes(hex: string): Uint8Array {
-  const cleanHex = hex.replace(/[^0-9a-fA-F]/g, '');
+  const cleanHex = hex.replace(/[^0-9a-fA-F]/g, "");
   if (cleanHex.length % 2 !== 0) {
-    throw new Error('Invalid hex string length');
+    throw new Error("Invalid hex string length");
   }
   const bytes = new Uint8Array(cleanHex.length / 2);
   for (let i = 0; i < bytes.length; i++) {
@@ -66,21 +66,21 @@ export async function verifySignature(
     const dataBytes = new TextEncoder().encode(dataString);
 
     const cryptoKey = await crypto.subtle.importKey(
-      'raw',
+      "raw",
       rawPublicKey as unknown as BufferSource,
-      { name: 'Ed25519' },
+      { name: "Ed25519" },
       false,
-      ['verify']
+      ["verify"]
     );
 
     return await crypto.subtle.verify(
-      { name: 'Ed25519' },
+      { name: "Ed25519" },
       cryptoKey,
       signatureBytes as unknown as BufferSource,
       dataBytes as unknown as BufferSource
     );
   } catch (err) {
-    console.warn('[Licensing] Cryptographic verification failed:', err);
+    console.warn("[Licensing] Cryptographic verification failed:", err);
     return false;
   }
 }
@@ -95,8 +95,8 @@ export async function validateLicense(
   if (!signedLicense || !signedLicense.payload) {
     return {
       valid: true,
-      tier: 'community',
-      status: 'community_default',
+      tier: "community",
+      status: "community_default",
       entitlements: [],
     };
   }
@@ -107,8 +107,8 @@ export async function validateLicense(
   if (payload.schemaVersion !== 1) {
     return {
       valid: false,
-      tier: 'community',
-      status: 'unsupported_schema',
+      tier: "community",
+      status: "unsupported_schema",
       errorMessage: `Unsupported license schema version: ${payload.schemaVersion}. Please upgrade Infinity Researcher.`,
       entitlements: [],
     };
@@ -118,8 +118,8 @@ export async function validateLicense(
   if (payload.productId !== PRODUCT_ID) {
     return {
       valid: false,
-      tier: 'community',
-      status: 'product_mismatch',
+      tier: "community",
+      status: "product_mismatch",
       errorMessage: `License product identifier mismatch: expected "${PRODUCT_ID}", found "${payload.productId}".`,
       entitlements: [],
     };
@@ -130,8 +130,8 @@ export async function validateLicense(
   if (!publicKeyHex) {
     return {
       valid: false,
-      tier: 'community',
-      status: 'unknown_key',
+      tier: "community",
+      status: "unknown_key",
       errorMessage: `License was signed by unknown or retired key "${payload.keyId}".`,
       entitlements: [],
     };
@@ -144,8 +144,8 @@ export async function validateLicense(
   if (!isNaN(issuedAtMs) && issuedAtMs > nowMs + 5 * 60 * 1000) {
     return {
       valid: false,
-      tier: 'community',
-      status: 'not_yet_valid',
+      tier: "community",
+      status: "not_yet_valid",
       errorMessage: `License is not valid yet (issued: ${payload.issuedAt}).`,
       entitlements: [],
     };
@@ -156,8 +156,8 @@ export async function validateLicense(
     if (!isNaN(expiresAtMs) && nowMs > expiresAtMs) {
       return {
         valid: false,
-        tier: 'community',
-        status: 'expired',
+        tier: "community",
+        status: "expired",
         errorMessage: `License expired on ${payload.expiresAt}. Reverted to Community edition.`,
         license: signedLicense,
         entitlements: [],
@@ -172,9 +172,9 @@ export async function validateLicense(
   if (!isSignatureValid) {
     return {
       valid: false,
-      tier: 'community',
-      status: 'invalid_signature',
-      errorMessage: 'Invalid cryptographic signature or tampered license payload.',
+      tier: "community",
+      status: "invalid_signature",
+      errorMessage: "Invalid cryptographic signature or tampered license payload.",
       entitlements: [],
     };
   }
@@ -183,7 +183,7 @@ export async function validateLicense(
   return {
     valid: true,
     tier: payload.tier,
-    status: 'valid',
+    status: "valid",
     license: signedLicense,
     entitlements: Array.isArray(payload.entitlements) ? payload.entitlements : [],
   };
@@ -198,7 +198,7 @@ export function loadSavedLicense(): SignedLicense | null {
     if (!raw) return null;
     return JSON.parse(raw) as SignedLicense;
   } catch (err) {
-    console.warn('[Licensing] Failed to read stored license:', err);
+    console.warn("[Licensing] Failed to read stored license:", err);
     return null;
   }
 }
@@ -221,13 +221,13 @@ export function clearSavedLicense(): void {
  * Redact sensitive customer details for privacy in diagnostic reports.
  */
 function redactString(val: string): string {
-  if (!val || val.length <= 4) return '***';
-  return val.substring(0, 2) + '***' + val.substring(val.length - 2);
+  if (!val || val.length <= 4) return "***";
+  return val.substring(0, 2) + "***" + val.substring(val.length - 2);
 }
 
 function redactEmail(email?: string): string {
-  if (!email || !email.includes('@')) return 'N/A';
-  const [local, domain] = email.split('@');
+  if (!email || !email.includes("@")) return "N/A";
+  const [local, domain] = email.split("@");
   return `${local.substring(0, 2)}***@${domain}`;
 }
 
@@ -243,38 +243,38 @@ export function generateDiagnosticReport(
   const customer = result.license?.payload.customer;
 
   return [
-    '================================================================',
-    '       INFINITY RESEARCHER — SUPPORT DIAGNOSTIC REPORT         ',
-    '================================================================',
+    "================================================================",
+    "       INFINITY RESEARCHER — SUPPORT DIAGNOSTIC REPORT         ",
+    "================================================================",
     `Timestamp:        ${timestamp}`,
     `Application:      Infinity Researcher v${options.appVersion}`,
     `OS Target:        ${options.osPlatform}`,
-    `Data Directory:   ${options.storagePath || '%APPDATA%\\com.infinitywebtechnology.infinityresearcher'}`,
-    '----------------------------------------------------------------',
-    'LICENSING STATUS:',
+    `Data Directory:   ${options.storagePath || "%APPDATA%\\com.infinitywebtechnology.infinityresearcher"}`,
+    "----------------------------------------------------------------",
+    "LICENSING STATUS:",
     `  Active Tier:    ${result.tier.toUpperCase()}`,
     `  Status:         ${result.status}`,
-    `  Valid:          ${result.valid ? 'YES' : 'NO'}`,
+    `  Valid:          ${result.valid ? "YES" : "NO"}`,
     result.errorMessage ? `  Notice:         ${result.errorMessage}` : null,
-    '----------------------------------------------------------------',
-    'LICENSE DETAILS (IF ACTIVATED):',
-    `  License ID:     ${result.license?.payload.licenseId || 'N/A (Community Mode)'}`,
-    `  Key ID:         ${result.license?.payload.keyId || 'N/A'}`,
-    `  Issued At:      ${result.license?.payload.issuedAt || 'N/A'}`,
-    `  Expires At:     ${result.license?.payload.expiresAt || 'Perpetual / N/A'}`,
-    `  Licensee:       ${customer ? redactString(customer.name) : 'N/A'}`,
-    `  Contact:        ${customer?.email ? redactEmail(customer.email) : 'N/A'}`,
-    `  Organization:   ${customer?.organization ? redactString(customer.organization) : 'N/A'}`,
-    '----------------------------------------------------------------',
-    'ACTIVE ENTITLEMENTS:',
+    "----------------------------------------------------------------",
+    "LICENSE DETAILS (IF ACTIVATED):",
+    `  License ID:     ${result.license?.payload.licenseId || "N/A (Community Mode)"}`,
+    `  Key ID:         ${result.license?.payload.keyId || "N/A"}`,
+    `  Issued At:      ${result.license?.payload.issuedAt || "N/A"}`,
+    `  Expires At:     ${result.license?.payload.expiresAt || "Perpetual / N/A"}`,
+    `  Licensee:       ${customer ? redactString(customer.name) : "N/A"}`,
+    `  Contact:        ${customer?.email ? redactEmail(customer.email) : "N/A"}`,
+    `  Organization:   ${customer?.organization ? redactString(customer.organization) : "N/A"}`,
+    "----------------------------------------------------------------",
+    "ACTIVE ENTITLEMENTS:",
     result.entitlements.length > 0
-      ? result.entitlements.map((e) => `  * ${e}`).join('\n')
-      : '  (Community feature set: local library, paper discovery, SQLite WAL)',
-    '================================================================',
-    'CONFIDENTIALITY: All secrets, private keys, API credentials, and',
-    'scholarly paper contents have been completely excluded or redacted.',
-    '================================================================',
+      ? result.entitlements.map((e) => `  * ${e}`).join("\n")
+      : "  (Community feature set: local library, paper discovery, SQLite WAL)",
+    "================================================================",
+    "CONFIDENTIALITY: All secrets, private keys, API credentials, and",
+    "scholarly paper contents have been completely excluded or redacted.",
+    "================================================================",
   ]
     .filter(Boolean)
-    .join('\n');
+    .join("\n");
 }

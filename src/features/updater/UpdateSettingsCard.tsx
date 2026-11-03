@@ -237,7 +237,8 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
                   Update Ready to Install
                 </p>
                 <p className="text-emerald-800 dark:text-emerald-300/90">
-                  The update has been downloaded, verified, and staged. Restart now to finalize installation.
+                  The update has been downloaded, verified, and staged. Restart now to
+                  finalize installation.
                 </p>
               </div>
             </div>
@@ -254,7 +255,8 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
           </div>
 
           <p className="text-[11px] text-slate-500 dark:text-slate-400 border-t border-emerald-100 dark:border-emerald-800/40 pt-2">
-            Safe Upgrade Guarantee: Your research database, notes, tags, and local papers will remain 100% intact.
+            Safe Upgrade Guarantee: Your research database, notes, tags, and local papers
+            will remain 100% intact.
           </p>
         </div>
       )}
@@ -321,9 +323,7 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
         <span>
           Last checked: {lastChecked ? lastChecked : "Never during this session"}
         </span>
-        <span>
-          Environment: {isTauri ? "Native Windows Desktop" : "Web Preview"}
-        </span>
+        <span>Environment: {isTauri ? "Native Windows Desktop" : "Web Preview"}</span>
       </div>
     </section>
   );

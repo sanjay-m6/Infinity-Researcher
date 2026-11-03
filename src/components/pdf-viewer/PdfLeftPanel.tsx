@@ -32,7 +32,9 @@ export const PdfLeftPanel: React.FC<PdfLeftPanelProps> = ({
   onRemoveBookmark,
   initialTab = "outline",
 }) => {
-  const [activeTab, setActiveTab] = useState<"outline" | "thumbnails" | "bookmarks">(initialTab);
+  const [activeTab, setActiveTab] = useState<"outline" | "thumbnails" | "bookmarks">(
+    initialTab
+  );
   const [newBookmarkLabel, setNewBookmarkLabel] = useState("");
   const [isAddingBookmark, setIsAddingBookmark] = useState(false);
 
@@ -103,7 +105,8 @@ export const PdfLeftPanel: React.FC<PdfLeftPanelProps> = ({
                 No Document Outline Found
               </p>
               <p className="text-[11px] text-slate-400">
-                This academic document does not contain an embedded structural table of contents.
+                This academic document does not contain an embedded structural table of
+                contents.
               </p>
             </div>
           ) : (
@@ -281,7 +284,11 @@ const OutlineNode: React.FC<OutlineNodeProps> = ({ item, goToPage, level = 0 }) 
             onClick={() => setIsOpen(!isOpen)}
             className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
           >
-            {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            {isOpen ? (
+              <ChevronDown className="w-3 h-3" />
+            ) : (
+              <ChevronRight className="w-3 h-3" />
+            )}
           </button>
         ) : (
           <div className="w-4" />
@@ -313,4 +320,3 @@ const OutlineNode: React.FC<OutlineNodeProps> = ({ item, goToPage, level = 0 }) 
     </div>
   );
 };
-

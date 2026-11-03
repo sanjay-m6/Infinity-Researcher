@@ -72,12 +72,7 @@ export const PaperEditModal: React.FC<PaperEditModalProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Edit Paper Metadata"
-      maxWidth="lg"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit Paper Metadata" maxWidth="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">

@@ -44,13 +44,17 @@ export const TasksWorkspaceView: React.FC = () => {
   const [projectFilter, setProjectFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<{ id: string; title: string } | null>(
+    null
+  );
 
   // New task form state
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskProjectId, setNewTaskProjectId] = useState("");
   const [newTaskPhase, setNewTaskPhase] = useState("literature_review");
-  const [newTaskPriority, setNewTaskPriority] = useState<"low" | "medium" | "high" | "critical">("medium");
+  const [newTaskPriority, setNewTaskPriority] = useState<
+    "low" | "medium" | "high" | "critical"
+  >("medium");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
 
   useEffect(() => {
@@ -134,7 +138,8 @@ export const TasksWorkspaceView: React.FC = () => {
             Research Tasks & To-Do Workspace
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Manage granular research tasks, track prerequisites, and link to academic papers
+            Manage granular research tasks, track prerequisites, and link to academic
+            papers
           </p>
         </div>
 
@@ -144,10 +149,11 @@ export const TasksWorkspaceView: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode("list")}
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${viewMode === "list"
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                viewMode === "list"
                   ? "bg-primary text-primary-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
-                }`}
+              }`}
               title="List View"
             >
               <LayoutList className="w-3.5 h-3.5" />
@@ -156,10 +162,11 @@ export const TasksWorkspaceView: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode("kanban")}
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${viewMode === "kanban"
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                viewMode === "kanban"
                   ? "bg-primary text-primary-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
-                }`}
+              }`}
               title="Kanban Board"
             >
               <Kanban className="w-3.5 h-3.5" />
@@ -235,7 +242,8 @@ export const TasksWorkspaceView: React.FC = () => {
           <div className="max-w-md mx-auto">
             <h3 className="text-base font-semibold text-foreground">No Tasks Found</h3>
             <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-              Create actionable tasks with dependencies or generate a complete roadmap from any project.
+              Create actionable tasks with dependencies or generate a complete roadmap
+              from any project.
             </p>
           </div>
           <div>
@@ -266,10 +274,11 @@ export const TasksWorkspaceView: React.FC = () => {
                     onClick={() =>
                       handleStatusChange(t.id, isCompleted ? "todo" : "completed")
                     }
-                    className={`mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${isCompleted
+                    className={`mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                      isCompleted
                         ? "bg-primary border-primary text-primary-foreground"
                         : "border-border hover:border-primary/60"
-                      }`}
+                    }`}
                   >
                     {isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </button>
@@ -277,8 +286,11 @@ export const TasksWorkspaceView: React.FC = () => {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-sm font-semibold ${isCompleted ? "line-through text-muted-foreground" : "text-foreground"
-                          }`}
+                        className={`text-sm font-semibold ${
+                          isCompleted
+                            ? "line-through text-muted-foreground"
+                            : "text-foreground"
+                        }`}
                       >
                         {t.title}
                       </span>
@@ -295,12 +307,13 @@ export const TasksWorkspaceView: React.FC = () => {
                         {t.phase}
                       </span>
                       <span
-                        className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md ${t.priority === "critical"
+                        className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md ${
+                          t.priority === "critical"
                             ? "bg-red-500/10 text-red-600"
                             : t.priority === "high"
                               ? "bg-amber-500/10 text-amber-600"
                               : "bg-blue-500/10 text-blue-600"
-                          }`}
+                        }`}
                       >
                         {t.priority}
                       </span>
@@ -365,7 +378,9 @@ export const TasksWorkspaceView: React.FC = () => {
                 className="bg-card border border-border rounded-2xl p-3 flex flex-col space-y-3"
               >
                 <div className="flex items-center justify-between pb-2 border-b border-border">
-                  <span className={`text-xs font-bold uppercase tracking-wider ${col.color}`}>
+                  <span
+                    className={`text-xs font-bold uppercase tracking-wider ${col.color}`}
+                  >
                     {col.label}
                   </span>
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
@@ -393,12 +408,13 @@ export const TasksWorkspaceView: React.FC = () => {
 
                         <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px]">
                           <span
-                            className={`font-semibold uppercase ${t.priority === "critical"
+                            className={`font-semibold uppercase ${
+                              t.priority === "critical"
                                 ? "text-red-500"
                                 : t.priority === "high"
                                   ? "text-amber-500"
                                   : "text-blue-500"
-                              }`}
+                            }`}
                           >
                             {t.priority}
                           </span>
@@ -416,7 +432,9 @@ export const TasksWorkspaceView: React.FC = () => {
                             )}
                             <button
                               type="button"
-                              onClick={() => setTaskToDelete({ id: t.id, title: t.title })}
+                              onClick={() =>
+                                setTaskToDelete({ id: t.id, title: t.title })
+                              }
                               className="text-muted-foreground hover:text-destructive p-0.5"
                               title="Delete"
                             >

@@ -11,99 +11,104 @@
   /* =========================================================================
    * Surfaces & Canvas (Light Theme)
    * ========================================================================= */
-  --background: #f8fafc;        /* Slate 50 — clean scholarly workstation background */
-  --foreground: #0f172a;        /* Slate 900 — high-contrast readable text */
-  --card: #ffffff;              /* Pure white elevated cards */
-  --card-foreground: #0f172a;   /* Slate 900 */
-  --popover: #ffffff;           /* Pure white menus, tooltips, dialogs */
+  --background: #f8fafc; /* Slate 50 — clean scholarly workstation background */
+  --foreground: #0f172a; /* Slate 900 — high-contrast readable text */
+  --card: #ffffff; /* Pure white elevated cards */
+  --card-foreground: #0f172a; /* Slate 900 */
+  --popover: #ffffff; /* Pure white menus, tooltips, dialogs */
   --popover-foreground: #0f172a;
-  --surface-muted: #f1f5f9;     /* Slate 100 subtle container background */
+  --surface-muted: #f1f5f9; /* Slate 100 subtle container background */
   --surface-elevated: #ffffff;
 
   /* =========================================================================
    * Brand & Primary Actions (Scholarly Indigo / Violet)
    * ========================================================================= */
-  --primary: #4f46e5;           /* Indigo 600 */
-  --primary-hover: #4338ca;     /* Indigo 700 */
+  --primary: #4f46e5; /* Indigo 600 */
+  --primary-hover: #4338ca; /* Indigo 700 */
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;         /* Slate 100 */
-  --secondary-hover: #e2e8f0;   /* Slate 200 */
+  --secondary: #f1f5f9; /* Slate 100 */
+  --secondary-hover: #e2e8f0; /* Slate 200 */
   --secondary-foreground: #0f172a;
 
   /* =========================================================================
    * Muted & Interactive Accents
    * ========================================================================= */
-  --muted: #f1f5f9;             /* Slate 100 */
-  --muted-foreground: #64748b;  /* Slate 500 — metadata, captions, subtitles */
-  --accent: #e2e8f0;            /* Slate 200 — hover states */
+  --muted: #f1f5f9; /* Slate 100 */
+  --muted-foreground: #64748b; /* Slate 500 — metadata, captions, subtitles */
+  --accent: #e2e8f0; /* Slate 200 — hover states */
   --accent-foreground: #0f172a;
 
   /* =========================================================================
    * Feedback & Status Tokens
    * ========================================================================= */
-  --destructive: #dc2626;       /* Rose 600 */
+  --destructive: #dc2626; /* Rose 600 */
   --destructive-foreground: #ffffff;
   --destructive-muted: #fef2f2; /* Rose 50 */
-  --success: #059669;           /* Emerald 600 */
+  --success: #059669; /* Emerald 600 */
   --success-foreground: #ffffff;
-  --success-muted: #ecfdf5;     /* Emerald 50 */
-  --warning: #d97706;           /* Amber 600 */
+  --success-muted: #ecfdf5; /* Emerald 50 */
+  --warning: #d97706; /* Amber 600 */
   --warning-foreground: #ffffff;
-  --warning-muted: #fffbeb;     /* Amber 50 */
-  --info: #0284c7;              /* Sky 600 */
+  --warning-muted: #fffbeb; /* Amber 50 */
+  --info: #0284c7; /* Sky 600 */
   --info-foreground: #ffffff;
-  --info-muted: #f0f9ff;        /* Sky 50 */
+  --info-muted: #f0f9ff; /* Sky 50 */
 
   /* =========================================================================
    * Structural Tokens (Borders, Inputs, Focus Rings)
    * ========================================================================= */
-  --border: #e2e8f0;            /* Slate 200 */
-  --border-subtle: #f1f5f9;     /* Slate 100 */
-  --input: #e2e8f0;             /* Form controls */
-  --ring: #4f46e5;              /* Focus ring color (Indigo 600) */
+  --border: #e2e8f0; /* Slate 200 */
+  --border-subtle: #f1f5f9; /* Slate 100 */
+  --input: #e2e8f0; /* Form controls */
+  --ring: #4f46e5; /* Focus ring color (Indigo 600) */
   --ring-offset: #ffffff;
 
   /* =========================================================================
    * Research-Specific State Tokens
    * ========================================================================= */
-  --paper-oa: #059669;                  /* Open Access verified badge (Emerald) */
+  --paper-oa: #059669; /* Open Access verified badge (Emerald) */
   --paper-oa-fg: #ffffff;
   --paper-oa-bg: #ecfdf5;
-  --paper-restricted: #d97706;          /* Paywalled / Access restricted (Amber) */
+  --paper-restricted: #d97706; /* Paywalled / Access restricted (Amber) */
   --paper-restricted-fg: #ffffff;
   --paper-restricted-bg: #fffbeb;
-  --paper-saved: #4f46e5;               /* Saved offline in local library (Indigo) */
+  --paper-saved: #4f46e5; /* Saved offline in local library (Indigo) */
   --paper-saved-fg: #ffffff;
 
-  --task-queued: #64748b;               /* Queued task (Slate) */
-  --task-running: #0284c7;              /* Running scraper / download (Sky) */
-  --task-completed: #059669;            /* Completed task (Emerald) */
-  --task-failed: #dc2626;               /* Failed task (Rose) */
-  --task-paused: #d97706;               /* Paused task (Amber) */
+  --task-queued: #64748b; /* Queued task (Slate) */
+  --task-running: #0284c7; /* Running scraper / download (Sky) */
+  --task-completed: #059669; /* Completed task (Emerald) */
+  --task-failed: #dc2626; /* Failed task (Rose) */
+  --task-paused: #d97706; /* Paused task (Amber) */
 
-  --ai-active: #6366f1;                 /* Active LLM stream (Indigo 500) */
+  --ai-active: #6366f1; /* Active LLM stream (Indigo 500) */
   --ai-idle: #94a3b8;
-  --citation-highlight: rgba(245, 158, 11, 0.18); /* Highlighted evidence quote in reader */
+  --citation-highlight: rgba(
+    245,
+    158,
+    11,
+    0.18
+  ); /* Highlighted evidence quote in reader */
   --citation-highlight-border: #f59e0b;
 
   /* =========================================================================
    * Geometry & Radii Tokens
    * ========================================================================= */
-  --radius-sm: 0.375rem;        /* 6px — compact badges, micro buttons */
-  --radius-md: 0.5rem;          /* 8px — standard inputs, buttons, segmented controls */
-  --radius-lg: 0.75rem;         /* 12px — cards, inner modal widgets */
-  --radius-xl: 1rem;            /* 16px — outer dialogs, floating drawers */
-  --radius-2xl: 1.25rem;        /* 20px — hero banners, onboarding cards */
-  --radius-full: 9999px;        /* Pills, round avatars */
+  --radius-sm: 0.375rem; /* 6px — compact badges, micro buttons */
+  --radius-md: 0.5rem; /* 8px — standard inputs, buttons, segmented controls */
+  --radius-lg: 0.75rem; /* 12px — cards, inner modal widgets */
+  --radius-xl: 1rem; /* 16px — outer dialogs, floating drawers */
+  --radius-2xl: 1.25rem; /* 20px — hero banners, onboarding cards */
+  --radius-full: 9999px; /* Pills, round avatars */
 
   /* =========================================================================
    * Application Shell Dimensions
    * ========================================================================= */
-  --sidebar-width: 16rem;              /* 256px expanded */
-  --sidebar-collapsed-width: 3.5rem;   /* 56px collapsed icon rail */
-  --header-height: 2.75rem;            /* 44px top toolbar */
-  --titlebar-height: 2.375rem;         /* 38px frameless window title */
-  --bottombar-height: 1.75rem;         /* 28px status bar */
+  --sidebar-width: 16rem; /* 256px expanded */
+  --sidebar-collapsed-width: 3.5rem; /* 56px collapsed icon rail */
+  --header-height: 2.75rem; /* 44px top toolbar */
+  --titlebar-height: 2.375rem; /* 38px frameless window title */
+  --bottombar-height: 1.75rem; /* 28px status bar */
 
   /* =========================================================================
    * Backward-Compatibility Mappings for Legacy CSS Variables
@@ -127,45 +132,45 @@
  * =========================================================================== */
 .dark {
   /* Surfaces & Canvas */
-  --background: #070b12;        /* Deep navy-black void */
-  --foreground: #f8fafc;        /* Slate 50 crisp white text */
-  --card: #0e1524;              /* Elevated dark slate surface */
+  --background: #070b12; /* Deep navy-black void */
+  --foreground: #f8fafc; /* Slate 50 crisp white text */
+  --card: #0e1524; /* Elevated dark slate surface */
   --card-foreground: #f8fafc;
   --popover: #0e1524;
   --popover-foreground: #f8fafc;
-  --surface-muted: #131a29;     /* Slate 900 elevated */
+  --surface-muted: #131a29; /* Slate 900 elevated */
   --surface-elevated: #182236;
 
   /* Brand & Primary Actions */
-  --primary: #6366f1;           /* Indigo 500 — higher luminance for dark mode */
-  --primary-hover: #4f46e5;     /* Indigo 600 */
+  --primary: #6366f1; /* Indigo 500 — higher luminance for dark mode */
+  --primary-hover: #4f46e5; /* Indigo 600 */
   --primary-foreground: #ffffff;
-  --secondary: #131a29;         /* Slate 900 subtle */
-  --secondary-hover: #1c263c;   /* Slate 800 */
+  --secondary: #131a29; /* Slate 900 subtle */
+  --secondary-hover: #1c263c; /* Slate 800 */
   --secondary-foreground: #f8fafc;
 
   /* Muted & Interactive Accents */
   --muted: #131a29;
-  --muted-foreground: #94a3b8;  /* Slate 400 */
+  --muted-foreground: #94a3b8; /* Slate 400 */
   --accent: #1c263c;
   --accent-foreground: #f8fafc;
 
   /* Feedback & Status */
-  --destructive: #ef4444;       /* Rose 500 */
+  --destructive: #ef4444; /* Rose 500 */
   --destructive-foreground: #ffffff;
   --destructive-muted: #450a0a; /* Dark rose */
-  --success: #10b981;           /* Emerald 500 */
+  --success: #10b981; /* Emerald 500 */
   --success-foreground: #ffffff;
-  --success-muted: #064e3b;     /* Dark emerald */
-  --warning: #f59e0b;           /* Amber 500 */
+  --success-muted: #064e3b; /* Dark emerald */
+  --warning: #f59e0b; /* Amber 500 */
   --warning-foreground: #ffffff;
-  --warning-muted: #451a03;     /* Dark amber */
-  --info: #38bdf8;              /* Sky 400 */
+  --warning-muted: #451a03; /* Dark amber */
+  --info: #38bdf8; /* Sky 400 */
   --info-foreground: #ffffff;
   --info-muted: #082f49;
 
   /* Structural Tokens */
-  --border: rgba(255, 255, 255, 0.08);       /* Translucent fine border */
+  --border: rgba(255, 255, 255, 0.08); /* Translucent fine border */
   --border-subtle: rgba(255, 255, 255, 0.04);
   --input: rgba(255, 255, 255, 0.12);
   --ring: #6366f1;
@@ -210,9 +215,9 @@
  * Density and Motion Preference Tokens
  * =========================================================================== */
 :root {
-  --density-scale: 1.0;
+  --density-scale: 1;
   --density-padding-y: 0.5rem;
-  --density-padding-x: 1.0rem;
+  --density-padding-x: 1rem;
   --density-gap: 0.625rem;
 }
 
@@ -240,4 +245,3 @@
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
-

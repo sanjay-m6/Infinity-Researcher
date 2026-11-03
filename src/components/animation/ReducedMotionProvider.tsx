@@ -22,12 +22,7 @@ export const ReducedMotionProvider: React.FC<ReducedMotionProviderProps> = ({
   const isReduced = useReducedMotionPreference();
   const policy = reducedMotion ?? (isReduced ? "always" : "user");
 
-  return (
-    <MotionConfig reducedMotion={policy}>
-      {children}
-    </MotionConfig>
-  );
+  return <MotionConfig reducedMotion={policy}>{children}</MotionConfig>;
 };
 
 export default ReducedMotionProvider;
-

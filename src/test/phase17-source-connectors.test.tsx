@@ -28,9 +28,7 @@ export function normalizeCanonicalDoi(raw: string): string | null {
 // Clean Title Key Generator Mirror
 // ---------------------------------------------------------------------------
 export function computeCleanTitleKey(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
+  return title.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
 // ---------------------------------------------------------------------------
@@ -83,8 +81,12 @@ export function deduplicateAndMergeWorks(works: NormalizedWork[]): NormalizedWor
             const parts = trimmed.split(/\s+/);
             return (parts[parts.length - 1] || "").toLowerCase();
           };
-          const workSurnames = work.authors.map((a) => getSurname(a.name)).filter((s) => s.length >= 3);
-          const candSurnames = cand.authors.map((a) => getSurname(a.name)).filter((s) => s.length >= 3);
+          const workSurnames = work.authors
+            .map((a) => getSurname(a.name))
+            .filter((s) => s.length >= 3);
+          const candSurnames = cand.authors
+            .map((a) => getSurname(a.name))
+            .filter((s) => s.length >= 3);
           authorCompat = workSurnames.some((s) => candSurnames.includes(s));
         }
 
@@ -99,17 +101,24 @@ export function deduplicateAndMergeWorks(works: NormalizedWork[]): NormalizedWor
       const target = merged[existingIdx];
       // Merge provenance
       for (const prov of work.provenance) {
-        if (!target.provenance.some((p) => p.provider_id === prov.provider_id && p.record_id === prov.record_id)) {
+        if (
+          !target.provenance.some(
+            (p) => p.provider_id === prov.provider_id && p.record_id === prov.record_id
+          )
+        ) {
           target.provenance.push(prov);
         }
       }
       // Non-destructive field merge
-      if (!target.canonical_doi && work.canonical_doi) target.canonical_doi = work.canonical_doi;
-      if (!target.abstract_text && work.abstract_text) target.abstract_text = work.abstract_text;
+      if (!target.canonical_doi && work.canonical_doi)
+        target.canonical_doi = work.canonical_doi;
+      if (!target.abstract_text && work.abstract_text)
+        target.abstract_text = work.abstract_text;
       if (!target.pdf_url && work.pdf_url) target.pdf_url = work.pdf_url;
       if (!target.landing_url && work.landing_url) target.landing_url = work.landing_url;
       if (work.authors.length > target.authors.length) target.authors = work.authors;
-      if (!target.publication_date && work.publication_date) target.publication_date = work.publication_date;
+      if (!target.publication_date && work.publication_date)
+        target.publication_date = work.publication_date;
       if (!target.venue && work.venue) target.venue = work.venue;
       if (work.citation_count !== undefined && work.citation_count !== null) {
         target.citation_count = Math.max(target.citation_count || 0, work.citation_count);
@@ -165,14 +174,18 @@ export function planQuery(
     if (filters.yearStart || filters.yearEnd) {
       if (!cap?.supports_year_filter) {
         requiresClientFiltering = true;
-        provWarnings.push(`${cap?.display_name || pid} does not support native year filtering.`);
+        provWarnings.push(
+          `${cap?.display_name || pid} does not support native year filtering.`
+        );
       }
     }
 
     if (filters.openAccessOnly) {
       if (!cap?.supports_open_access_filter && pid !== "arxiv") {
         requiresClientFiltering = true;
-        provWarnings.push(`${cap?.display_name || pid} does not support native open-access filtering.`);
+        provWarnings.push(
+          `${cap?.display_name || pid} does not support native open-access filtering.`
+        );
       }
     }
 
@@ -292,23 +305,39 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
 
   describe("1. Canonical DOI Normalization & Sanitization", () => {
     it("normalizes bare DOIs with standard 10.xxxx prefix", () => {
-      expect(normalizeCanonicalDoi("10.1038/s41586-020-2649-2")).toBe("10.1038/s41586-020-2649-2");
+      expect(normalizeCanonicalDoi("10.1038/s41586-020-2649-2")).toBe(
+        "10.1038/s41586-020-2649-2"
+      );
     });
 
     it("strips https://doi.org/ resolver prefix and lowercases", () => {
-      expect(normalizeCanonicalDoi("https://doi.org/10.1145/3318464.3389700")).toBe("10.1145/3318464.3389700");
-      expect(normalizeCanonicalDoi("HTTPS://DOI.ORG/10.1038/S41586-020-2649-2")).toBe("10.1038/s41586-020-2649-2");
+      expect(normalizeCanonicalDoi("https://doi.org/10.1145/3318464.3389700")).toBe(
+        "10.1145/3318464.3389700"
+      );
+      expect(normalizeCanonicalDoi("HTTPS://DOI.ORG/10.1038/S41586-020-2649-2")).toBe(
+        "10.1038/s41586-020-2649-2"
+      );
     });
 
     it("strips http://dx.doi.org/ and doi: schemes", () => {
-      expect(normalizeCanonicalDoi("http://dx.doi.org/10.1016/j.cell.2020.08.001")).toBe("10.1016/j.cell.2020.08.001");
-      expect(normalizeCanonicalDoi("doi: 10.1109/CVPR.2016.90 ")).toBe("10.1109/cvpr.2016.90");
+      expect(normalizeCanonicalDoi("http://dx.doi.org/10.1016/j.cell.2020.08.001")).toBe(
+        "10.1016/j.cell.2020.08.001"
+      );
+      expect(normalizeCanonicalDoi("doi: 10.1109/CVPR.2016.90 ")).toBe(
+        "10.1109/cvpr.2016.90"
+      );
     });
 
     it("strips trailing citation punctuation dots, commas, and brackets", () => {
-      expect(normalizeCanonicalDoi("https://doi.org/10.1038/s41586-020-2649-2.")).toBe("10.1038/s41586-020-2649-2");
-      expect(normalizeCanonicalDoi("10.1038/s41586-020-2649-2,")).toBe("10.1038/s41586-020-2649-2");
-      expect(normalizeCanonicalDoi("10.1038/s41586-020-2649-2)")).toBe("10.1038/s41586-020-2649-2");
+      expect(normalizeCanonicalDoi("https://doi.org/10.1038/s41586-020-2649-2.")).toBe(
+        "10.1038/s41586-020-2649-2"
+      );
+      expect(normalizeCanonicalDoi("10.1038/s41586-020-2649-2,")).toBe(
+        "10.1038/s41586-020-2649-2"
+      );
+      expect(normalizeCanonicalDoi("10.1038/s41586-020-2649-2)")).toBe(
+        "10.1038/s41586-020-2649-2"
+      );
     });
 
     it("rejects non-DOI arbitrary text and invalid identifiers", () => {
@@ -366,12 +395,11 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
     });
 
     it("flags providers lacking server-side filters and generates structured warnings", () => {
-      const plan = planQuery(
-        "deep learning",
-        ["arxiv", "openalex"],
-        mockCapabilities,
-        { yearStart: 2021, yearEnd: 2024, openAccessOnly: true }
-      );
+      const plan = planQuery("deep learning", ["arxiv", "openalex"], mockCapabilities, {
+        yearStart: 2021,
+        yearEnd: 2024,
+        openAccessOnly: true,
+      });
 
       const arxivPlan = plan.provider_plans.find((p) => p.provider_id === "arxiv")!;
       expect(arxivPlan.requiresClientFiltering).toBe(true);
@@ -403,7 +431,12 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
         provider_id: "openalex",
         provider_record_id: "W1",
         provenance: [
-          { provider_id: "openalex", record_id: "W1", landing_url: "https://openalex.org/W1", retrieved_at: "2026-10-30T00:00:00Z" },
+          {
+            provider_id: "openalex",
+            record_id: "W1",
+            landing_url: "https://openalex.org/W1",
+            retrieved_at: "2026-10-30T00:00:00Z",
+          },
         ],
       };
 
@@ -417,7 +450,9 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
         publication_year: 2020,
         venue: "International DOI Foundation",
         venue_type: "monograph",
-        authors: [{ name: "N. Paskin", orcid: "0000-0002-1825-0097", affiliation: "IDF" }],
+        authors: [
+          { name: "N. Paskin", orcid: "0000-0002-1825-0097", affiliation: "IDF" },
+        ],
         is_open_access: true,
         landing_url: "https://doi.org/10.1000/182",
         pdf_url: "https://doi.org/10.1000/182.pdf",
@@ -425,7 +460,12 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
         provider_id: "crossref",
         provider_record_id: "10.1000/182",
         provenance: [
-          { provider_id: "crossref", record_id: "10.1000/182", landing_url: "https://doi.org/10.1000/182", retrieved_at: "2026-10-30T00:00:00Z" },
+          {
+            provider_id: "crossref",
+            record_id: "10.1000/182",
+            landing_url: "https://doi.org/10.1000/182",
+            retrieved_at: "2026-10-30T00:00:00Z",
+          },
         ],
       };
 
@@ -434,7 +474,9 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
 
       const unified = merged[0];
       expect(unified.provenance.length).toBe(2);
-      expect(unified.abstract_text).toBe("Comprehensive handbook detailing DOI architecture.");
+      expect(unified.abstract_text).toBe(
+        "Comprehensive handbook detailing DOI architecture."
+      );
       expect(unified.venue).toBe("International DOI Foundation");
       expect(unified.pdf_url).toBe("https://doi.org/10.1000/182.pdf");
       expect(unified.is_open_access).toBe(true);
@@ -460,7 +502,12 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
         provider_id: "arxiv",
         provider_record_id: "2104.12345",
         provenance: [
-          { provider_id: "arxiv", record_id: "2104.12345", landing_url: "https://arxiv.org/abs/2104.12345", retrieved_at: "2026-10-30T00:00:00Z" },
+          {
+            provider_id: "arxiv",
+            record_id: "2104.12345",
+            landing_url: "https://arxiv.org/abs/2104.12345",
+            retrieved_at: "2026-10-30T00:00:00Z",
+          },
         ],
       };
 
@@ -474,7 +521,10 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
         publication_year: 2021,
         venue: "ACM Conference",
         venue_type: "conference",
-        authors: [{ name: "Ashish Vaswani", orcid: null, affiliation: null }, { name: "Noam Shazeer", orcid: null, affiliation: null }],
+        authors: [
+          { name: "Ashish Vaswani", orcid: null, affiliation: null },
+          { name: "Noam Shazeer", orcid: null, affiliation: null },
+        ],
         is_open_access: true,
         landing_url: "https://semanticscholar.org/paper/999",
         pdf_url: null,
@@ -482,7 +532,12 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
         provider_id: "semantic_scholar",
         provider_record_id: "999",
         provenance: [
-          { provider_id: "semantic_scholar", record_id: "999", landing_url: "https://semanticscholar.org/paper/999", retrieved_at: "2026-10-30T00:00:00Z" },
+          {
+            provider_id: "semantic_scholar",
+            record_id: "999",
+            landing_url: "https://semanticscholar.org/paper/999",
+            retrieved_at: "2026-10-30T00:00:00Z",
+          },
         ],
       };
 
@@ -597,8 +652,12 @@ describe("Phase 17 — Academic Source Connector Framework & Retrieval Reliabili
         },
       ];
 
-      expect(healthStatuses.find((h) => h.provider_id === "openalex")?.status).toBe("healthy");
-      expect(healthStatuses.find((h) => h.provider_id === "semantic_scholar")?.status).toBe("rate_limited");
+      expect(healthStatuses.find((h) => h.provider_id === "openalex")?.status).toBe(
+        "healthy"
+      );
+      expect(
+        healthStatuses.find((h) => h.provider_id === "semantic_scholar")?.status
+      ).toBe("rate_limited");
       expect(healthStatuses.every((h) => h.latency_ms > 0)).toBe(true);
     });
   });

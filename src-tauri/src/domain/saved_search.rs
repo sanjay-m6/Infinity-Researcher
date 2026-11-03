@@ -34,4 +34,3 @@ pub struct SavedSearchUpdateInput {
     pub filters_json: Option<String>,
     pub sort_by: Option<String>,
 }
-

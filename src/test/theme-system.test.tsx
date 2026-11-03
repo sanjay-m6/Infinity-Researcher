@@ -37,12 +37,16 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
         onchange: null,
         addListener: vi.fn(), // Deprecated
         removeListener: vi.fn(), // Deprecated
-        addEventListener: vi.fn((_type: string, listener: (e: { matches: boolean }) => void) => {
-          matchMediaListeners.push(listener);
-        }),
-        removeEventListener: vi.fn((_type: string, listener: (e: { matches: boolean }) => void) => {
-          matchMediaListeners = matchMediaListeners.filter((l) => l !== listener);
-        }),
+        addEventListener: vi.fn(
+          (_type: string, listener: (e: { matches: boolean }) => void) => {
+            matchMediaListeners.push(listener);
+          }
+        ),
+        removeEventListener: vi.fn(
+          (_type: string, listener: (e: { matches: boolean }) => void) => {
+            matchMediaListeners = matchMediaListeners.filter((l) => l !== listener);
+          }
+        ),
         dispatchEvent: vi.fn(),
       })),
     });
@@ -104,8 +108,15 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
 
   describe("2. ThemeProvider & Reactive State Lifecycle", () => {
     const ThemeProbe: React.FC = () => {
-      const { theme, preference, resolvedTheme, isDark, setTheme, toggleTheme, isInitialized } =
-        useThemeContext();
+      const {
+        theme,
+        preference,
+        resolvedTheme,
+        isDark,
+        setTheme,
+        toggleTheme,
+        isInitialized,
+      } = useThemeContext();
       return (
         <div>
           <span data-testid="theme">{theme}</span>
@@ -113,10 +124,18 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
           <span data-testid="resolved">{resolvedTheme}</span>
           <span data-testid="isDark">{String(isDark)}</span>
           <span data-testid="isInitialized">{String(isInitialized)}</span>
-          <button type="button" onClick={() => setTheme("light")}>Set Light</button>
-          <button type="button" onClick={() => setTheme("dark")}>Set Dark</button>
-          <button type="button" onClick={() => setTheme("system")}>Set System</button>
-          <button type="button" onClick={toggleTheme}>Toggle Theme</button>
+          <button type="button" onClick={() => setTheme("light")}>
+            Set Light
+          </button>
+          <button type="button" onClick={() => setTheme("dark")}>
+            Set Dark
+          </button>
+          <button type="button" onClick={() => setTheme("system")}>
+            Set System
+          </button>
+          <button type="button" onClick={toggleTheme}>
+            Toggle Theme
+          </button>
         </div>
       );
     };
@@ -238,7 +257,10 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
     const PortaledModal: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
       if (!isOpen) return null;
       return createPortal(
-        <div data-testid="portal-root" className="modal-container bg-card text-card-foreground">
+        <div
+          data-testid="portal-root"
+          className="modal-container bg-card text-card-foreground"
+        >
           <h2>Portaled Academic Dialog</h2>
         </div>,
         document.body
@@ -251,8 +273,12 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
 
       return (
         <div>
-          <button type="button" onClick={() => setIsOpen(true)}>Open Modal</button>
-          <button type="button" onClick={() => setTheme("dark")}>Switch Dark</button>
+          <button type="button" onClick={() => setIsOpen(true)}>
+            Open Modal
+          </button>
+          <button type="button" onClick={() => setTheme("dark")}>
+            Switch Dark
+          </button>
           <span data-testid="app-theme">{theme}</span>
           <span data-testid="app-resolved">{resolvedTheme}</span>
           <PortaledModal isOpen={isOpen} />
@@ -326,9 +352,8 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
     });
 
     it("applies theme settings and custom CSS properties to document root", async () => {
-      const { applyThemeSettingsToDocument, getStoredThemeSettings } = await import(
-        "../lib/theme-persistence"
-      );
+      const { applyThemeSettingsToDocument, getStoredThemeSettings } =
+        await import("../lib/theme-persistence");
       const settings = getStoredThemeSettings();
       settings.preset = "emerald_green";
       settings.density = "compact";
@@ -337,7 +362,9 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
 
       applyThemeSettingsToDocument(settings, "dark");
 
-      expect(document.documentElement.getAttribute("data-theme-preset")).toBe("emerald_green");
+      expect(document.documentElement.getAttribute("data-theme-preset")).toBe(
+        "emerald_green"
+      );
       expect(document.documentElement.getAttribute("data-density")).toBe("compact");
       expect(document.documentElement.getAttribute("data-bg-preset")).toBe("neutral");
       expect(document.documentElement.getAttribute("data-motion")).toBe("reduced");
@@ -360,10 +387,7 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
             <span data-testid="active-preset">{settings.preset}</span>
             <span data-testid="is-previewing">{String(isPreviewing)}</span>
             <span data-testid="preview-preset">{previewSettings?.preset || "none"}</span>
-            <button
-              type="button"
-              onClick={() => previewTheme({ preset: "ocean_cyan" })}
-            >
+            <button type="button" onClick={() => previewTheme({ preset: "ocean_cyan" })}>
               Preview Ocean
             </button>
             <button type="button" onClick={() => void applyPreview()}>
@@ -412,11 +436,7 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
 
     it("supports custom theme CRUD, export, and import lifecycle", async () => {
       const TestCustomThemeConsumer: React.FC = () => {
-        const {
-          settings,
-          saveCustomTheme,
-          importThemesJson,
-        } = useTheme();
+        const { settings, saveCustomTheme, importThemesJson } = useTheme();
 
         return (
           <div>
@@ -437,7 +457,11 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
               type="button"
               onClick={() => {
                 const json = JSON.stringify([
-                  { name: "Imported Solar", accentColor: "#F59E0B", basePreset: "golden_amber" },
+                  {
+                    name: "Imported Solar",
+                    accentColor: "#F59E0B",
+                    basePreset: "golden_amber",
+                  },
                 ]);
                 importThemesJson(json);
               }}
@@ -468,5 +492,3 @@ describe("Phase 3 — Centralized Theme System Architecture & Persistence", () =
     });
   });
 });
-
-

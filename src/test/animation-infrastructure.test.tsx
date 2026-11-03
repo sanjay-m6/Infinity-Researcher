@@ -117,8 +117,18 @@ describe("Phase 4 — Motion Infrastructure & Animation Architecture", () => {
     });
 
     it("ensures reduced motion variants remove all spatial translation and scaling", () => {
-      const hidden = reducedMotionVariants.hidden as { x: number; y: number; scale: number; opacity: number };
-      const visible = reducedMotionVariants.visible as { x: number; y: number; scale: number; opacity: number };
+      const hidden = reducedMotionVariants.hidden as {
+        x: number;
+        y: number;
+        scale: number;
+        opacity: number;
+      };
+      const visible = reducedMotionVariants.visible as {
+        x: number;
+        y: number;
+        scale: number;
+        opacity: number;
+      };
       expect(hidden.x).toBe(0);
       expect(hidden.y).toBe(0);
       expect(hidden.scale).toBe(1);
@@ -174,7 +184,11 @@ describe("Phase 4 — Motion Infrastructure & Animation Architecture", () => {
     it("renders AnimatedContainer with children, forwarded ref, and custom classes", () => {
       const testRef = React.createRef<HTMLDivElement>();
       render(
-        <AnimatedContainer ref={testRef} className="test-container" data-testid="animated-box">
+        <AnimatedContainer
+          ref={testRef}
+          className="test-container"
+          data-testid="animated-box"
+        >
           <span>Research Content</span>
         </AnimatedContainer>
       );

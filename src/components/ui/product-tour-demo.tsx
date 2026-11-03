@@ -28,13 +28,15 @@ const STEPS: TourStep[] = [
   {
     target: "#tour-search",
     title: "Jump to anything",
-    content: "Search across projects, people, and docs. Press / from anywhere to focus it.",
+    content:
+      "Search across projects, people, and docs. Press / from anywhere to focus it.",
     placement: "bottom",
   },
   {
     target: "#tour-revenue",
     title: "Your key metric",
-    content: "Revenue updates live. Click any card to break it down by source and region.",
+    content:
+      "Revenue updates live. Click any card to break it down by source and region.",
     placement: "right",
   },
   {
@@ -46,7 +48,8 @@ const STEPS: TourStep[] = [
   {
     target: "#tour-avatar",
     title: "You're all set",
-    content: "Manage your workspace and billing from your profile. That's the whole tour!",
+    content:
+      "Manage your workspace and billing from your profile. That's the whole tour!",
     placement: "bottom",
   },
 ];
@@ -67,7 +70,15 @@ export default function ProductTourDemo() {
           <aside className="hidden w-56 shrink-0 flex-col rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900 md:flex">
             <div className="flex items-center gap-2 px-2 py-1.5">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M4 12h5" />
                   <path d="M9 12l7-4.5" />
                   <path d="M9 12l7 4.5" />
@@ -79,10 +90,24 @@ export default function ProductTourDemo() {
             </div>
 
             <nav className="mt-4 flex flex-col gap-0.5">
-              <NavItem active label="Overview" path="M3 12h7V3H3zM14 21h7v-9h-7zM14 8h7V3h-7zM3 21h7v-5H3z" />
-              <NavItem id="tour-nav-reports" label="Reports" path="M4 4h16v4H4zM4 12h10v8H4zM17 12h3v8h-3z" />
-              <NavItem label="Customers" path="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8" />
-              <NavItem label="Settings" path="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H7a1.6 1.6 0 0 0 1-1.5V1a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V7a1.6 1.6 0 0 0 1.5 1H23a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z" />
+              <NavItem
+                active
+                label="Overview"
+                path="M3 12h7V3H3zM14 21h7v-9h-7zM14 8h7V3h-7zM3 21h7v-5H3z"
+              />
+              <NavItem
+                id="tour-nav-reports"
+                label="Reports"
+                path="M4 4h16v4H4zM4 12h10v8H4zM17 12h3v8h-3z"
+              />
+              <NavItem
+                label="Customers"
+                path="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"
+              />
+              <NavItem
+                label="Settings"
+                path="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H7a1.6 1.6 0 0 0 1-1.5V1a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V7a1.6 1.6 0 0 0 1.5 1H23a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"
+              />
             </nav>
 
             <button
@@ -102,7 +127,9 @@ export default function ProductTourDemo() {
                 <svg {...iconProps} className="h-4 w-4 shrink-0">
                   <path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3" />
                 </svg>
-                <span className="truncate text-[13px]">Search projects, people, docs</span>
+                <span className="truncate text-[13px]">
+                  Search projects, people, docs
+                </span>
                 <kbd className="ml-auto hidden shrink-0 rounded border border-zinc-200 px-1.5 py-0.5 text-[11px] text-zinc-400 dark:border-zinc-700 sm:inline">
                   /
                 </kbd>
@@ -140,7 +167,13 @@ export default function ProductTourDemo() {
             </header>
 
             <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <StatCard id="tour-revenue" label="Revenue" value="$48,210" delta="+12.4%" spark />
+              <StatCard
+                id="tour-revenue"
+                label="Revenue"
+                value="$48,210"
+                delta="+12.4%"
+                spark
+              />
               <StatCard label="Active users" value="3,914" delta="+3.1%" />
               <StatCard label="Churn" value="1.8%" delta="-0.4%" />
             </section>
@@ -154,11 +187,17 @@ export default function ProductTourDemo() {
                 {ROWS.map((r) => (
                   <div key={r.name} className="flex items-center gap-3 py-2.5">
                     <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-                      <img src={r.avatar} alt={r.name} className="h-full w-full object-cover" />
+                      <img
+                        src={r.avatar}
+                        alt={r.name}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                     <span className="text-[13px] font-medium">{r.name}</span>
                     <span className="text-[12.5px] text-zinc-400">{r.action}</span>
-                    <span className="ml-auto text-[12px] tabular-nums text-zinc-400">{r.time}</span>
+                    <span className="ml-auto text-[12px] tabular-nums text-zinc-400">
+                      {r.time}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -229,12 +268,22 @@ function StatCard({
       <p className="text-[12px] text-zinc-400">{label}</p>
       <div className="mt-1 flex items-end justify-between">
         <span className="text-[22px] font-semibold tracking-tight">{value}</span>
-        <span className={`text-[12px] font-medium ${up ? "text-zinc-900 dark:text-zinc-200" : "text-zinc-400"}`}>
+        <span
+          className={`text-[12px] font-medium ${up ? "text-zinc-900 dark:text-zinc-200" : "text-zinc-400"}`}
+        >
           {delta}
         </span>
       </div>
       {spark && (
-        <svg viewBox="0 0 120 28" className="mt-3 h-7 w-full text-zinc-300 dark:text-zinc-600" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          viewBox="0 0 120 28"
+          className="mt-3 h-7 w-full text-zinc-300 dark:text-zinc-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M0 22 L15 18 L30 20 L45 12 L60 15 L75 8 L90 11 L105 5 L120 7" />
         </svg>
       )}
@@ -243,9 +292,32 @@ function StatCard({
 }
 
 const ROWS = [
-  { name: "laziedev", action: "closed a deal", time: "2m", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" },
-  { name: "shiawase", action: "invited 3 members", time: "18m", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" },
-  { name: "khushi", action: "exported a report", time: "1h", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" },
-  { name: "kiki", action: "created a workflow", time: "3h", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80" },
+  {
+    name: "laziedev",
+    action: "closed a deal",
+    time: "2m",
+    avatar:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+  },
+  {
+    name: "shiawase",
+    action: "invited 3 members",
+    time: "18m",
+    avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+  },
+  {
+    name: "khushi",
+    action: "exported a report",
+    time: "1h",
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+  },
+  {
+    name: "kiki",
+    action: "created a workflow",
+    time: "3h",
+    avatar:
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80",
+  },
 ];
-

@@ -154,4 +154,3 @@ export function validateCitationsList(
 ): VerifiedEvidence[] {
   return citations.map((citation) => verifySingleCitation(citation, availableChunks));
 }
-

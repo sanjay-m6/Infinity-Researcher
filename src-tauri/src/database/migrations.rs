@@ -15,25 +15,20 @@ const MIGRATION_0008: &str =
     include_str!("../../migrations/0008_research_integrity_and_writing.sql");
 const MIGRATION_0009: &str =
     include_str!("../../migrations/0009_literature_review_matrix_and_copilot.sql");
-const MIGRATION_0010: &str =
-    include_str!("../../migrations/0010_imare_retrieval_state.sql");
+const MIGRATION_0010: &str = include_str!("../../migrations/0010_imare_retrieval_state.sql");
 const MIGRATION_0011: &str =
     include_str!("../../migrations/0011_ai_tools_and_integrity_persistence.sql");
-const MIGRATION_0012: &str =
-    include_str!("../../migrations/0012_local_auth_system.sql");
+const MIGRATION_0012: &str = include_str!("../../migrations/0012_local_auth_system.sql");
 const MIGRATION_0013: &str =
     include_str!("../../migrations/0013_research_library_and_knowledge.sql");
 const MIGRATION_0014: &str =
     include_str!("../../migrations/0014_download_manager_modernization.sql");
 const MIGRATION_0015: &str =
     include_str!("../../migrations/0015_multi_source_retrieval_and_verification.sql");
-const MIGRATION_0016: &str =
-    include_str!("../../migrations/0016_research_projects_and_tasks.sql");
-const MIGRATION_0017: &str =
-    include_str!("../../migrations/0017_in_app_ai_engine_default.sql");
+const MIGRATION_0016: &str = include_str!("../../migrations/0016_research_projects_and_tasks.sql");
+const MIGRATION_0017: &str = include_str!("../../migrations/0017_in_app_ai_engine_default.sql");
 const MIGRATION_0018: &str =
     include_str!("../../migrations/0018_ensure_nvidia_nim_and_provider_health.sql");
-
 
 pub fn run_migrations(conn: &mut Connection) -> Result<()> {
     // Ensure migrations tracking table exists

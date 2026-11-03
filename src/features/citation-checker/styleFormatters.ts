@@ -8,80 +8,105 @@ import { ParsedReference, CitationStyleType } from "./types";
  * Formats a reference into IEEE standard numbered format.
  */
 export function formatAsIeee(ref: ParsedReference, index = 1): string {
-  const authorStr = ref.authors.length > 0
-    ? (ref.authors.length > 3 ? `${ref.authors[0]} et al.` : ref.authors.join(", "))
-    : "[Author Unspecified]";
+  const authorStr =
+    ref.authors.length > 0
+      ? ref.authors.length > 3
+        ? `${ref.authors[0]} et al.`
+        : ref.authors.join(", ")
+      : "[Author Unspecified]";
 
   const titleStr = ref.title ? `"${ref.title},"` : "";
   const venueStr = ref.venue ? `${ref.venue},` : "";
   const yearStr = ref.year ? `${ref.year}.` : "";
   const doiStr = ref.doi ? ` doi: ${ref.doi}.` : "";
 
-  return `[${index}] ${authorStr}, ${titleStr} ${venueStr} ${yearStr}${doiStr}`.replace(/\s+/g, " ").trim();
+  return `[${index}] ${authorStr}, ${titleStr} ${venueStr} ${yearStr}${doiStr}`
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
  * Formats a reference into APA 7th edition format.
  */
 export function formatAsApa(ref: ParsedReference): string {
-  const authorStr = ref.authors.length > 0
-    ? (ref.authors.length > 2 ? `${ref.authors[0]} et al.` : ref.authors.join(" & "))
-    : "Author, Unknown";
+  const authorStr =
+    ref.authors.length > 0
+      ? ref.authors.length > 2
+        ? `${ref.authors[0]} et al.`
+        : ref.authors.join(" & ")
+      : "Author, Unknown";
 
   const yearStr = ref.year ? `(${ref.year}).` : "([n.d.]).";
   const titleStr = ref.title ? `${ref.title}.` : "";
   const venueStr = ref.venue ? `${ref.venue}.` : "";
   const doiStr = ref.doi ? ` https://doi.org/${ref.doi}` : "";
 
-  return `${authorStr} ${yearStr} ${titleStr} ${venueStr}${doiStr}`.replace(/\s+/g, " ").trim();
+  return `${authorStr} ${yearStr} ${titleStr} ${venueStr}${doiStr}`
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
  * Formats a reference into MLA 9th edition format.
  */
 export function formatAsMla(ref: ParsedReference): string {
-  const authorStr = ref.authors.length > 0
-    ? (ref.authors.length > 2 ? `${ref.authors[0]}, et al.` : ref.authors.join(", and "))
-    : "Anonymous";
+  const authorStr =
+    ref.authors.length > 0
+      ? ref.authors.length > 2
+        ? `${ref.authors[0]}, et al.`
+        : ref.authors.join(", and ")
+      : "Anonymous";
 
   const titleStr = ref.title ? `"${ref.title}."` : "";
   const venueStr = ref.venue ? `${ref.venue},` : "";
   const yearStr = ref.year ? `${ref.year}.` : "";
   const doiStr = ref.doi ? ` DOI: ${ref.doi}.` : "";
 
-  return `${authorStr}. ${titleStr} ${venueStr} ${yearStr}${doiStr}`.replace(/\s+/g, " ").trim();
+  return `${authorStr}. ${titleStr} ${venueStr} ${yearStr}${doiStr}`
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
  * Formats a reference into Chicago 17th author-date edition format.
  */
 export function formatAsChicago(ref: ParsedReference): string {
-  const authorStr = ref.authors.length > 0
-    ? (ref.authors.length > 3 ? `${ref.authors[0]}, et al.` : ref.authors.join(", and "))
-    : "Unknown Author";
+  const authorStr =
+    ref.authors.length > 0
+      ? ref.authors.length > 3
+        ? `${ref.authors[0]}, et al.`
+        : ref.authors.join(", and ")
+      : "Unknown Author";
 
   const yearStr = ref.year ? `${ref.year}.` : "n.d.";
   const titleStr = ref.title ? `"${ref.title}."` : "";
   const venueStr = ref.venue ? `${ref.venue}.` : "";
   const doiStr = ref.doi ? ` https://doi.org/${ref.doi}.` : "";
 
-  return `${authorStr}. ${yearStr} ${titleStr} ${venueStr}${doiStr}`.replace(/\s+/g, " ").trim();
+  return `${authorStr}. ${yearStr} ${titleStr} ${venueStr}${doiStr}`
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
  * Formats a reference into Harvard referencing format.
  */
 export function formatAsHarvard(ref: ParsedReference): string {
-  const authorStr = ref.authors.length > 0
-    ? (ref.authors.length > 2 ? `${ref.authors[0]} et al.` : ref.authors.join(" and "))
-    : "Anon";
+  const authorStr =
+    ref.authors.length > 0
+      ? ref.authors.length > 2
+        ? `${ref.authors[0]} et al.`
+        : ref.authors.join(" and ")
+      : "Anon";
 
   const yearStr = ref.year ? `(${ref.year})` : "([n.d.])";
   const titleStr = ref.title ? `'${ref.title}',` : "";
   const venueStr = ref.venue ? `${ref.venue}.` : "";
   const doiStr = ref.doi ? ` Available at: https://doi.org/${ref.doi}.` : "";
 
-  return `${authorStr} ${yearStr} ${titleStr} ${venueStr}${doiStr}`.replace(/\s+/g, " ").trim();
+  return `${authorStr} ${yearStr} ${titleStr} ${venueStr}${doiStr}`
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
@@ -139,4 +164,3 @@ REFERENCES
 [5] Y. LeCun, Y. Bengio, and G. Hinton, "Deep Learning," Nature, 2015. doi: 10.1038/nature14539.
 [6] S. Sanjay, "Neural Document Search," 2024. doi: 1109/MALFORMED.DOI.ACCESS.
 [7] P. Kumar, "Algorithmic Precision in Repositories," in IEEE Access. doi: 10.1109/access.2023.1042918.`;
-

@@ -156,7 +156,11 @@ export const DashboardTasksModule: React.FC<DashboardTasksModuleProps> = ({
             <h2 className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100">
               Research To-Do & Milestones
             </h2>
-            <Badge variant="secondary" size="sm" className="font-mono tabular-nums text-[10px]">
+            <Badge
+              variant="secondary"
+              size="sm"
+              className="font-mono tabular-nums text-[10px]"
+            >
               {completedCount}/{tasks.length}
             </Badge>
           </div>
@@ -271,7 +275,12 @@ export const DashboardTasksModule: React.FC<DashboardTasksModuleProps> = ({
                 placeholder="What research task needs to be completed next?"
                 className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <Button type="submit" variant="primary" size="sm" className="h-8 text-xs px-3">
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                className="h-8 text-xs px-3"
+              >
                 Save
               </Button>
               <Button
@@ -311,20 +320,22 @@ export const DashboardTasksModule: React.FC<DashboardTasksModuleProps> = ({
 
               <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                 <span className="text-[11px] font-medium">Phase:</span>
-                {["Literature Review", "Methodology", "Synthesis", "Drafting"].map((ph) => (
-                  <button
-                    key={ph}
-                    type="button"
-                    onClick={() => setNewPhase(ph)}
-                    className={`px-2 py-0.5 rounded text-[11px] cursor-pointer border ${
-                      newPhase === ph
-                        ? "bg-indigo-600 text-white border-indigo-600 font-medium"
-                        : "text-slate-400 border-transparent hover:border-slate-300 dark:hover:border-slate-700"
-                    }`}
-                  >
-                    {ph}
-                  </button>
-                ))}
+                {["Literature Review", "Methodology", "Synthesis", "Drafting"].map(
+                  (ph) => (
+                    <button
+                      key={ph}
+                      type="button"
+                      onClick={() => setNewPhase(ph)}
+                      className={`px-2 py-0.5 rounded text-[11px] cursor-pointer border ${
+                        newPhase === ph
+                          ? "bg-indigo-600 text-white border-indigo-600 font-medium"
+                          : "text-slate-400 border-transparent hover:border-slate-300 dark:hover:border-slate-700"
+                      }`}
+                    >
+                      {ph}
+                    </button>
+                  )
+                )}
               </div>
             </div>
           </motion.form>
@@ -430,4 +441,3 @@ export const DashboardTasksModule: React.FC<DashboardTasksModuleProps> = ({
 };
 
 export default DashboardTasksModule;
-

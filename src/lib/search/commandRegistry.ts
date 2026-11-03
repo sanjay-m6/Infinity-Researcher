@@ -298,4 +298,3 @@ export const APP_COMMANDS: CommandDefinition[] = [
     icon: Bug,
   },
 ];
-

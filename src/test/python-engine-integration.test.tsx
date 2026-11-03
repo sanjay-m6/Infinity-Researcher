@@ -79,7 +79,7 @@ describe("Python Scraping Engine Frontend Integration", () => {
             subject_tags: ["machine learning", "nlp"],
             language: "en",
             relevance_score: 0.95,
-            metadata_confidence: 0.90,
+            metadata_confidence: 0.9,
           },
         });
 
@@ -122,7 +122,9 @@ describe("Python Scraping Engine Frontend Integration", () => {
     // Verify paper appeared with match and confidence chips
     await waitFor(() => {
       expect(
-        screen.getAllByText("Transformer Attention Architecture for Scientific Paper Discovery").length
+        screen.getAllByText(
+          "Transformer Attention Architecture for Scientific Paper Discovery"
+        ).length
       ).toBeGreaterThanOrEqual(1);
     });
 

@@ -314,11 +314,9 @@ export function Avatar({
         />
 
         <div
-          className={[
-            "relative z-10 flex items-center",
-            dims.eyeGap,
-            dims.eyeY,
-          ].join(" ")}
+          className={["relative z-10 flex items-center", dims.eyeGap, dims.eyeY].join(
+            " "
+          )}
         >
           <Eye
             blinking={blinking}
@@ -339,4 +337,3 @@ export function Avatar({
 }
 
 export default Avatar;
-

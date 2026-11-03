@@ -28,10 +28,8 @@ export const Badge: React.FC<BadgeProps> = ({
   ...props
 }) => {
   const variantStyles: Record<string, string> = {
-    default:
-      "bg-muted text-muted-foreground border-border",
-    secondary:
-      "bg-secondary text-secondary-foreground border-border",
+    default: "bg-muted text-muted-foreground border-border",
+    secondary: "bg-secondary text-secondary-foreground border-border",
     primary:
       "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800",
     success:
@@ -40,17 +38,14 @@ export const Badge: React.FC<BadgeProps> = ({
       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800",
     destructive:
       "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800",
-    info:
-      "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800",
-    outline:
-      "bg-transparent text-foreground border-border",
+    info: "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800",
+    outline: "bg-transparent text-foreground border-border",
     // Research-specific states
     "open-access":
       "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 font-semibold",
     restricted:
       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 font-semibold",
-    saved:
-      "bg-indigo-600 text-white border-transparent shadow-xs font-semibold",
+    saved: "bg-indigo-600 text-white border-transparent shadow-xs font-semibold",
     running:
       "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800 font-semibold",
   };

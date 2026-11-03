@@ -1,9 +1,11 @@
+use argon2::password_hash::{
+    Error as PasswordHashError, PasswordHash, PasswordHasher, PasswordVerifier, SaltString,
+};
+use argon2::Argon2;
+use rand::rngs::OsRng;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use argon2::password_hash::{Error as PasswordHashError, PasswordHash, PasswordHasher, PasswordVerifier, SaltString};
-use argon2::Argon2;
-use rand::rngs::OsRng;
 use tokio::sync::RwLock;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -62,7 +64,9 @@ impl AuthService {
         let argon2 = Argon2::default();
         let hash = argon2
             .hash_password(password.as_bytes(), &salt)
-            .map_err(|e| AppError::Internal(format!("Failed to hash password with Argon2id: {}", e)))?
+            .map_err(|e| {
+                AppError::Internal(format!("Failed to hash password with Argon2id: {}", e))
+            })?
             .to_string();
         Ok(hash)
     }
@@ -141,22 +145,30 @@ impl AuthService {
 
         // 1. Validation
         if email.is_empty() {
-            return Err(AppError::Validation("Email address is required.".to_string()));
+            return Err(AppError::Validation(
+                "Email address is required.".to_string(),
+            ));
         }
         if !email.contains('@') || !email.contains('.') {
-            return Err(AppError::Validation("Please enter a valid email address.".to_string()));
+            return Err(AppError::Validation(
+                "Please enter a valid email address.".to_string(),
+            ));
         }
         if username.is_empty() {
             return Err(AppError::Validation("User ID is required.".to_string()));
         }
         if username.len() < 3 {
-            return Err(AppError::Validation("User ID must be at least 3 characters long.".to_string()));
+            return Err(AppError::Validation(
+                "User ID must be at least 3 characters long.".to_string(),
+            ));
         }
         if req.password.is_empty() {
             return Err(AppError::Validation("Password is required.".to_string()));
         }
         if req.password.len() < 8 {
-            return Err(AppError::Validation("Password must be at least 8 characters long.".to_string()));
+            return Err(AppError::Validation(
+                "Password must be at least 8 characters long.".to_string(),
+            ));
         }
         if req.password != req.confirm_password {
             return Err(AppError::Validation("Passwords do not match.".to_string()));
@@ -225,7 +237,9 @@ impl AuthService {
     pub async fn login(&self, req: LoginRequest) -> Result<AuthResponse, AppError> {
         let identifier = req.identifier.trim();
         if identifier.is_empty() {
-            return Err(AppError::Validation("Email or User ID is required.".to_string()));
+            return Err(AppError::Validation(
+                "Email or User ID is required.".to_string(),
+            ));
         }
         if req.password.is_empty() {
             return Err(AppError::Validation("Password is required.".to_string()));
@@ -245,20 +259,26 @@ impl AuthService {
                 Ok(conn) => match AuthRepository::find_by_identifier(&conn, identifier) {
                     Err(e) => LoginLookup::DbError(e.into()),
                     Ok(None) => LoginLookup::InvalidCredentials,
-                    Ok(Some(record)) => match Self::verify_password(&req.password, &record.password_hash) {
-                        Err(e) => LoginLookup::DbError(e),
-                        Ok(false) => LoginLookup::InvalidCredentials,
-                        Ok(true) => {
-                            let _ = AuthRepository::update_last_login(&conn, &record.id);
-                            match AuthRepository::get_preferences(&conn, &record.id) {
-                                Err(e) => LoginLookup::DbError(e.into()),
-                                Ok(prefs) => {
-                                    let rem = req.remember_me.unwrap_or(prefs.remember_me);
-                                    LoginLookup::Success(record.to_public(), rem, prefs.auto_lock_timeout_minutes)
+                    Ok(Some(record)) => {
+                        match Self::verify_password(&req.password, &record.password_hash) {
+                            Err(e) => LoginLookup::DbError(e),
+                            Ok(false) => LoginLookup::InvalidCredentials,
+                            Ok(true) => {
+                                let _ = AuthRepository::update_last_login(&conn, &record.id);
+                                match AuthRepository::get_preferences(&conn, &record.id) {
+                                    Err(e) => LoginLookup::DbError(e.into()),
+                                    Ok(prefs) => {
+                                        let rem = req.remember_me.unwrap_or(prefs.remember_me);
+                                        LoginLookup::Success(
+                                            record.to_public(),
+                                            rem,
+                                            prefs.auto_lock_timeout_minutes,
+                                        )
+                                    }
                                 }
                             }
                         }
-                    },
+                    }
                 },
             }
         }; // conn strictly dropped here
@@ -267,7 +287,9 @@ impl AuthService {
             LoginLookup::DbError(e) => return Err(e),
             LoginLookup::InvalidCredentials => {
                 self.record_failed_attempt(identifier).await;
-                return Err(AppError::Validation("Invalid email/User ID or password.".to_string()));
+                return Err(AppError::Validation(
+                    "Invalid email/User ID or password.".to_string(),
+                ));
             }
             LoginLookup::Success(user, rem, timeout) => (user, rem, timeout),
         };
@@ -319,7 +341,11 @@ impl AuthService {
         }
     }
 
-    pub async fn unlock_session(&self, token: &str, password: &str) -> Result<AuthResponse, AppError> {
+    pub async fn unlock_session(
+        &self,
+        token: &str,
+        password: &str,
+    ) -> Result<AuthResponse, AppError> {
         let (user_id, remember, timeout) = {
             let sessions = self.sessions.read().await;
             let session = sessions
@@ -355,7 +381,9 @@ impl AuthService {
                 auto_lock_timeout_minutes: timeout,
             })
         } else {
-            Err(AppError::Validation("Session expired during unlock.".to_string()))
+            Err(AppError::Validation(
+                "Session expired during unlock.".to_string(),
+            ))
         }
     }
 
@@ -383,9 +411,9 @@ impl AuthService {
 
     pub async fn validate_active_session(&self, token: &str) -> Result<User, AppError> {
         let mut sessions = self.sessions.write().await;
-        let session = sessions
-            .get_mut(token)
-            .ok_or_else(|| AppError::Validation("Authentication required. Please sign in.".to_string()))?;
+        let session = sessions.get_mut(token).ok_or_else(|| {
+            AppError::Validation("Authentication required. Please sign in.".to_string())
+        })?;
 
         if session.is_locked {
             return Err(AppError::Validation(
@@ -398,7 +426,8 @@ impl AuthService {
         if session.auto_lock_timeout_minutes > 0 && session.last_active_at.elapsed() > max_idle {
             session.is_locked = true;
             return Err(AppError::Validation(
-                "Application locked due to inactivity. Please enter your password to unlock.".to_string(),
+                "Application locked due to inactivity. Please enter your password to unlock."
+                    .to_string(),
             ));
         }
 
@@ -489,7 +518,10 @@ impl AuthService {
             last_active_at: Instant::now(),
         };
 
-        self.sessions.write().await.insert(new_token.clone(), session);
+        self.sessions
+            .write()
+            .await
+            .insert(new_token.clone(), session);
         self.save_remembered_session(&user.id, &new_token).await;
         info!(user_id = %user.id, "Restored active session from OS secure storage");
 
@@ -551,7 +583,9 @@ impl AuthService {
         req: ChangePasswordRequest,
     ) -> Result<(), AppError> {
         if req.new_password.is_empty() {
-            return Err(AppError::Validation("New password is required.".to_string()));
+            return Err(AppError::Validation(
+                "New password is required.".to_string(),
+            ));
         }
         if req.new_password.len() < 8 {
             return Err(AppError::Validation(
@@ -566,7 +600,9 @@ impl AuthService {
 
             let is_valid = Self::verify_password(&req.current_password, &record.password_hash)?;
             if !is_valid {
-                return Err(AppError::Validation("Current password is incorrect.".to_string()));
+                return Err(AppError::Validation(
+                    "Current password is incorrect.".to_string(),
+                ));
             }
 
             let new_hash = Self::hash_password(&req.new_password)?;

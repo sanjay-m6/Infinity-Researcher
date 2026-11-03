@@ -102,7 +102,11 @@ impl AuthRepository {
         Ok(())
     }
 
-    pub fn update_password_hash(conn: &Connection, user_id: &str, password_hash: &str) -> Result<()> {
+    pub fn update_password_hash(
+        conn: &Connection,
+        user_id: &str,
+        password_hash: &str,
+    ) -> Result<()> {
         conn.execute(
             "UPDATE users SET password_hash = ?1 WHERE id = ?2",
             params![password_hash, user_id],
@@ -118,17 +122,19 @@ impl AuthRepository {
              LIMIT 1",
         )?;
 
-        let res = stmt.query_row(params![user_id], |row| {
-            let rem: i64 = row.get(2)?;
-            Ok(UserPreferences {
-                user_id: row.get(0)?,
-                auto_lock_timeout_minutes: row.get(1)?,
-                remember_me: rem != 0,
-                theme: row.get(3)?,
-                created_at: row.get(4)?,
-                updated_at: row.get(5)?,
+        let res = stmt
+            .query_row(params![user_id], |row| {
+                let rem: i64 = row.get(2)?;
+                Ok(UserPreferences {
+                    user_id: row.get(0)?,
+                    auto_lock_timeout_minutes: row.get(1)?,
+                    remember_me: rem != 0,
+                    theme: row.get(3)?,
+                    created_at: row.get(4)?,
+                    updated_at: row.get(5)?,
+                })
             })
-        }).optional()?;
+            .optional()?;
 
         match res {
             Some(prefs) => Ok(prefs),
@@ -197,4 +203,3 @@ impl AuthRepository {
         Ok(())
     }
 }
-

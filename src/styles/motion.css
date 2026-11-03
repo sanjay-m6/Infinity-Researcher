@@ -118,5 +118,3 @@ html.theme-transitioning::view-transition-new(root) {
     transform: rotate(360deg);
   }
 }
-
-

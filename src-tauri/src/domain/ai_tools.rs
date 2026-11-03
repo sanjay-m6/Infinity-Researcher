@@ -111,4 +111,3 @@ pub struct WritingRevisionItem {
     pub is_accepted: bool,
     pub created_at: String,
 }
-

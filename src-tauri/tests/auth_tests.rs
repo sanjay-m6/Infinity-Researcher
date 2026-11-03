@@ -17,7 +17,10 @@ async fn test_auth_registration_and_duplicate_rejection() {
     };
 
     // 1. Successful Registration
-    let res = auth.signup(signup_req.clone()).await.expect("registration should succeed");
+    let res = auth
+        .signup(signup_req.clone())
+        .await
+        .expect("registration should succeed");
     assert_eq!(res.user.email, "alice@example.com");
     assert_eq!(res.user.username, "alice_researcher");
     assert!(!res.token.is_empty());
@@ -58,19 +61,24 @@ async fn test_auth_login_password_verification_and_throttling() {
     .expect("signup ok");
 
     // 1. Unsuccessful login (wrong password)
-    let bad_login = auth.login(LoginRequest {
-        identifier: "carol@example.com".to_string(),
-        password: "wrong_password".to_string(),
-        remember_me: Some(false),
-    }).await;
+    let bad_login = auth
+        .login(LoginRequest {
+            identifier: "carol@example.com".to_string(),
+            password: "wrong_password".to_string(),
+            remember_me: Some(false),
+        })
+        .await;
     assert!(bad_login.is_err());
 
     // 2. Successful login using User ID
-    let good_login = auth.login(LoginRequest {
-        identifier: "carol_scholar".to_string(),
-        password: "StrongPassword890#".to_string(),
-        remember_me: Some(false),
-    }).await.expect("login with username must succeed");
+    let good_login = auth
+        .login(LoginRequest {
+            identifier: "carol_scholar".to_string(),
+            password: "StrongPassword890#".to_string(),
+            remember_me: Some(false),
+        })
+        .await
+        .expect("login with username must succeed");
     assert_eq!(good_login.user.email, "carol@example.com");
 }
 
@@ -79,17 +87,21 @@ async fn test_auth_manual_lock_and_unlock() {
     let db = Arc::new(Database::open_in_memory().expect("in-memory db"));
     let auth = AuthService::new(db);
 
-    let auth_res = auth.signup(SignupRequest {
-        email: "david@example.com".to_string(),
-        username: "david_lock".to_string(),
-        password: "MyLockPassword777$".to_string(),
-        confirm_password: "MyLockPassword777$".to_string(),
-    })
-    .await
-    .unwrap();
+    let auth_res = auth
+        .signup(SignupRequest {
+            email: "david@example.com".to_string(),
+            username: "david_lock".to_string(),
+            password: "MyLockPassword777$".to_string(),
+            confirm_password: "MyLockPassword777$".to_string(),
+        })
+        .await
+        .unwrap();
 
     // Verify session initially active
-    let user = auth.validate_active_session(&auth_res.token).await.expect("session active");
+    let user = auth
+        .validate_active_session(&auth_res.token)
+        .await
+        .expect("session active");
     assert_eq!(user.username, "david_lock");
 
     // Lock session manually
@@ -104,11 +116,17 @@ async fn test_auth_manual_lock_and_unlock() {
     assert!(fail_unlock.is_err());
 
     // Unlock with correct password succeeds
-    let unlocked = auth.unlock_session(&auth_res.token, "MyLockPassword777$").await.expect("unlock ok");
+    let unlocked = auth
+        .unlock_session(&auth_res.token, "MyLockPassword777$")
+        .await
+        .expect("unlock ok");
     assert_eq!(unlocked.user.username, "david_lock");
 
     // Session active again
-    let user_again = auth.validate_active_session(&auth_res.token).await.expect("active after unlock");
+    let user_again = auth
+        .validate_active_session(&auth_res.token)
+        .await
+        .expect("active after unlock");
     assert_eq!(user_again.username, "david_lock");
 }
 
@@ -118,4 +136,3 @@ fn test_database_migration_0018() {
     let info = db.get_info().expect("get_info failed");
     assert_eq!(info.schema_version, 18);
 }
-

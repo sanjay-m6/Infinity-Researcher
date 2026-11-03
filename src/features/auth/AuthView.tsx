@@ -10,4 +10,3 @@ export const AuthView: React.FC = () => {
   }
   return <LoginView onSwitchToSignup={() => setMode("signup")} />;
 };
-

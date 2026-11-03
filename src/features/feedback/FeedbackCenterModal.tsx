@@ -84,7 +84,9 @@ export const FeedbackCenterModal: React.FC<FeedbackCenterModalProps> = ({
   const [viewLayout, setViewLayout] = useState<ViewLayout>("split");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [labels, setLabels] = useState<GitHubLabel[]>(FALLBACK_REPO_LABELS);
-  const [submissionResult, setSubmissionResult] = useState<GitHubIssueResponse | null>(null);
+  const [submissionResult, setSubmissionResult] = useState<GitHubIssueResponse | null>(
+    null
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
@@ -122,9 +124,11 @@ Timestamp: ${new Date().toISOString()}`;
     setRawDiagnostics(initialDiag);
 
     // Fetch repository labels from GitHub
-    void fetchRepositoryLabels(DEFAULT_REPO_CONFIG.owner, DEFAULT_REPO_CONFIG.repo).then((res) => {
-      if (res && res.length > 0) setLabels(res);
-    });
+    void fetchRepositoryLabels(DEFAULT_REPO_CONFIG.owner, DEFAULT_REPO_CONFIG.repo).then(
+      (res) => {
+        if (res && res.length > 0) setLabels(res);
+      }
+    );
   }, [isOpen, backendHealth, affectedArea]);
 
   const handleSaveToken = async () => {
@@ -152,7 +156,10 @@ Timestamp: ${new Date().toISOString()}`;
   };
 
   // Compute active labels for current selection
-  const activeLabelNames = mapCategoryToLabels(category, activeTab === "bug" ? severity : undefined);
+  const activeLabelNames = mapCategoryToLabels(
+    category,
+    activeTab === "bug" ? severity : undefined
+  );
   const activeLabelObjects = activeLabelNames.map((name) => {
     const found = labels.find((l) => l.name.toLowerCase() === name.toLowerCase());
     return found || { name, color: "ededed" };
@@ -200,13 +207,18 @@ Timestamp: ${new Date().toISOString()}`;
       setErrorMessage("Please fill in both what happened and expected behavior.");
       return;
     }
-    if (activeTab === "feature" && (!problemStatement.trim() || !proposedSolution.trim())) {
+    if (
+      activeTab === "feature" &&
+      (!problemStatement.trim() || !proposedSolution.trim())
+    ) {
       setErrorMessage("Please fill in the problem statement and proposed solution.");
       return;
     }
 
     if (!githubToken.trim()) {
-      setErrorMessage("Enter a GitHub token to create the issue directly, or click 'Continue on GitHub' below.");
+      setErrorMessage(
+        "Enter a GitHub token to create the issue directly, or click 'Continue on GitHub' below."
+      );
       return;
     }
 
@@ -433,8 +445,9 @@ Timestamp: ${new Date().toISOString()}`;
             </label>
             {includeDiagnostics && (
               <p className="text-[11px] text-slate-500 dark:text-slate-400 pl-5 leading-normal">
-                Guaranteed privacy: Tokens, API keys, document text, and personal usernames are
-                automatically redacted by the application privacy filter before transmission.
+                Guaranteed privacy: Tokens, API keys, document text, and personal
+                usernames are automatically redacted by the application privacy filter
+                before transmission.
               </p>
             )}
           </div>
@@ -507,9 +520,13 @@ Timestamp: ${new Date().toISOString()}`;
         </div>
 
         <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-normal">
-          To create issues directly from the app, enter a GitHub Personal Access Token (with{" "}
-          <code className="text-indigo-600 dark:text-indigo-400 font-mono">issues:write</code> scope).
-          Otherwise, click <strong>Continue on GitHub</strong> to submit without a token.
+          To create issues directly from the app, enter a GitHub Personal Access Token
+          (with{" "}
+          <code className="text-indigo-600 dark:text-indigo-400 font-mono">
+            issues:write
+          </code>{" "}
+          scope). Otherwise, click <strong>Continue on GitHub</strong> to submit without a
+          token.
         </p>
 
         <div className="flex items-center gap-2">
@@ -599,7 +616,8 @@ Timestamp: ${new Date().toISOString()}`;
           Issue Title Preview
         </span>
         <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 break-words font-mono">
-          Title: [{activeTab === "bug" ? "Bug" : "Feature"}]: {title.trim() || "Untitled Issue"}
+          Title: [{activeTab === "bug" ? "Bug" : "Feature"}]:{" "}
+          {title.trim() || "Untitled Issue"}
         </p>
       </div>
 
@@ -616,7 +634,9 @@ Timestamp: ${new Date().toISOString()}`;
       {/* Environmental specs preview badge */}
       {includeDiagnostics && (
         <div className="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/40 p-2 rounded-lg border border-slate-200 dark:border-slate-800 font-mono">
-          Diagnostics will attach: Infinity Researcher v{backendHealth?.app_version || "0.1.0"} · Windows 10/11 x64 · SQLite Core · Subsystem: {affectedArea}
+          Diagnostics will attach: Infinity Researcher v
+          {backendHealth?.app_version || "0.1.0"} · Windows 10/11 x64 · SQLite Core ·
+          Subsystem: {affectedArea}
         </div>
       )}
     </div>
@@ -703,8 +723,11 @@ Timestamp: ${new Date().toISOString()}`;
               GitHub Issue Created Successfully
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Issue <span className="font-semibold text-slate-800 dark:text-slate-200">#{submissionResult.number}</span>:{" "}
-              {submissionResult.title}
+              Issue{" "}
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                #{submissionResult.number}
+              </span>
+              : {submissionResult.title}
             </p>
           </div>
 
@@ -869,15 +892,11 @@ Timestamp: ${new Date().toISOString()}`;
           )}
 
           {viewLayout === "edit" && (
-            <div className="max-h-[62vh] overflow-y-auto pr-1">
-              {renderFormInputs()}
-            </div>
+            <div className="max-h-[62vh] overflow-y-auto pr-1">{renderFormInputs()}</div>
           )}
 
           {viewLayout === "preview" && (
-            <div className="max-h-[62vh] overflow-y-auto pr-1">
-              {renderPreviewCard()}
-            </div>
+            <div className="max-h-[62vh] overflow-y-auto pr-1">{renderPreviewCard()}</div>
           )}
         </div>
       )}

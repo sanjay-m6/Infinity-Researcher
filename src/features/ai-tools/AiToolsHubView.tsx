@@ -27,12 +27,7 @@ import {
   type HardwareProfile,
 } from "../../lib/desktop-api";
 
-export type AiToolCategory =
-  | "all"
-  | "detection"
-  | "writing"
-  | "quality"
-  | "citation";
+export type AiToolCategory = "all" | "detection" | "writing" | "quality" | "citation";
 
 export interface AiToolMetadata {
   id: NavSection;
@@ -64,7 +59,12 @@ export const AI_TOOLS_REGISTRY: AiToolMetadata[] = [
       "Screen draft manuscripts or student submissions for automated machine generation signatures without external data leakage.",
     statusLabel: "Local Heuristics · Ready",
     statusType: "success",
-    features: ["Perplexity Variance", "Burstiness Metric", "Sentence Uniformity", "Zero Cloud Transmission"],
+    features: [
+      "Perplexity Variance",
+      "Burstiness Metric",
+      "Sentence Uniformity",
+      "Zero Cloud Transmission",
+    ],
   },
   {
     id: "plagiarism_checker",
@@ -75,12 +75,18 @@ export const AI_TOOLS_REGISTRY: AiToolMetadata[] = [
       "Winnowing n-gram fingerprint comparison against your saved library papers and open academic reference corpus.",
     icon: FileSearch,
     iconColor: "text-emerald-600 dark:text-emerald-400",
-    iconBg: "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800",
+    iconBg:
+      "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800",
     mainUseCase:
       "Detect unquoted verbatim text, missing citation anchors, and accidental duplication against your private paper library.",
     statusLabel: "Library Corpus · Active",
     statusType: "success",
-    features: ["Winnowing Fingerprints", "Exact Phrase Matching", "Local Paper Library Index", "Quote Exclusion"],
+    features: [
+      "Winnowing Fingerprints",
+      "Exact Phrase Matching",
+      "Local Paper Library Index",
+      "Quote Exclusion",
+    ],
   },
   {
     id: "ai_humanizer",
@@ -96,7 +102,12 @@ export const AI_TOOLS_REGISTRY: AiToolMetadata[] = [
       "Elevate synthesized drafts into natural academic discourse with varied syntax while retaining 100% conceptual accuracy. Not intended to bypass AI detectors.",
     statusLabel: "Connected LLM · Ready",
     statusType: "primary",
-    features: ["Sentence Length Variation", "Natural Transition Smoothing", "Anti-Cliché Filtering", "Peer Review Voice"],
+    features: [
+      "Sentence Length Variation",
+      "Natural Transition Smoothing",
+      "Anti-Cliché Filtering",
+      "Peer Review Voice",
+    ],
   },
   {
     id: "academic_writing_assistant",
@@ -112,7 +123,12 @@ export const AI_TOOLS_REGISTRY: AiToolMetadata[] = [
       "Polish manuscript sections (Abstract, Methodology, Discussion) to meet high-impact journal standards.",
     statusLabel: "Local / Ollama · Ready",
     statusType: "primary",
-    features: ["Clarity & Precision", "Journal Tone Calibration", "Passive Voice Balancer", "Formula & Citation Guard"],
+    features: [
+      "Clarity & Precision",
+      "Journal Tone Calibration",
+      "Passive Voice Balancer",
+      "Formula & Citation Guard",
+    ],
   },
   {
     id: "paraphrasing_tool",
@@ -128,7 +144,12 @@ export const AI_TOOLS_REGISTRY: AiToolMetadata[] = [
       "Express complex related work and technical background concepts with fresh scholarly phrasing without altering scientific meaning.",
     statusLabel: "Precision Engine · Ready",
     statusType: "success",
-    features: ["Citation Locking", "Mathematical Symbol Guard", "Multi-Variation Output", "Dense Synthesis Mode"],
+    features: [
+      "Citation Locking",
+      "Mathematical Symbol Guard",
+      "Multi-Variation Output",
+      "Dense Synthesis Mode",
+    ],
   },
   {
     id: "citation_checker",
@@ -144,7 +165,12 @@ export const AI_TOOLS_REGISTRY: AiToolMetadata[] = [
       "Ensure reference integrity and eliminate broken links, missing publication years, or unreferenced citations before submission.",
     statusLabel: "Crossref Validator · Active",
     statusType: "info",
-    features: ["DOI Resolution Check", "BibTeX Syntax Validation", "IEEE / APA Auto-Format", "Missing Citation Detection"],
+    features: [
+      "DOI Resolution Check",
+      "BibTeX Syntax Validation",
+      "IEEE / APA Auto-Format",
+      "Missing Citation Detection",
+    ],
   },
   {
     id: "readability_analyzer",
@@ -160,7 +186,12 @@ export const AI_TOOLS_REGISTRY: AiToolMetadata[] = [
       "Evaluate manuscript accessibility and sentence complexity against target journal reading level distributions.",
     statusLabel: "Algorithmic Engine · Ready",
     statusType: "success",
-    features: ["Flesch Reading Ease", "Gunning Fog Index", "Coleman-Liau Metric", "Syllable & Polysyllabic Counts"],
+    features: [
+      "Flesch Reading Ease",
+      "Gunning Fog Index",
+      "Coleman-Liau Metric",
+      "Syllable & Polysyllabic Counts",
+    ],
   },
   {
     id: "research_integrity",
@@ -171,12 +202,18 @@ export const AI_TOOLS_REGISTRY: AiToolMetadata[] = [
       "Peer-review readiness audit, methodology transparency checklist, and data availability statement generator.",
     icon: ShieldCheck,
     iconColor: "text-emerald-600 dark:text-emerald-400",
-    iconBg: "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800",
+    iconBg:
+      "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800",
     mainUseCase:
       "Verify publishing ethics compliance, conflict-of-interest declarations, and open science transparency statements.",
     statusLabel: "Ethics Auditor · Ready",
     statusType: "info",
-    features: ["Preprint & OA Check", "Data Availability Builder", "COI Disclosures", "Submission Readiness Score"],
+    features: [
+      "Preprint & OA Check",
+      "Data Availability Builder",
+      "COI Disclosures",
+      "Submission Readiness Score",
+    ],
   },
 ];
 
@@ -263,7 +300,8 @@ export const AiToolsHubView: React.FC = () => {
 
           <p className="text-sm text-slate-300 leading-relaxed max-w-2xl">
             A comprehensive suite of local-first research writing, detection, readability,
-            and verification tools. Designed specifically for peer-reviewed publishing standards with zero privacy compromise.
+            and verification tools. Designed specifically for peer-reviewed publishing
+            standards with zero privacy compromise.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-400">
@@ -286,11 +324,13 @@ export const AiToolsHubView: React.FC = () => {
       {/* In-App AI Engine & Model Panel Banner */}
       <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-lg border ${
-            engineStatus.is_running
-              ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
-              : "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/60"
-          }`}>
+          <div
+            className={`p-2.5 rounded-lg border ${
+              engineStatus.is_running
+                ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
+                : "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/60"
+            }`}
+          >
             <HardDrive className="w-5 h-5 stroke-[1.5]" />
           </div>
           <div>
@@ -298,20 +338,24 @@ export const AiToolsHubView: React.FC = () => {
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                 In-App AI Engine & Model Panel
               </h3>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
-                engineStatus.is_running
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
-                  : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700"
-              }`}>
-                {engineStatus.is_running ? `Active: ${engineStatus.active_model || "DeepSeek-R1"}` : "Offline (0 MB RAM used)"}
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  engineStatus.is_running
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700"
+                }`}
+              >
+                {engineStatus.is_running
+                  ? `Active: ${engineStatus.active_model || "DeepSeek-R1"}`
+                  : "Offline (0 MB RAM used)"}
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {engineStatus.is_running
                 ? `Running on port ${engineStatus.port} with low-RAM 4-bit KV cache & mmap.`
                 : hardware
-                ? `System RAM: ${(hardware.total_ram_mb / 1024).toFixed(1)} GB. Recommended: DeepSeek-R1 (8B Reasoning SOTA) & Qwen 2.5 (7B).`
-                : "Run top-tier open-source models (DeepSeek-R1, Qwen 2.5, Llama 3.1) locally with zero external setup."}
+                  ? `System RAM: ${(hardware.total_ram_mb / 1024).toFixed(1)} GB. Recommended: DeepSeek-R1 (8B Reasoning SOTA) & Qwen 2.5 (7B).`
+                  : "Run top-tier open-source models (DeepSeek-R1, Qwen 2.5, Llama 3.1) locally with zero external setup."}
             </p>
           </div>
         </div>
@@ -391,7 +435,14 @@ export const AiToolsHubView: React.FC = () => {
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Try adjusting your search query or selecting a different category filter.
           </p>
-          <Button variant="secondary" size="sm" onClick={() => { setSearchQuery(""); setSelectedCategory("all"); }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedCategory("all");
+            }}
+          >
             Reset Filters
           </Button>
         </div>

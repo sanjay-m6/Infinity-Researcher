@@ -2,8 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { AppProvider } from "../context/AppContext";
 import { CitationCheckerWorkspaceView } from "../features/citation-checker/CitationCheckerWorkspaceView";
-import { validateDoiSyntax, evaluateDoi } from "../features/citation-checker/doiValidator";
-import { extractInTextCitations, parseBibliographyReferences, splitDocumentSections } from "../features/citation-checker/citationParser";
+import {
+  validateDoiSyntax,
+  evaluateDoi,
+} from "../features/citation-checker/doiValidator";
+import {
+  extractInTextCitations,
+  parseBibliographyReferences,
+  splitDocumentSections,
+} from "../features/citation-checker/citationParser";
 import { performCitationAudit } from "../features/citation-checker/consistencyEngine";
 import {
   formatAsIeee,
@@ -166,7 +173,9 @@ describe("Phase 6 — Consistency & Discrepancy Engine", () => {
     const manuscript = `Our claim is supported by [1].\n\nREFERENCES\n[1] A. Vaswani et al., "Attention Is All You Need," NeurIPS, 2017. doi: 10.48550/arXiv.1706.03762.`;
     const audit = performCitationAudit(manuscript);
 
-    expect(audit.summary.claimSupportDisclaimer).toContain("does NOT verify that the cited paper supports the author's claim");
+    expect(audit.summary.claimSupportDisclaimer).toContain(
+      "does NOT verify that the cited paper supports the author's claim"
+    );
   });
 });
 
@@ -250,10 +259,16 @@ describe("Phase 6 — Citation Checker Workspace UI", () => {
       </AppProvider>
     );
 
-    expect(screen.getByText(/Citation Checker & Reference Verifier/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Citation Checker & Reference Verifier/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/Crossref & Registry Verified/i)).toBeInTheDocument();
-    expect(screen.getByText(/Crucial Distinction: Identifier Resolution vs. Claim Validity/i)).toBeInTheDocument();
-    expect(screen.getByText(/DOI resolution does NOT prove that the cited paper supports/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Crucial Distinction: Identifier Resolution vs. Claim Validity/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/DOI resolution does NOT prove that the cited paper supports/i)
+    ).toBeInTheDocument();
   });
 
   it("renders KPI summary cards with health score and orphan metrics", async () => {
@@ -324,9 +339,15 @@ describe("Phase 6 — Citation Checker Workspace UI", () => {
     fireEvent.click(reportBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Citation Audit & Verification Report/i)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /Download \.MD Report/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /Download \.JSON/i })).toBeInTheDocument();
+      expect(
+        screen.getByText(/Citation Audit & Verification Report/i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Download \.MD Report/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Download \.JSON/i })
+      ).toBeInTheDocument();
     });
   });
 });

@@ -20,7 +20,10 @@ const SUPPORT_LINKS: SupportLink[] = [
     name: "Ko-fi",
     url: "https://ko-fi.com/infinity86",
     logo: (
-      <svg className="w-[18px] h-[18px] fill-current flex-shrink-0 mr-1.5" viewBox="0 0 24 24">
+      <svg
+        className="w-[18px] h-[18px] fill-current flex-shrink-0 mr-1.5"
+        viewBox="0 0 24 24"
+      >
         <path d="M23.881 8.948c-.24-.53-1.096-1.554-3.111-1.554H20V6.657C20 2.98 17.02 0 13.343 0H3.314C1.483 0 0 1.483 0 3.314v13.371C0 18.516 1.483 20 3.314 20h10.029c3.677 0 6.657-2.98 6.657-6.657v-1.129h.781c2.185 0 3.411-1.082 3.822-2.128.468-1.189.289-2.023-.722-2.138zm-3.881 1.266h-.781V8.608H20c1.375 0 1.834.619 1.942 1.002.146.521-.082 1.604-1.942 1.604zM13.343 18H3.314C2.589 18 2 17.411 2 16.686V3.314C2 2.589 2.589 2 3.314 2h10.029C15.922 2 18 4.078 18 6.657v6.686c0 2.579-2.078 4.657-4.657 4.657zm-.654-7.485c-.917-.917-2.404-.917-3.321 0L8.5 11.383l-.868-.868c-.917-.917-2.404-.917-3.321 0-.917.917-.917 2.404 0 3.321l4.189 4.189 4.189-4.189c.917-.917.917-2.404 0-3.321z" />
       </svg>
     ),
@@ -31,7 +34,10 @@ const SUPPORT_LINKS: SupportLink[] = [
     name: "PayPal",
     url: "https://paypal.me/infinity86s?locale.x=en_GB&country.x=IN",
     logo: (
-      <svg className="w-[18px] h-[18px] fill-current flex-shrink-0 mr-1.5" viewBox="0 0 24 24">
+      <svg
+        className="w-[18px] h-[18px] fill-current flex-shrink-0 mr-1.5"
+        viewBox="0 0 24 24"
+      >
         <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.78.78 0 0 1 .77-.655h6.643c3.084 0 5.483.743 6.452 2.923.636 1.433.455 3.398-.553 4.954-1.258 1.943-3.34 2.895-6.19 2.895H9.684a.884.884 0 0 0-.872.748l-.872 5.518a.64.64 0 0 1-.633.541l-.231-.307z" />
       </svg>
     ),
@@ -42,7 +48,10 @@ const SUPPORT_LINKS: SupportLink[] = [
     name: "GitHub",
     url: "https://github.com/sponsors/sanjay-m6",
     logo: (
-      <svg className="w-[15px] h-[15px] fill-current flex-shrink-0 mr-1.5" viewBox="0 0 24 24">
+      <svg
+        className="w-[15px] h-[15px] fill-current flex-shrink-0 mr-1.5"
+        viewBox="0 0 24 24"
+      >
         <path
           fillRule="evenodd"
           clipRule="evenodd"
@@ -67,9 +76,13 @@ export const SupportDonationModal: React.FC<SupportDonationModalProps> = ({
   useEffect(() => {
     // In test environment, skip timer check
     if (
-      (typeof process !== "undefined" && (process.env?.NODE_ENV === "test" || process.env?.VITEST)) ||
+      (typeof process !== "undefined" &&
+        (process.env?.NODE_ENV === "test" || process.env?.VITEST)) ||
       (typeof window !== "undefined" &&
-        Boolean((window as unknown as { __VITEST_ENVIRONMENT__?: unknown }).__VITEST_ENVIRONMENT__))
+        Boolean(
+          (window as unknown as { __VITEST_ENVIRONMENT__?: unknown })
+            .__VITEST_ENVIRONMENT__
+        ))
     ) {
       return;
     }
@@ -128,7 +141,8 @@ export const SupportDonationModal: React.FC<SupportDonationModalProps> = ({
       setInternalIsOpen(true);
     };
     window.addEventListener("test-donation-alert", triggerTestDonationAlert);
-    return () => window.removeEventListener("test-donation-alert", triggerTestDonationAlert);
+    return () =>
+      window.removeEventListener("test-donation-alert", triggerTestDonationAlert);
   }, []);
 
   return (
@@ -182,7 +196,9 @@ export const SupportDonationModal: React.FC<SupportDonationModalProps> = ({
               Support the Development
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 mb-6 leading-relaxed">
-              Infinity Researcher is free and open-source. If it helps your academic workflow, please consider a small contribution to support ongoing updates and features.
+              Infinity Researcher is free and open-source. If it helps your academic
+              workflow, please consider a small contribution to support ongoing updates
+              and features.
             </p>
 
             {/* Action Buttons Row */}

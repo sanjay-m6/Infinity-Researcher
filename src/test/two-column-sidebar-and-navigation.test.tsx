@@ -21,7 +21,10 @@ describe("Sidebar 03 — Two-Column Sidebar & Clean Navigation Suite", () => {
 
   it("renders Two-Column Sidebar with Primary Icon Rail and Category Sub-Navigation Panel", () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <Sidebar />
       </AppProvider>
     );
@@ -35,14 +38,19 @@ describe("Sidebar 03 — Two-Column Sidebar & Clean Navigation Suite", () => {
     // Secondary Panel items for RESEARCH
     expect(screen.getByRole("button", { name: /Discover Papers/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /My Library/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Research Assistant/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Research Assistant/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Paper Comparison/i })).toBeInTheDocument();
   });
 
   it("switches category in secondary panel when clicking Primary Rail icon", async () => {
     const user = userEvent.setup();
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <Sidebar />
       </AppProvider>
     );
@@ -54,29 +62,48 @@ describe("Sidebar 03 — Two-Column Sidebar & Clean Navigation Suite", () => {
     // Secondary panel updates to show AI TOOLS
     expect(screen.getByText("AI TOOLS")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /AI Tools Hub/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /AI Writing Detector/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Plagiarism Checker/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /AI Writing Detector/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Plagiarism Checker/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /AI Humanizer/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Academic Writing Assistant/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Paraphrasing Tool/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Academic Writing Assistant/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Paraphrasing Tool/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Citation Checker/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Readability Analyzer/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Research Integrity/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Readability Analyzer/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Research Integrity/i })
+    ).toBeInTheDocument();
 
     // Click Workspace in primary rail
     const workspaceBtn = screen.getByTitle(/Workspace \(Click to open\)/i);
     await user.click(workspaceBtn);
 
     expect(screen.getByText("WORKSPACE")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Research Projects/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Research Projects/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Saved Reports/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /History & Activity/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /History & Activity/i })
+    ).toBeInTheDocument();
   });
 
   it("collapses and re-expands the secondary category column", async () => {
     const user = userEvent.setup();
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <Sidebar />
       </AppProvider>
     );
@@ -90,7 +117,9 @@ describe("Sidebar 03 — Two-Column Sidebar & Clean Navigation Suite", () => {
 
     // Secondary column is now hidden
     expect(screen.queryByText("RESEARCH")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Discover Papers/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Discover Papers/i })
+    ).not.toBeInTheDocument();
 
     // Re-expand via Primary Rail category click
     const aiToolsBtn = screen.getByTitle(/AI Tools \(Click to open\)/i);
@@ -102,7 +131,10 @@ describe("Sidebar 03 — Two-Column Sidebar & Clean Navigation Suite", () => {
 
   it("applies theme-adaptive classes to Sidebar columns for light and dark modes", () => {
     const { container } = render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <Sidebar />
       </AppProvider>
     );
@@ -120,13 +152,18 @@ describe("Sidebar 03 — Two-Column Sidebar & Clean Navigation Suite", () => {
 
   it("renders Toolbar with dynamic Breadcrumbs and section title", () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <Toolbar />
       </AppProvider>
     );
 
     expect(screen.getByRole("navigation", { name: /Breadcrumbs/i })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Search papers across all sources/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/Search papers across all sources/i)
+    ).toBeInTheDocument();
   });
 });
 
@@ -139,7 +176,10 @@ describe("AI Tools Hub & Specialized Workspaces", () => {
   it("renders AI Tools Hub landing page with searchable tool cards and category filters", async () => {
     const user = userEvent.setup();
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <AiToolsHubView />
       </AppProvider>
     );
@@ -149,10 +189,16 @@ describe("AI Tools Hub & Specialized Workspaces", () => {
 
     // Category filter pills
     expect(screen.getByRole("button", { name: /All Tools/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Detection and Verification/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Writing and Editing/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Detection and Verification/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Writing and Editing/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Academic Quality/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Citation and References/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Citation and References/i })
+    ).toBeInTheDocument();
 
     // All 8 cards present
     expect(screen.getByText("AI Writing Detector")).toBeInTheDocument();
@@ -180,7 +226,10 @@ describe("AI Tools Hub & Specialized Workspaces", () => {
 
   it("renders Readability Analyzer workspace with empirical statistical formulas", () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <AiToolWorkspaceView toolId="readability_analyzer" />
       </AppProvider>
     );
@@ -195,7 +244,10 @@ describe("AI Tools Hub & Specialized Workspaces", () => {
 
   it("renders AI Writing Detector with burstiness, uniformity, and sentence scan", () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <AiToolWorkspaceView toolId="ai_writing_detector" />
       </AppProvider>
     );
@@ -204,12 +256,17 @@ describe("AI Tools Hub & Specialized Workspaces", () => {
     expect(screen.getByText(/Stylometric Probability Analysis/i)).toBeInTheDocument();
     expect(screen.getByText(/Sentence Burstiness/i)).toBeInTheDocument();
     expect(screen.getByText(/Cadence Uniformity/i)).toBeInTheDocument();
-    expect(screen.getByText(/Sentence-by-Sentence Stylometric Scan/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Sentence-by-Sentence Stylometric Scan/i)
+    ).toBeInTheDocument();
   });
 
   it("renders Citation Checker with canonical DOI identification", () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <AiToolWorkspaceView toolId="citation_checker" />
       </AppProvider>
     );
@@ -221,26 +278,38 @@ describe("AI Tools Hub & Specialized Workspaces", () => {
 
   it("renders Saved Reports View with export and download actions", () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <SavedReportsView />
       </AppProvider>
     );
 
     expect(screen.getByText("Saved Reports & Exports")).toBeInTheDocument();
-    expect(screen.getByText("Deep Learning Load Forecasting Review Matrix")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: /Download/i }).length).toBeGreaterThan(0);
+    expect(
+      screen.getByText("Deep Learning Load Forecasting Review Matrix")
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Download/i }).length).toBeGreaterThan(
+      0
+    );
   });
 
   it("renders Privacy & Security View with offline-first isolation guarantees", () => {
     render(
-      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+      <AppProvider
+        initialPapers={INITIAL_DEMO_PAPERS}
+        initialCollections={INITIAL_DEMO_COLLECTIONS}
+      >
         <PrivacySecurityView />
       </AppProvider>
     );
 
     expect(screen.getByText("Privacy, Data Isolation & Security")).toBeInTheDocument();
     expect(screen.getByText("100% Local-First SQLite Database")).toBeInTheDocument();
-    expect(screen.getByText("Zero Analytics & No Telemetry Tracking")).toBeInTheDocument();
+    expect(
+      screen.getByText("Zero Analytics & No Telemetry Tracking")
+    ).toBeInTheDocument();
     expect(screen.getByText("Strict Offline-Only Mode")).toBeInTheDocument();
   });
 });

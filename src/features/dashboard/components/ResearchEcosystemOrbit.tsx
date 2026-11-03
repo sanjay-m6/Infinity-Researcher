@@ -170,7 +170,9 @@ const SOVEREIGN_NODES: ResearchOrbitNode[] = [
 
 export const ResearchEcosystemOrbit: React.FC = () => {
   const { setActiveSection } = useApp();
-  const [selectedNode, setSelectedNode] = useState<ResearchOrbitNode>(REPOSITORY_NODES[0]);
+  const [selectedNode, setSelectedNode] = useState<ResearchOrbitNode>(
+    REPOSITORY_NODES[0]
+  );
   const [isPaused, setIsPaused] = useState(false);
 
   const handleNodeClick = (node: ResearchOrbitNode) => {
@@ -201,7 +203,8 @@ export const ResearchEcosystemOrbit: React.FC = () => {
               </h2>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Concentric intelligence architecture linking repositories, neural extraction models, and sovereign local storage
+              Concentric intelligence architecture linking repositories, neural extraction
+              models, and sovereign local storage
             </p>
           </div>
 
@@ -216,7 +219,9 @@ export const ResearchEcosystemOrbit: React.FC = () => {
                   <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
                     {selectedNode.name}
                   </h3>
-                  <span className="text-[10px] text-slate-400">{selectedNode.category}</span>
+                  <span className="text-[10px] text-slate-400">
+                    {selectedNode.category}
+                  </span>
                 </div>
               </div>
               {selectedNode.badge && (
@@ -248,15 +253,21 @@ export const ResearchEcosystemOrbit: React.FC = () => {
           {/* Orbit Tier Legend */}
           <div className="grid grid-cols-3 gap-2 pt-1 text-[11px]">
             <div className="p-2 rounded-lg border border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900/60 text-center">
-              <span className="block font-semibold text-slate-800 dark:text-slate-200">Orbit 1</span>
+              <span className="block font-semibold text-slate-800 dark:text-slate-200">
+                Orbit 1
+              </span>
               <span className="text-[10px] text-rose-500">Repositories</span>
             </div>
             <div className="p-2 rounded-lg border border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900/60 text-center">
-              <span className="block font-semibold text-slate-800 dark:text-slate-200">Orbit 2</span>
+              <span className="block font-semibold text-slate-800 dark:text-slate-200">
+                Orbit 2
+              </span>
               <span className="text-[10px] text-purple-500">AI Engines</span>
             </div>
             <div className="p-2 rounded-lg border border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900/60 text-center">
-              <span className="block font-semibold text-slate-800 dark:text-slate-200">Orbit 3</span>
+              <span className="block font-semibold text-slate-800 dark:text-slate-200">
+                Orbit 3
+              </span>
               <span className="text-[10px] text-sky-500">Sovereignty</span>
             </div>
           </div>

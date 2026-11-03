@@ -32,7 +32,9 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
     resumeCrawlJob: vi.fn().mockResolvedValue(true),
     cancelCrawlJob: vi.fn().mockResolvedValue(true),
     listCrawledPapers: vi.fn().mockResolvedValue([]),
-    importSinglePage: vi.fn().mockResolvedValue({ success: true, paper_id: "imported-1" }),
+    importSinglePage: vi
+      .fn()
+      .mockResolvedValue({ success: true, paper_id: "imported-1" }),
     enqueuePdfDownload: vi.fn().mockResolvedValue({ job_id: "dl-1" }),
     listPdfDownloadJobs: vi.fn().mockResolvedValue([]),
     resolvePaperPdf: vi.fn().mockResolvedValue(null),
@@ -43,15 +45,35 @@ vi.mock("../lib/desktop-api", async (importOriginal) => {
     addPaperToCollection: vi.fn().mockResolvedValue(true),
     removePaperFromCollection: vi.fn().mockResolvedValue(true),
     listWebsiteSearchSources: vi.fn().mockResolvedValue([
-      { id: "arxiv", name: "arXiv", domain: "arxiv.org", status: "enabled", supports_streaming: true },
-      { id: "biorxiv", name: "bioRxiv", domain: "biorxiv.org", status: "enabled", supports_streaming: true },
-      { id: "plos", name: "PLOS ONE", domain: "plos.org", status: "enabled", supports_streaming: true },
+      {
+        id: "arxiv",
+        name: "arXiv",
+        domain: "arxiv.org",
+        status: "enabled",
+        supports_streaming: true,
+      },
+      {
+        id: "biorxiv",
+        name: "bioRxiv",
+        domain: "biorxiv.org",
+        status: "enabled",
+        supports_streaming: true,
+      },
+      {
+        id: "plos",
+        name: "PLOS ONE",
+        domain: "plos.org",
+        status: "enabled",
+        supports_streaming: true,
+      },
     ]),
     startWebsiteSearchStream: vi.fn().mockResolvedValue(() => {}),
     cancelWebsiteSearch: vi.fn().mockResolvedValue(true),
     startPythonSearchStream: vi.fn().mockResolvedValue(() => {}),
     cancelPythonSearch: vi.fn().mockResolvedValue(true),
-    getPythonEngineStatus: vi.fn().mockResolvedValue({ available: true, version: "1.0.0" }),
+    getPythonEngineStatus: vi
+      .fn()
+      .mockResolvedValue({ available: true, version: "1.0.0" }),
     importDiscoveredSearchResult: vi.fn().mockResolvedValue("imported-paper-1"),
     getScrapingEngineDiagnostics: vi.fn().mockResolvedValue({
       total_searches: 5,
@@ -90,7 +112,8 @@ describe("Phase 12: Advanced Search and Filter Engine", () => {
     });
 
     it("parses field-specific expressions (title:, author:, doi:, source:, venue:)", () => {
-      const input = 'title:"Attention Is All You Need" author:"Vaswani" doi:10.1145/123456 source:arxiv venue:"NeurIPS"';
+      const input =
+        'title:"Attention Is All You Need" author:"Vaswani" doi:10.1145/123456 source:arxiv venue:"NeurIPS"';
       const q = parseStructuredQuery(input);
       expect(q.hasSyntax).toBe(true);
       expect(q.fields.title).toBe("Attention Is All You Need");
@@ -152,7 +175,13 @@ describe("Phase 12: Advanced Search and Filter Engine", () => {
 
     it("serializes structured query fields back to query string roundtrip", () => {
       const str = serializeStructuredQuery(
-        { title: "Deep Learning", author: "LeCun", yearStart: 2020, yearEnd: 2024, openAccess: true },
+        {
+          title: "Deep Learning",
+          author: "LeCun",
+          yearStart: 2020,
+          yearEnd: 2024,
+          openAccess: true,
+        },
         ["survey"]
       );
       expect(str).toContain('title:"Deep Learning"');
@@ -188,7 +217,10 @@ describe("Phase 12: Advanced Search and Filter Engine", () => {
 
     it("filters sources when query specifies an explicit target source", () => {
       const allSources = ["arxiv", "biorxiv", "medrxiv", "plos"];
-      const { activeSources, skippedSources } = evaluateSourcesForQuery(allSources, "arxiv");
+      const { activeSources, skippedSources } = evaluateSourcesForQuery(
+        allSources,
+        "arxiv"
+      );
       expect(activeSources).toEqual(["arxiv"]);
       expect(skippedSources).toHaveLength(3);
       expect(skippedSources[0].reason).toContain("Excluded by query source constraint");
@@ -279,7 +311,8 @@ describe("Phase 12: Advanced Search and Filter Engine", () => {
       citation_count: 95000,
       is_open_access: true,
       pdf_url: "https://arxiv.org/pdf/1706.03762.pdf",
-      abstract_text: "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.",
+      abstract_text:
+        "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.",
     };
 
     const candidateB = {
@@ -295,14 +328,20 @@ describe("Phase 12: Advanced Search and Filter Engine", () => {
     };
 
     it("awards 1000 points to exact DOI match", () => {
-      const res = calculateMultiSignalPaperScore(candidateA, "doi:10.48550/arXiv.1706.03762");
+      const res = calculateMultiSignalPaperScore(
+        candidateA,
+        "doi:10.48550/arXiv.1706.03762"
+      );
       expect(res.signals.exactDoiMatch).toBe(true);
       expect(res.totalScore).toBeGreaterThanOrEqual(1000);
       expect(res.explanation).toContain("Exact DOI Match");
     });
 
     it("awards 900 points to exact title match", () => {
-      const res = calculateMultiSignalPaperScore(candidateA, 'title:"Attention Is All You Need"');
+      const res = calculateMultiSignalPaperScore(
+        candidateA,
+        'title:"Attention Is All You Need"'
+      );
       expect(res.signals.exactTitleMatch).toBe(true);
       expect(res.totalScore).toBeGreaterThanOrEqual(900);
       expect(res.explanation).toContain("Exact Title Match");
@@ -335,12 +374,18 @@ describe("Phase 12: Advanced Search and Filter Engine", () => {
   // =========================================================================
   describe("5. Deduplication & Provenance Merging (deduplicationEngine.ts)", () => {
     it("normalizes DOI correctly stripping protocols and spaces", () => {
-      expect(normalizeDoi("https://doi.org/10.1145/3292500.3330964;")).toBe("10.1145/3292500.3330964");
-      expect(normalizeDoi("doi: 10.1038/s41586-020-2649-2")).toBe("10.1038/s41586-020-2649-2");
+      expect(normalizeDoi("https://doi.org/10.1145/3292500.3330964;")).toBe(
+        "10.1145/3292500.3330964"
+      );
+      expect(normalizeDoi("doi: 10.1038/s41586-020-2649-2")).toBe(
+        "10.1038/s41586-020-2649-2"
+      );
     });
 
     it("normalizes titles stripping symbols and extra whitespace", () => {
-      expect(normalizeTitle("Attention  is  All You  Need!")).toBe("attention is all you need");
+      expect(normalizeTitle("Attention  is  All You  Need!")).toBe(
+        "attention is all you need"
+      );
     });
 
     it("identifies duplicates across different sources with identical DOI", () => {
@@ -402,7 +447,8 @@ describe("Phase 12: Advanced Search and Filter Engine", () => {
         source_name: "PubMed Central",
         content_type: "journal_article",
         is_open_access: true,
-        abstract_text: "Comprehensive long abstract detailing all neural self-attention layers.",
+        abstract_text:
+          "Comprehensive long abstract detailing all neural self-attention layers.",
         pdf_url: "https://ncbi.nlm.nih.gov/pmc/articles/PMC12345/pdf/main.pdf",
         subject_tags: [],
         relevance_score: 1.0,
@@ -417,7 +463,9 @@ describe("Phase 12: Advanced Search and Filter Engine", () => {
       expect(merged.authors).toHaveLength(3);
       // Retains both provenance URLs
       expect(merged.provenance_urls).toContain("https://arxiv.org/abs/1706.03762");
-      expect(merged.provenance_urls).toContain("https://ncbi.nlm.nih.gov/pmc/articles/PMC12345");
+      expect(merged.provenance_urls).toContain(
+        "https://ncbi.nlm.nih.gov/pmc/articles/PMC12345"
+      );
     });
 
     it("deduplicates a heterogeneous paper batch cleanly", () => {

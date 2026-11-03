@@ -51,7 +51,8 @@ export const SavedSearchesDrawer: React.FC<SavedSearchesDrawerProps> = ({
     >
       <div className="space-y-4">
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Saved searches preserve query terms, source filters, and sorting criteria for repeatable academic research.
+          Saved searches preserve query terms, source filters, and sorting criteria for
+          repeatable academic research.
         </p>
 
         {/* Create new search bar */}

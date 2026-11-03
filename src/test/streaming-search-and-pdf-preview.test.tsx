@@ -49,7 +49,8 @@ describe("Streaming Search & Direct PDF In-Panel Preview (Part K Requirements)",
             publication_year: 2024,
             venue: "arXiv cs.CV",
             canonical_doi: "10.48550/arXiv.2401.12345",
-            abstract_text: "We propose a low-latency streaming transformer that updates predictions immediately.",
+            abstract_text:
+              "We propose a low-latency streaming transformer that updates predictions immediately.",
             landing_url: "https://arxiv.org/abs/2401.12345",
             pdf_url: "https://arxiv.org/pdf/2401.12345.pdf",
             source_id: "arxiv",
@@ -70,7 +71,8 @@ describe("Streaming Search & Direct PDF In-Panel Preview (Part K Requirements)",
           source_id: "plos",
           source_name: "PLOS Open Access Journals",
           status: "unsupported",
-          message: "PLOS search requires browser execution (AJAX). Use official web search.",
+          message:
+            "PLOS search requires browser execution (AJAX). Use official web search.",
           results_count: 0,
           elapsed_ms: 60,
         });
@@ -121,7 +123,8 @@ describe("Streaming Search & Direct PDF In-Panel Preview (Part K Requirements)",
     // 1. Paper appeared immediately in the results list
     await waitFor(() => {
       expect(
-        screen.getAllByText("Real-time Streaming Transformers for Visual Reasoning").length
+        screen.getAllByText("Real-time Streaming Transformers for Visual Reasoning")
+          .length
       ).toBeGreaterThanOrEqual(1);
     });
 
@@ -155,7 +158,9 @@ describe("Streaming Search & Direct PDF In-Panel Preview (Part K Requirements)",
       });
     }
 
-    expect(screen.queryByText("STALE PAPER THAT SHOULD NEVER APPEAR")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("STALE PAPER THAT SHOULD NEVER APPEAR")
+    ).not.toBeInTheDocument();
   });
 
   it("renders in-panel PDF viewer directly when paper has a direct PDF URL without requiring manual download click", async () => {
@@ -221,7 +226,9 @@ describe("Streaming Search & Direct PDF In-Panel Preview (Part K Requirements)",
     await user.click(screen.getByRole("button", { name: /^Search$/i }));
 
     await waitFor(() => {
-      expect(screen.getAllByText("Direct In-Panel Streaming Test Paper").length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText("Direct In-Panel Streaming Test Paper").length
+      ).toBeGreaterThanOrEqual(1);
     });
 
     // Selecting paper triggers fetchRemotePdfPreview without downloading to disk
@@ -283,11 +290,15 @@ describe("Streaming Search & Direct PDF In-Panel Preview (Part K Requirements)",
     await user.click(screen.getByRole("button", { name: /^Search$/i }));
 
     await waitFor(() => {
-      expect(screen.getAllByText("Study of Molecular Pathways (Metadata Only)").length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText("Study of Molecular Pathways (Metadata Only)").length
+      ).toBeGreaterThanOrEqual(1);
     });
 
     // Center panel shows truthful fallback without perpetual spinner or fake PDF
     expect(screen.getByText(/No Direct PDF Stream Available/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Open Source Article Page/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Open Source Article Page/i })
+    ).toBeInTheDocument();
   });
 });

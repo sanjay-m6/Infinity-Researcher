@@ -76,9 +76,9 @@ impl ProviderRegistry {
             for adapter in self.adapters.values() {
                 let adapter = adapter.clone();
                 let client = client.clone();
-                handles.push(tokio::spawn(async move {
-                    adapter.health_check(&client).await
-                }));
+                handles.push(tokio::spawn(
+                    async move { adapter.health_check(&client).await },
+                ));
             }
 
             for handle in handles {

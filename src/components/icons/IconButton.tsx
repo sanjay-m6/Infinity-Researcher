@@ -22,8 +22,7 @@ const BUTTON_ICON_SIZES: Record<keyof typeof BUTTON_SIZE_STYLES, IconSize> = {
 };
 
 const BUTTON_VARIANT_STYLES = {
-  ghost:
-    "text-muted-foreground hover:text-foreground hover:bg-muted active:bg-accent",
+  ghost: "text-muted-foreground hover:text-foreground hover:bg-muted active:bg-accent",
   outline:
     "border border-border text-foreground hover:bg-muted active:bg-accent shadow-xs",
   default:
@@ -118,4 +117,3 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 
 IconButton.displayName = "IconButton";
 export default IconButton;
-

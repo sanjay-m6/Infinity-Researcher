@@ -63,7 +63,8 @@ export const RevisionHistoryDrawer: React.FC<RevisionHistoryDrawerProps> = ({
               <Clock className="w-8 h-8 mx-auto stroke-1" />
               <p className="text-xs">No saved revisions yet.</p>
               <p className="text-[11px] max-w-xs mx-auto">
-                Each time you run the rewriter, a snapshot with token validation results is safely archived here.
+                Each time you run the rewriter, a snapshot with token validation results
+                is safely archived here.
               </p>
             </div>
           ) : (
@@ -83,7 +84,9 @@ export const RevisionHistoryDrawer: React.FC<RevisionHistoryDrawerProps> = ({
                     <span className="font-bold text-slate-800 dark:text-slate-200">
                       {snap.modeName}
                     </span>
-                    <span className="text-[11px] text-slate-400 font-mono">{dateStr}</span>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {dateStr}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2 text-[11px] text-slate-500">
@@ -97,7 +100,10 @@ export const RevisionHistoryDrawer: React.FC<RevisionHistoryDrawerProps> = ({
                           : "text-amber-600 dark:text-amber-400"
                       }`}
                     >
-                      {snap.wordCountDiff >= 0 ? `+${snap.wordCountDiff}` : snap.wordCountDiff} words
+                      {snap.wordCountDiff >= 0
+                        ? `+${snap.wordCountDiff}`
+                        : snap.wordCountDiff}{" "}
+                      words
                     </span>
                     <span>· Fidelity: {snap.validationSummary.score}%</span>
                   </div>
@@ -129,4 +135,3 @@ export const RevisionHistoryDrawer: React.FC<RevisionHistoryDrawerProps> = ({
     </div>
   );
 };
-

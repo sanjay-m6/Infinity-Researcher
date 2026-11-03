@@ -192,12 +192,25 @@ export interface AppContextType {
   isLocked: boolean;
   userPreferences: UserPreferences | null;
   continueAsGuest: () => void;
-  loginUser: (identifier: string, password: string, rememberMe?: boolean) => Promise<void>;
-  signupUser: (email: string, username: string, password: string, confirmPassword: string) => Promise<void>;
+  loginUser: (
+    identifier: string,
+    password: string,
+    rememberMe?: boolean
+  ) => Promise<void>;
+  signupUser: (
+    email: string,
+    username: string,
+    password: string,
+    confirmPassword: string
+  ) => Promise<void>;
   logoutUser: () => Promise<void>;
   lockApplication: () => Promise<void>;
   unlockApplication: (password: string) => Promise<void>;
-  updateUserPreferences: (prefs: { auto_lock_timeout_minutes: number; remember_me: boolean; theme?: string }) => Promise<void>;
+  updateUserPreferences: (prefs: {
+    auto_lock_timeout_minutes: number;
+    remember_me: boolean;
+    theme?: string;
+  }) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
@@ -252,8 +265,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({
   useEffect(() => {
     // In automated testing environments, do not auto-launch wizard unless explicitly invoked
     if (
-      (typeof process !== "undefined" && (process.env?.NODE_ENV === "test" || process.env?.VITEST)) ||
-      (typeof window !== "undefined" && (window as unknown as { __VITEST_ENVIRONMENT__?: unknown }).__VITEST_ENVIRONMENT__)
+      (typeof process !== "undefined" &&
+        (process.env?.NODE_ENV === "test" || process.env?.VITEST)) ||
+      (typeof window !== "undefined" &&
+        (window as unknown as { __VITEST_ENVIRONMENT__?: unknown })
+          .__VITEST_ENVIRONMENT__)
     ) {
       return;
     }
@@ -329,8 +345,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({
     if (initialUser !== undefined) return initialUser;
     // In test environment, default to an authenticated mock user unless explicitly set to null
     if (
-      (typeof process !== "undefined" && (process.env?.NODE_ENV === "test" || process.env?.VITEST)) ||
-      (typeof window !== "undefined" && (window as unknown as { __VITEST_ENVIRONMENT__?: unknown }).__VITEST_ENVIRONMENT__)
+      (typeof process !== "undefined" &&
+        (process.env?.NODE_ENV === "test" || process.env?.VITEST)) ||
+      (typeof window !== "undefined" &&
+        (window as unknown as { __VITEST_ENVIRONMENT__?: unknown })
+          .__VITEST_ENVIRONMENT__)
     ) {
       return {
         id: "usr_test_default",
@@ -342,10 +361,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({
     }
     return DEFAULT_LOCAL_RESEARCHER;
   });
-  const [authToken, setAuthToken] = useState<string | null>(() => (user ? "token_local_researcher" : null));
+  const [authToken, setAuthToken] = useState<string | null>(() =>
+    user ? "token_local_researcher" : null
+  );
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
-
 
   // Toast helper
   const showToast = useCallback(
@@ -490,9 +510,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({
       const pagedPapers = await listPapersApi({ page: 1, page_size: 100 });
 
       // Always synchronize state directly with real SQLite database
-      const mappedCollections = dbCollections.map((c) =>
-        dbCollectionToCollection(c)
-      );
+      const mappedCollections = dbCollections.map((c) => dbCollectionToCollection(c));
       const mappedPapers = pagedPapers.items.map((p) => dbPaperToPaper(p));
 
       setCollections(mappedCollections);
@@ -917,7 +935,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({
         try {
           await setPaperReadingProgressApi(paperId, progress);
         } catch (err) {
-          showToast(`Failed to update reading progress: ${getErrorMessage(err)}`, "error");
+          showToast(
+            `Failed to update reading progress: ${getErrorMessage(err)}`,
+            "error"
+          );
         }
       }
     },
@@ -981,9 +1002,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({
 
   const updatePaperMetadata = useCallback(
     async (paperId: string, fields: Partial<Paper>) => {
-      setPapers((prev) =>
-        prev.map((p) => (p.id === paperId ? { ...p, ...fields } : p))
-      );
+      setPapers((prev) => prev.map((p) => (p.id === paperId ? { ...p, ...fields } : p)));
       if (isTauriEnvironment()) {
         try {
           await updatePaperApi({
@@ -1117,8 +1136,18 @@ export const AppProvider: React.FC<AppProviderProps> = ({
   );
 
   const signupUser = useCallback(
-    async (email: string, username: string, password: string, confirmPassword: string) => {
-      const res = await authSignup({ email, username, password, confirm_password: confirmPassword });
+    async (
+      email: string,
+      username: string,
+      password: string,
+      confirmPassword: string
+    ) => {
+      const res = await authSignup({
+        email,
+        username,
+        password,
+        confirm_password: confirmPassword,
+      });
       setUser(res.user);
       setAuthToken(res.token);
       setIsLocked(false);
@@ -1175,7 +1204,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({
   );
 
   const updateUserPreferences = useCallback(
-    async (prefs: { auto_lock_timeout_minutes: number; remember_me: boolean; theme?: string }) => {
+    async (prefs: {
+      auto_lock_timeout_minutes: number;
+      remember_me: boolean;
+      theme?: string;
+    }) => {
       if (!authToken) return;
       const updated = await authUpdatePreferences(authToken, prefs);
       setUserPreferences(updated);
@@ -1205,12 +1238,15 @@ export const AppProvider: React.FC<AppProviderProps> = ({
     let timeoutId: NodeJS.Timeout;
     const resetTimer = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        setIsLocked(true);
-        if (authToken) {
-          void authLock(authToken).catch(() => {});
-        }
-      }, timeoutMin * 60 * 1000);
+      timeoutId = setTimeout(
+        () => {
+          setIsLocked(true);
+          if (authToken) {
+            void authLock(authToken).catch(() => {});
+          }
+        },
+        timeoutMin * 60 * 1000
+      );
       void authTouchActivity(authToken);
     };
 
@@ -1223,7 +1259,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({
       events.forEach((ev) => window.removeEventListener(ev, resetTimer));
     };
   }, [authToken, isLocked, userPreferences?.auto_lock_timeout_minutes]);
-
 
   return (
     <AppContext.Provider

@@ -234,12 +234,15 @@ export function calculateMultiSignalPaperScore(
   let baseScore = 0;
 
   // Query tokens to evaluate (excluding syntax prefixes)
-  const queryTokens = query.textTerms.length > 0
-    ? query.textTerms
-    : rawClean.split(/\s+/).filter((w) => w.length > 1);
+  const queryTokens =
+    query.textTerms.length > 0
+      ? query.textTerms
+      : rawClean.split(/\s+/).filter((w) => w.length > 1);
 
   // 1. Exact DOI match (Priority 1000)
-  const targetDoi = query.fields.doi ? normalizeDoi(query.fields.doi) : normalizeDoi(rawClean);
+  const targetDoi = query.fields.doi
+    ? normalizeDoi(query.fields.doi)
+    : normalizeDoi(rawClean);
   if (targetDoi && doi && doi === targetDoi) {
     baseScore = 1000;
     signals.exactDoiMatch = true;
@@ -271,7 +274,9 @@ export function calculateMultiSignalPaperScore(
     if (titleOverlap > 0) {
       signals.titleTokenOverlap = titleOverlap;
       baseScore = Math.round(titleOverlap * 650);
-      explanations.push(`Title Token Overlap (${Math.round(titleOverlap * 100)}% -> +${baseScore})`);
+      explanations.push(
+        `Title Token Overlap (${Math.round(titleOverlap * 100)}% -> +${baseScore})`
+      );
     }
   }
 
@@ -293,7 +298,9 @@ export function calculateMultiSignalPaperScore(
     }
   } else if (baseScore === 0 && queryTokens.length > 0) {
     // If author wasn't explicitly tagged but tokens match author
-    const matchesAuthor = authors.some((a) => queryTokens.some((t) => a.includes(t.toLowerCase())));
+    const matchesAuthor = authors.some((a) =>
+      queryTokens.some((t) => a.includes(t.toLowerCase()))
+    );
     if (matchesAuthor) {
       signals.authorMatch = true;
       baseScore = 300;
@@ -308,7 +315,9 @@ export function calculateMultiSignalPaperScore(
       signals.abstractTokenOverlap = absOverlap;
       const absScore = Math.round(absOverlap * 250);
       baseScore += absScore;
-      explanations.push(`Abstract Token Overlap (${Math.round(absOverlap * 100)}% -> +${absScore})`);
+      explanations.push(
+        `Abstract Token Overlap (${Math.round(absOverlap * 100)}% -> +${absScore})`
+      );
     }
   }
 

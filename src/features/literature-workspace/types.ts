@@ -33,18 +33,9 @@ export interface LiteraturePaper {
 }
 
 export type WorkspaceTabId =
-  | "survey"
-  | "compare"
-  | "gaps"
-  | "writer"
-  | "notes"
-  | "figures";
+  "survey" | "compare" | "gaps" | "writer" | "notes" | "figures";
 
-export type EvidenceSupportRating =
-  | "direct"
-  | "related"
-  | "contradictory"
-  | "unverified";
+export type EvidenceSupportRating = "direct" | "related" | "contradictory" | "unverified";
 
 export interface SourceEvidenceItem {
   id: string;
@@ -118,7 +109,8 @@ export interface ResearchNote {
   paperId?: string;
   paperTitle?: string;
   pageNumber?: number;
-  category: "quotation" | "methodology" | "empirical_finding" | "research_question" | "general";
+  category:
+    "quotation" | "methodology" | "empirical_finding" | "research_question" | "general";
   title: string;
   content: string;
   createdAt: string;
@@ -167,4 +159,3 @@ export interface SimilarityMatchFinding {
   similarityScore: number;
   reviewerNotes?: string;
 }
-

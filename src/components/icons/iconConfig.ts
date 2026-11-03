@@ -3,7 +3,10 @@ import { IconSize } from "./iconTypes";
 /**
  * Standard semantic icon sizes mapped to pixels and Tailwind utility dimensions.
  */
-export const ICON_SIZES: Record<IconSize, { px: number; tw: string; strokeWidth: number }> = {
+export const ICON_SIZES: Record<
+  IconSize,
+  { px: number; tw: string; strokeWidth: number }
+> = {
   xs: { px: 12, tw: "w-3 h-3", strokeWidth: 2.0 },
   sm: { px: 16, tw: "w-4 h-4", strokeWidth: 2.0 },
   md: { px: 18, tw: "w-[18px] h-[18px]", strokeWidth: 2.0 },
@@ -76,4 +79,3 @@ export const ICON_ANIMATION_TRANSITIONS = {
     ease: "easeInOut",
   },
 } as const;
-

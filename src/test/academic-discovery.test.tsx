@@ -24,9 +24,7 @@ describe("Website-Driven Research Paper Discovery View (No-API Engine)", () => {
     fireEvent.click(screen.getByText(/Advanced: Inspect Permitted Website/i));
 
     // Verify seed URL input
-    expect(
-      screen.getByPlaceholderText(/Enter seed URL/i)
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Enter seed URL/i)).toBeInTheDocument();
 
     // Verify Action Buttons
     expect(screen.getByRole("button", { name: /Inspect Page/i })).toBeInTheDocument();
@@ -45,7 +43,9 @@ describe("Website-Driven Research Paper Discovery View (No-API Engine)", () => {
 
     expect(screen.getByRole("button", { name: /bioRxiv Recent/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /PLOS ONE/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Nature Scientific Reports/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Nature Scientific Reports/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /arXiv CS List/i })).toBeInTheDocument();
 
     // Click a preset and verify input updates
@@ -62,7 +62,9 @@ describe("Website-Driven Research Paper Discovery View (No-API Engine)", () => {
       </AppProvider>
     );
 
-    const academicTabBtn = screen.getByRole("button", { name: /Academic API Connectors/i });
+    const academicTabBtn = screen.getByRole("button", {
+      name: /Academic API Connectors/i,
+    });
     fireEvent.click(academicTabBtn);
 
     await waitFor(() => {

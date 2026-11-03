@@ -64,13 +64,17 @@ describe("Query-First Academic Discovery & Advanced Filters (Part J)", () => {
     // Verify discovered search result cards stream into the list
     await waitFor(() => {
       expect(
-        screen.getAllByText(/Simulated Research on machine learning for medical image segmentation/i).length
+        screen.getAllByText(
+          /Simulated Research on machine learning for medical image segmentation/i
+        ).length
       ).toBeGreaterThan(0);
     });
 
     // Check recent search is persisted and displayed
     expect(
-      screen.getByRole("button", { name: /machine learning for medical image segmentation/i })
+      screen.getByRole("button", {
+        name: /machine learning for medical image segmentation/i,
+      })
     ).toBeInTheDocument();
   });
 
@@ -129,7 +133,9 @@ describe("Query-First Academic Discovery & Advanced Filters (Part J)", () => {
 
     // Verify Clear All Filters button appears
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Clear All Filters/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Clear All Filters/i })
+      ).toBeInTheDocument();
     });
 
     // Click Clear All

@@ -38,18 +38,15 @@ import { PrivacyConfirmationModal } from "./components/PrivacyConfirmationModal"
 import { AttributionNoticeBanner } from "./components/AttributionNoticeBanner";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Button } from "../../components/ui/Button";
-import {
-  saveWritingRevisionDb,
-  listWritingRevisionsDb,
-} from "../../lib/desktop-api";
+import { saveWritingRevisionDb, listWritingRevisionsDb } from "../../lib/desktop-api";
 
 interface AcademicWritingWorkspaceViewProps {
   toolId: WritingToolType;
 }
 
-export const AcademicWritingWorkspaceView: React.FC<AcademicWritingWorkspaceViewProps> = ({
-  toolId,
-}) => {
+export const AcademicWritingWorkspaceView: React.FC<
+  AcademicWritingWorkspaceViewProps
+> = ({ toolId }) => {
   const { papers, showToast } = useApp();
 
   // Mode List based on toolId
@@ -73,7 +70,8 @@ export const AcademicWritingWorkspaceView: React.FC<AcademicWritingWorkspaceView
   const [selectedProvider, setSelectedProvider] = useState<WritingProviderConfig>(
     WRITING_PROVIDERS[0]
   );
-  const [pendingRemoteProvider, setPendingRemoteProvider] = useState<WritingProviderConfig | null>(null);
+  const [pendingRemoteProvider, setPendingRemoteProvider] =
+    useState<WritingProviderConfig | null>(null);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
   // Working Text State
@@ -141,13 +139,16 @@ export const AcademicWritingWorkspaceView: React.FC<AcademicWritingWorkspaceView
   }, [toolId, modeOptions]);
 
   // Push state to undo/redo stack
-  const pushHistory = useCallback((orig: string, rev: string) => {
-    setHistoryStack((prev) => {
-      const upToCurrent = prev.slice(0, historyPointer + 1);
-      return [...upToCurrent, { orig, rev }];
-    });
-    setHistoryPointer((prev) => prev + 1);
-  }, [historyPointer]);
+  const pushHistory = useCallback(
+    (orig: string, rev: string) => {
+      setHistoryStack((prev) => {
+        const upToCurrent = prev.slice(0, historyPointer + 1);
+        return [...upToCurrent, { orig, rev }];
+      });
+      setHistoryPointer((prev) => prev + 1);
+    },
+    [historyPointer]
+  );
 
   // Handle Undo
   const handleUndo = () => {
@@ -392,7 +393,8 @@ export const AcademicWritingWorkspaceView: React.FC<AcademicWritingWorkspaceView
             "Restructure monotonous machine cadence and repetitive sentence structures into authentic peer-reviewed scholarly syntax.",
           icon: Sparkles,
           iconColor: "text-purple-600 dark:text-purple-400",
-          iconBg: "bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-800",
+          iconBg:
+            "bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-800",
           disclaimer:
             "Ethical Guardrail: This workspace improves natural rhythm, clarity, and scholarly syntax. It is NOT designed, guaranteed, or intended to bypass AI detectors or plagiarism detection systems.",
         };
@@ -414,7 +416,8 @@ export const AcademicWritingWorkspaceView: React.FC<AcademicWritingWorkspaceView
             "Synthesize and rephrase literature concepts with strict preservation of citations, mathematical formulas, and scientific certainty.",
           icon: RefreshCw,
           iconColor: "text-emerald-600 dark:text-emerald-400",
-          iconBg: "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800",
+          iconBg:
+            "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800",
           disclaimer:
             "Attribution Standard: Paraphrasing alters syntax and structure but requires formal attribution of the original author's intellectual ideas under academic integrity rules.",
         };
@@ -664,17 +667,16 @@ export const AcademicWritingWorkspaceView: React.FC<AcademicWritingWorkspaceView
         {isProcessing && (
           <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-700 dark:text-indigo-300 flex items-center gap-2.5 animate-pulse">
             <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-ping" />
-            <span className="font-semibold">{processingStage || "Transforming manuscript..."}</span>
+            <span className="font-semibold">
+              {processingStage || "Transforming manuscript..."}
+            </span>
           </div>
         )}
       </div>
 
       {/* 3. Token Preservation Guard & Semantic Fidelity Banner */}
       {validationResult && (
-        <TokenGuardBanner
-          validation={validationResult}
-          onApplyFix={handleApplyFix}
-        />
+        <TokenGuardBanner validation={validationResult} onApplyFix={handleApplyFix} />
       )}
 
       {/* 4. Side-By-Side Comparison, Diff & Granular Paragraph Inspection */}
@@ -696,7 +698,10 @@ export const AcademicWritingWorkspaceView: React.FC<AcademicWritingWorkspaceView
               Revision Ready
             </span>
             <span>·</span>
-            <span>Original text remains safe and unmodified until you explicitly confirm replacement.</span>
+            <span>
+              Original text remains safe and unmodified until you explicitly confirm
+              replacement.
+            </span>
           </div>
 
           <div className="flex items-center gap-2.5">

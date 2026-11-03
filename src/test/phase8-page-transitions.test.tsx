@@ -24,7 +24,9 @@ describe("Phase 8 — Page Transitions & Layout Animations Suite", () => {
         </PageTransition>
       );
 
-      const transitionContainer = screen.getByText("Dashboard Workspace Content").parentElement;
+      const transitionContainer = screen.getByText(
+        "Dashboard Workspace Content"
+      ).parentElement;
       expect(transitionContainer).toHaveAttribute("data-slot", "page-transition");
       expect(transitionContainer).toHaveAttribute("data-route", "dashboard");
     });
@@ -100,7 +102,9 @@ describe("Phase 8 — Page Transitions & Layout Animations Suite", () => {
       await user.click(matrixBtn);
 
       // Multi-panel canvas workspaces use optOut to ensure 0-displacement rendering
-      const optOutContainer = document.querySelector("[data-slot='page-transition-opt-out']");
+      const optOutContainer = document.querySelector(
+        "[data-slot='page-transition-opt-out']"
+      );
       expect(optOutContainer).toBeInTheDocument();
     });
 
@@ -125,7 +129,9 @@ describe("Phase 8 — Page Transitions & Layout Animations Suite", () => {
       await user.click(discoverBtn);
 
       // DiscoverView remains present in DOM
-      expect(screen.getByRole("heading", { name: "Discover & Query Papers" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Discover & Query Papers" })
+      ).toBeInTheDocument();
     });
 
     it("handles rapid consecutive navigation without errors or stuck states", async () => {
@@ -149,7 +155,9 @@ describe("Phase 8 — Page Transitions & Layout Animations Suite", () => {
       await user.click(libraryBtn);
 
       await vi.waitFor(() => {
-        const pageContainer = document.querySelector("[data-slot='page-transition'][data-route='library']");
+        const pageContainer = document.querySelector(
+          "[data-slot='page-transition'][data-route='library']"
+        );
         expect(pageContainer).toBeInTheDocument();
       });
     });
@@ -165,7 +173,9 @@ describe("Phase 8 — Page Transitions & Layout Animations Suite", () => {
       );
 
       // Open command palette via header shortcut button
-      const openPaletteBtn = screen.getByRole("button", { name: /Open command palette/i });
+      const openPaletteBtn = screen.getByRole("button", {
+        name: /Open command palette/i,
+      });
       await user.click(openPaletteBtn);
 
       const dialog = screen.getByRole("dialog", { name: /Command Palette/i });
@@ -173,7 +183,9 @@ describe("Phase 8 — Page Transitions & Layout Animations Suite", () => {
 
       // Press Escape to dismiss
       await user.keyboard("{Escape}");
-      expect(screen.queryByRole("dialog", { name: /Command Palette/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: /Command Palette/i })
+      ).not.toBeInTheDocument();
     });
 
     it("opens and closes AboutModal with accessible dialog animations", async () => {
@@ -187,13 +199,17 @@ describe("Phase 8 — Page Transitions & Layout Animations Suite", () => {
       const aboutBtn = screen.getByRole("button", { name: /About Infinity Researcher/i });
       await user.click(aboutBtn);
 
-      const aboutDialog = screen.getByRole("dialog", { name: /About Infinity Researcher/i });
+      const aboutDialog = screen.getByRole("dialog", {
+        name: /About Infinity Researcher/i,
+      });
       expect(aboutDialog).toBeInTheDocument();
 
       const closeBtn = screen.getByRole("button", { name: "Close" });
       await user.click(closeBtn);
 
-      expect(screen.queryByRole("dialog", { name: /About Infinity Researcher/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: /About Infinity Researcher/i })
+      ).not.toBeInTheDocument();
     });
   });
 });

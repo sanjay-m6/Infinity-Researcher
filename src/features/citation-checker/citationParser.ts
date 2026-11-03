@@ -1,8 +1,4 @@
-import {
-  InTextCitation,
-  ParsedReference,
-  CitationStyleType,
-} from "./types";
+import { InTextCitation, ParsedReference, CitationStyleType } from "./types";
 import { evaluateDoi, cleanRawDoi } from "./doiValidator";
 
 // ---------------------------------------------------------------------------
@@ -13,16 +9,19 @@ import { evaluateDoi, cleanRawDoi } from "./doiValidator";
 const NUMERIC_CITATION_REGEX = /\[\s*(\d+(?:[–\-,\s]+\d+)*)\s*\]/g;
 
 // Author-Year: (Vaswani et al., 2017), (Smith & Jones, 2020), (Devlin, 2018; Brown et al., 2020)
-const AUTHOR_YEAR_CITATION_REGEX = /\((?:([A-Z][a-zA-Z\s.&-]+(?:et\s+al\.)?,?\s*(?:19|20)\d{2}[a-z]?)(?:;\s*)?)+\)/g;
+const AUTHOR_YEAR_CITATION_REGEX =
+  /\((?:([A-Z][a-zA-Z\s.&-]+(?:et\s+al\.)?,?\s*(?:19|20)\d{2}[a-z]?)(?:;\s*)?)+\)/g;
 
 // LaTeX: \cite{key}, \citep{key1, key2}, \citet{key}
 const LATEX_CITE_REGEX = /\\cite[pt]?\{([^}]+)\}/g;
 
 // Reference Section Header
-const REFERENCE_HEADER_REGEX = /(?:^|\n)\s*(?:##?\s*)?(?:REFERENCES|References|BIBLIOGRAPHY|Bibliography|WORKS CITED|Works Cited|Literature Cited)\s*(?::|\n|$)/;
+const REFERENCE_HEADER_REGEX =
+  /(?:^|\n)\s*(?:##?\s*)?(?:REFERENCES|References|BIBLIOGRAPHY|Bibliography|WORKS CITED|Works Cited|Literature Cited)\s*(?::|\n|$)/;
 
 // DOI inside reference text
-const DOI_IN_TEXT_REGEX = /(?:doi:\s*|https?:\/\/(?:dx\.)?doi\.org\/)([^\s,;]+)|(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/i;
+const DOI_IN_TEXT_REGEX =
+  /(?:doi:\s*|https?:\/\/(?:dx\.)?doi\.org\/)([^\s,;]+)|(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/i;
 
 // ---------------------------------------------------------------------------
 // DOCUMENT SPLITTER
@@ -40,7 +39,8 @@ export function splitDocumentSections(rawDocument: string): SplitDocumentResult 
   // Check if entire file is a .bib file
   if (/@(?:article|book|inproceedings|techreport|misc)\s*\{/i.test(trimmed)) {
     // If it starts directly with bibtex or is mostly bibtex
-    const bibMatches = trimmed.match(/@(?:article|book|inproceedings|techreport|misc)\s*\{/gi) || [];
+    const bibMatches =
+      trimmed.match(/@(?:article|book|inproceedings|techreport|misc)\s*\{/gi) || [];
     if (bibMatches.length >= 2 || trimmed.startsWith("@")) {
       return {
         bodyText: "",
@@ -148,7 +148,10 @@ export function extractInTextCitations(bodyText: string): InTextCitation[] {
   LATEX_CITE_REGEX.lastIndex = 0;
   while ((m = LATEX_CITE_REGEX.exec(bodyText)) !== null) {
     const raw = m[0];
-    const keys = m[1].split(/[,;\s]+/).map((k) => k.trim()).filter(Boolean);
+    const keys = m[1]
+      .split(/[,;\s]+/)
+      .map((k) => k.trim())
+      .filter(Boolean);
 
     citations.push({
       id: `cite_${++counter}`,
@@ -183,7 +186,10 @@ export function parseBibliographyReferences(referenceText: string): ParsedRefere
   }
 
   // Split into entries by numeric markers [1], 1., or double newlines
-  const lines = referenceText.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+  const lines = referenceText
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   const entryBlocks: string[] = [];
   let currentBlock = "";
 
@@ -228,16 +234,18 @@ function parseSingleReferenceBlock(block: string, defaultIndex: number): ParsedR
   // Extract DOI
   const doiMatch = DOI_IN_TEXT_REGEX.exec(rawText);
   const rawDoi = doiMatch ? cleanRawDoi(doiMatch[1] || doiMatch[2]) : null;
-  const doiStatus = rawDoi ? evaluateDoi(rawDoi) : {
-    syntaxValid: false,
-    rawInput: "",
-    canonicalDoi: null,
-    syntaxErrorNote: null,
-    resolved: null,
-    resolutionSource: null,
-    verifiedMetadata: null,
-    resolutionStatusLabel: "No DOI Attached",
-  };
+  const doiStatus = rawDoi
+    ? evaluateDoi(rawDoi)
+    : {
+        syntaxValid: false,
+        rawInput: "",
+        canonicalDoi: null,
+        syntaxErrorNote: null,
+        resolved: null,
+        resolutionSource: null,
+        verifiedMetadata: null,
+        resolutionStatusLabel: "No DOI Attached",
+      };
 
   // Extract Year
   let year: number | null = null;
@@ -256,7 +264,9 @@ function parseSingleReferenceBlock(block: string, defaultIndex: number): ParsedR
   // Extract Authors (everything up to first quote or year)
   const authors: string[] = [];
   const textBeforeTitle = quoteMatch ? rawText.slice(0, quoteMatch.index) : rawText;
-  const authorPart = textBeforeTitle.replace(/^\[\d+\]\s*|\d+\.\s*/, "").split(/,\s*(?:and\s+)?|;\s*/);
+  const authorPart = textBeforeTitle
+    .replace(/^\[\d+\]\s*|\d+\.\s*/, "")
+    .split(/,\s*(?:and\s+)?|;\s*/);
 
   for (const ap of authorPart) {
     const clean = ap.trim();
@@ -269,7 +279,9 @@ function parseSingleReferenceBlock(block: string, defaultIndex: number): ParsedR
   let venue: string | null = null;
   if (quoteMatch) {
     const textAfterTitle = rawText.slice(quoteMatch.index! + quoteMatch[0].length);
-    const venueMatch = textAfterTitle.match(/(?:in\s+)?([A-Za-z0-9\s,.:-]+?)(?:,\s*vol|\s*vol|\s*\d{4}|\s*pp|\s*doi|$)/i);
+    const venueMatch = textAfterTitle.match(
+      /(?:in\s+)?([A-Za-z0-9\s,.:-]+?)(?:,\s*vol|\s*vol|\s*\d{4}|\s*pp|\s*doi|$)/i
+    );
     if (venueMatch && venueMatch[1].trim().length > 3) {
       venue = venueMatch[1].trim();
     }
@@ -333,20 +345,20 @@ function parseBibtexEntries(bibText: string): ParsedReference[] {
     const journal = getField("journal") || getField("booktitle");
     const doi = getField("doi");
 
-    const authors = rawAuthors
-      ? rawAuthors.split(/\s+and\s+/i).map((a) => a.trim())
-      : [];
+    const authors = rawAuthors ? rawAuthors.split(/\s+and\s+/i).map((a) => a.trim()) : [];
 
-    const doiStatus = doi ? evaluateDoi(doi) : {
-      syntaxValid: false,
-      rawInput: "",
-      canonicalDoi: null,
-      syntaxErrorNote: null,
-      resolved: null,
-      resolutionSource: null,
-      verifiedMetadata: null,
-      resolutionStatusLabel: "No DOI Attached",
-    };
+    const doiStatus = doi
+      ? evaluateDoi(doi)
+      : {
+          syntaxValid: false,
+          rawInput: "",
+          canonicalDoi: null,
+          syntaxErrorNote: null,
+          resolved: null,
+          resolutionSource: null,
+          verifiedMetadata: null,
+          resolutionStatusLabel: "No DOI Attached",
+        };
 
     references.push({
       id: `ref_${counter}`,

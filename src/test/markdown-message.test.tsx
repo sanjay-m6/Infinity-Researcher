@@ -14,7 +14,8 @@ describe("MarkdownMessage Component", () => {
   });
 
   it("renders bold and italic text without raw asterisks", () => {
-    const content = 'I analyzed the matrix records for **"hey"** across all included dimensions:\n*Every cited claim is linked directly.*';
+    const content =
+      'I analyzed the matrix records for **"hey"** across all included dimensions:\n*Every cited claim is linked directly.*';
     render(<MarkdownMessage content={content} />);
 
     const boldEl = screen.getByText('"hey"');
@@ -35,14 +36,21 @@ describe("MarkdownMessage Component", () => {
     expect(screen.getByText("Methodology")).toHaveClass("font-semibold");
     expect(screen.getByText("Main Finding")).toHaveClass("font-semibold");
     expect(screen.getByText(/Methodology not specified/)).toBeInTheDocument();
-    expect(screen.getByText(/a blockchain transaction success rate of 95/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/a blockchain transaction success rate of 95/)
+    ).toBeInTheDocument();
   });
 
   it("renders blockquotes cleanly", () => {
-    const content = '> "results demonstrate a blockchain transaction success rate of 95."';
+    const content =
+      '> "results demonstrate a blockchain transaction success rate of 95."';
     render(<MarkdownMessage content={content} />);
 
-    expect(screen.getByText(/"results demonstrate a blockchain transaction success rate of 95."/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /"results demonstrate a blockchain transaction success rate of 95."/
+      )
+    ).toBeInTheDocument();
   });
 
   it("deduplicates repeated lines, redundant headers, and token stutter", () => {
@@ -75,7 +83,9 @@ Bayesian neural networks (BNNs) have been developed.`;
     expect(keywordMatches?.length).toBe(1);
 
     // Affiliation should only appear once
-    const affiliationMatches = cleaned.match(/Department of Physics and Electrical Engineering/g);
+    const affiliationMatches = cleaned.match(
+      /Department of Physics and Electrical Engineering/g
+    );
     expect(affiliationMatches?.length).toBe(1);
 
     // Year should only appear once
@@ -114,6 +124,8 @@ That's what they say.
     expect(cleaned).not.toContain('**"She says everything."**');
 
     // The core factual sentence should be retained
-    expect(cleaned).toContain("This paper provides an empirical study of Bayesian neural networks.");
+    expect(cleaned).toContain(
+      "This paper provides an empirical study of Bayesian neural networks."
+    );
   });
 });

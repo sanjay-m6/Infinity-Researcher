@@ -244,7 +244,9 @@ export const DiagnosticView: React.FC = () => {
                 SQLite Database & FTS5 Indexing
               </span>
               <span className="px-2 py-0.5 rounded font-mono text-[11px] bg-emerald-950/60 border border-emerald-800/40 text-emerald-300">
-                {health?.subsystems?.database ? health.subsystems.database.toUpperCase() : "READY (SQLite 3, FTS5)"}
+                {health?.subsystems?.database
+                  ? health.subsystems.database.toUpperCase()
+                  : "READY (SQLite 3, FTS5)"}
               </span>
             </div>
 

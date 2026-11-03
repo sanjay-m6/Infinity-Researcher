@@ -31,9 +31,7 @@ export const BottomBar: React.FC = () => {
   } = useApp();
 
   const savedPapersCount = papers.filter((p) => p.isSaved).length;
-  const activeJobs = jobs.filter(
-    (j) => j.status === "running" || j.status === "queued"
-  );
+  const activeJobs = jobs.filter((j) => j.status === "running" || j.status === "queued");
 
   const toggleTheme = (e?: React.MouseEvent) => {
     if (theme === "dark") setTheme("light", e);
@@ -118,7 +116,11 @@ export const BottomBar: React.FC = () => {
           </span>
         ) : (
           <span className="text-[10px]">
-            Press <kbd className="px-1 py-0.2 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono text-[9px] shadow-2xs">Ctrl+K</kbd> to open Command Palette
+            Press{" "}
+            <kbd className="px-1 py-0.2 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-mono text-[9px] shadow-2xs">
+              Ctrl+K
+            </kbd>{" "}
+            to open Command Palette
           </span>
         )}
       </div>

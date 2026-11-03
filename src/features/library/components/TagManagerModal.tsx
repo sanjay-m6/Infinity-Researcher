@@ -80,7 +80,8 @@ export const TagManagerModal: React.FC<TagManagerModalProps> = ({
     >
       <div className="space-y-4">
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Organize and classify research literature using normalized, semantic color-coded tags.
+          Organize and classify research literature using normalized, semantic color-coded
+          tags.
         </p>
 
         {/* Quick create tag */}

@@ -28,7 +28,9 @@ export const AiDiagnosticsView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [testingConnectionId, setTestingConnectionId] = useState<string | null>(null);
   const [testingGenId, setTestingGenId] = useState<string | null>(null);
-  const [genResults, setGenResults] = useState<Record<string, DiagnosticTestGenResult>>({});
+  const [genResults, setGenResults] = useState<Record<string, DiagnosticTestGenResult>>(
+    {}
+  );
   const [connResults, setConnResults] = useState<Record<string, ProviderTestResult>>({});
   const [apiKeyInputs, setApiKeyInputs] = useState<Record<string, string>>({});
   const [isEditingKey, setIsEditingKey] = useState<Record<string, boolean>>({});
@@ -111,7 +113,9 @@ export const AiDiagnosticsView: React.FC = () => {
   };
 
   const readyCount = reports.filter((r) => r.is_ready).length;
-  const connectedCount = reports.filter((r) => r.connection_status === "connected").length;
+  const connectedCount = reports.filter(
+    (r) => r.connection_status === "connected"
+  ).length;
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-6xl mx-auto">
@@ -126,7 +130,8 @@ export const AiDiagnosticsView: React.FC = () => {
               </h1>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Inspect model configurations, verify credentials in the local secure vault, test live inference, and troubleshoot routing failures.
+              Inspect model configurations, verify credentials in the local secure vault,
+              test live inference, and troubleshoot routing failures.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -148,15 +153,21 @@ export const AiDiagnosticsView: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-900/40 text-xs">
           <div className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
             <span className="text-[11px] text-slate-500 block">Total Providers</span>
-            <span className="text-base font-bold text-slate-800 dark:text-slate-100">{reports.length}</span>
+            <span className="text-base font-bold text-slate-800 dark:text-slate-100">
+              {reports.length}
+            </span>
           </div>
           <div className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
             <span className="text-[11px] text-slate-500 block">Configured & Ready</span>
-            <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">{readyCount}</span>
+            <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+              {readyCount}
+            </span>
           </div>
           <div className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
             <span className="text-[11px] text-slate-500 block">Active Health Check</span>
-            <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">{connectedCount} Online</span>
+            <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
+              {connectedCount} Online
+            </span>
           </div>
           <div className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
             <span className="text-[11px] text-slate-500 block">Vault Security</span>
@@ -172,9 +183,14 @@ export const AiDiagnosticsView: React.FC = () => {
         <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-3">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <span className="font-bold">No AI Provider is currently configured and ready</span>
+            <span className="font-bold">
+              No AI Provider is currently configured and ready
+            </span>
             <p className="text-[11px] leading-relaxed">
-              To use the AI Research Assistant, Literature Matrix Copilot, or Project Planner, configure an API key for a cloud provider (such as <strong>NVIDIA NIM</strong> or <strong>Google Gemini</strong>) or launch a local model server (<strong>Ollama</strong> or <strong>LM Studio</strong>).
+              To use the AI Research Assistant, Literature Matrix Copilot, or Project
+              Planner, configure an API key for a cloud provider (such as{" "}
+              <strong>NVIDIA NIM</strong> or <strong>Google Gemini</strong>) or launch a
+              local model server (<strong>Ollama</strong> or <strong>LM Studio</strong>).
             </p>
           </div>
         </div>
@@ -198,10 +214,11 @@ export const AiDiagnosticsView: React.FC = () => {
             return (
               <div
                 key={p.provider_id}
-                className={`p-4 rounded-xl border bg-white dark:bg-slate-900 shadow-2xs space-y-3.5 transition-all ${p.is_ready
+                className={`p-4 rounded-xl border bg-white dark:bg-slate-900 shadow-2xs space-y-3.5 transition-all ${
+                  p.is_ready
                     ? "border-slate-200 dark:border-slate-800"
                     : "border-slate-200/60 dark:border-slate-800/50 opacity-80"
-                  }`}
+                }`}
               >
                 {/* Header Row */}
                 <div className="flex items-start justify-between gap-2">
@@ -279,7 +296,10 @@ export const AiDiagnosticsView: React.FC = () => {
                         type="text"
                         value={modelInputs[p.provider_id] || ""}
                         onChange={(e) =>
-                          setModelInputs({ ...modelInputs, [p.provider_id]: e.target.value })
+                          setModelInputs({
+                            ...modelInputs,
+                            [p.provider_id]: e.target.value,
+                          })
                         }
                         placeholder="Model ID (e.g. mistralai/mistral-large-4-1t-a52b)"
                         className="flex-1 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-slate-900 dark:text-slate-100"
@@ -321,7 +341,9 @@ export const AiDiagnosticsView: React.FC = () => {
                 {!p.is_local && (
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-medium text-slate-500">API Key / Token:</label>
+                      <label className="text-[11px] font-medium text-slate-500">
+                        API Key / Token:
+                      </label>
                       <button
                         type="button"
                         onClick={() =>
@@ -332,7 +354,11 @@ export const AiDiagnosticsView: React.FC = () => {
                         }
                         className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
                       >
-                        {isEditingThisKey ? "Cancel" : p.has_credential ? "Update Key" : "Add Key"}
+                        {isEditingThisKey
+                          ? "Cancel"
+                          : p.has_credential
+                            ? "Update Key"
+                            : "Add Key"}
                       </button>
                     </div>
 
@@ -343,7 +369,10 @@ export const AiDiagnosticsView: React.FC = () => {
                           placeholder="Enter new API key"
                           value={apiKeyInputs[p.provider_id] || ""}
                           onChange={(e) =>
-                            setApiKeyInputs({ ...apiKeyInputs, [p.provider_id]: e.target.value })
+                            setApiKeyInputs({
+                              ...apiKeyInputs,
+                              [p.provider_id]: e.target.value,
+                            })
                           }
                           className="flex-1 px-2.5 py-1 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                         />
@@ -359,7 +388,9 @@ export const AiDiagnosticsView: React.FC = () => {
                       </div>
                     ) : (
                       <div className="text-[11px] text-slate-400 font-mono">
-                        {p.has_credential ? "••••••••••••••••••••••••" : "No credential entered"}
+                        {p.has_credential
+                          ? "••••••••••••••••••••••••"
+                          : "No credential entered"}
                       </div>
                     )}
                   </div>
@@ -395,13 +426,16 @@ export const AiDiagnosticsView: React.FC = () => {
                 {/* Connection Probe Outcome */}
                 {connRes && (
                   <div
-                    className={`p-2.5 rounded-lg text-xs space-y-1 border ${connRes.success
+                    className={`p-2.5 rounded-lg text-xs space-y-1 border ${
+                      connRes.success
                         ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
                         : "bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800"
-                      }`}
+                    }`}
                   >
                     <div className="flex items-center justify-between font-semibold">
-                      <span>{connRes.success ? "Probe Successful" : "Connection Failed"}</span>
+                      <span>
+                        {connRes.success ? "Probe Successful" : "Connection Failed"}
+                      </span>
                       <span>{connRes.latency_ms} ms</span>
                     </div>
                     <p className="text-[11px] leading-relaxed">{connRes.message}</p>
@@ -411,14 +445,19 @@ export const AiDiagnosticsView: React.FC = () => {
                 {/* Generation Test Outcome */}
                 {genRes && (
                   <div
-                    className={`p-2.5 rounded-lg text-xs space-y-1.5 border ${genRes.success
+                    className={`p-2.5 rounded-lg text-xs space-y-1.5 border ${
+                      genRes.success
                         ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800"
                         : "bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border-amber-200 dark:border-amber-800"
-                      }`}
+                    }`}
                   >
                     <div className="flex items-center justify-between font-semibold">
-                      <span>{genRes.success ? "Inference Verified" : "Generation Error"}</span>
-                      <span className="font-mono text-[10px]">{genRes.latency_ms} ms</span>
+                      <span>
+                        {genRes.success ? "Inference Verified" : "Generation Error"}
+                      </span>
+                      <span className="font-mono text-[10px]">
+                        {genRes.latency_ms} ms
+                      </span>
                     </div>
                     {genRes.response_text && (
                       <p className="p-2 rounded bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900 font-mono text-[11px] text-slate-800 dark:text-slate-200">

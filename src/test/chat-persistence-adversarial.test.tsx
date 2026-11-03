@@ -38,9 +38,13 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
       const savePromise = new Promise<void>((resolve) => {
         resolveSave = resolve;
       });
-      const saveSpy = vi.spyOn(desktopApi, "saveAiChatMessage").mockImplementation(() => savePromise);
+      const saveSpy = vi
+        .spyOn(desktopApi, "saveAiChatMessage")
+        .mockImplementation(() => savePromise);
 
-      vi.spyOn(desktopApi, "generateAiResponse").mockResolvedValue(mockAiResponse("Delayed response"));
+      vi.spyOn(desktopApi, "generateAiResponse").mockResolvedValue(
+        mockAiResponse("Delayed response")
+      );
 
       const { unmount } = render(
         <PdfRightPanel
@@ -86,7 +90,9 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
       const savePromise = new Promise<void>((resolve) => {
         resolveSave = resolve;
       });
-      const saveSpy = vi.spyOn(desktopApi, "saveAiChatMessage").mockImplementation(() => savePromise);
+      const saveSpy = vi
+        .spyOn(desktopApi, "saveAiChatMessage")
+        .mockImplementation(() => savePromise);
 
       vi.spyOn(desktopApi, "generateAiResponse").mockImplementation(
         () =>
@@ -328,7 +334,9 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
       );
 
       await waitFor(() => {
-        expect(screen.getByText("Question from previous paper with history")).toBeInTheDocument();
+        expect(
+          screen.getByText("Question from previous paper with history")
+        ).toBeInTheDocument();
       });
 
       // Switch to a paper with empty chat history
@@ -344,7 +352,9 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
       );
 
       await waitFor(() => {
-        expect(screen.queryByText("Question from previous paper with history")).not.toBeInTheDocument();
+        expect(
+          screen.queryByText("Question from previous paper with history")
+        ).not.toBeInTheDocument();
         expect(screen.getByText("Grounded Research Copilot")).toBeInTheDocument();
       });
     });
@@ -420,7 +430,9 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
       );
 
       await waitFor(() => {
-        expect(screen.queryByText("Discover query for Paper 1 only")).not.toBeInTheDocument();
+        expect(
+          screen.queryByText("Discover query for Paper 1 only")
+        ).not.toBeInTheDocument();
         expect(screen.getByText("Ask About This Paper")).toBeInTheDocument();
       });
     });
@@ -468,18 +480,22 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
         },
       ];
 
-      const listSpy = vi.spyOn(desktopApi, "listAiChatMessages").mockImplementation((sessionId) => {
-        if (sessionId === "ai_hub_paper_alpha") {
-          return Promise.resolve(alphaMessages);
-        }
-        if (sessionId === "ai_hub_paper_beta") {
-          return Promise.resolve([]); // Beta has NO history
-        }
-        return Promise.resolve([]);
-      });
+      const listSpy = vi
+        .spyOn(desktopApi, "listAiChatMessages")
+        .mockImplementation((sessionId) => {
+          if (sessionId === "ai_hub_paper_alpha") {
+            return Promise.resolve(alphaMessages);
+          }
+          if (sessionId === "ai_hub_paper_beta") {
+            return Promise.resolve([]); // Beta has NO history
+          }
+          return Promise.resolve([]);
+        });
 
       vi.spyOn(desktopApi, "saveAiChatMessage").mockResolvedValue();
-      vi.spyOn(desktopApi, "generateAiResponse").mockResolvedValue(mockAiResponse("Beta response"));
+      vi.spyOn(desktopApi, "generateAiResponse").mockResolvedValue(
+        mockAiResponse("Beta response")
+      );
 
       render(
         <AppProvider initialPapers={[mockPaper1, mockPaper2]}>
@@ -492,7 +508,9 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
 
       // Verify Paper Alpha is selected and its message appears
       await waitFor(() => {
-        expect(screen.getByText("Alpha Question That Should Disappear on Beta")).toBeInTheDocument();
+        expect(
+          screen.getByText("Alpha Question That Should Disappear on Beta")
+        ).toBeInTheDocument();
       });
 
       // Switch dropdown to Paper Beta
@@ -506,7 +524,8 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
 
       // Empirically demonstrate the bug:
       // Paper Alpha's message is STILL present on Paper Beta!
-      const staleMessageStillPresent = screen.queryByText("Alpha Question That Should Disappear on Beta") !== null;
+      const staleMessageStillPresent =
+        screen.queryByText("Alpha Question That Should Disappear on Beta") !== null;
       expect(staleMessageStillPresent).toBe(true); // Demonstrates the confirmed bug
 
       // Furthermore, when sending a query on Paper Beta:
@@ -518,11 +537,15 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
       await waitFor(() => {
         expect(screen.getByText("First query on Beta")).toBeInTheDocument();
         // The UI now shows BOTH the leaked Alpha question AND the new Beta query!
-        expect(screen.getByText("Alpha Question That Should Disappear on Beta")).toBeInTheDocument();
+        expect(
+          screen.getByText("Alpha Question That Should Disappear on Beta")
+        ).toBeInTheDocument();
       });
 
       // Verify that Beta's localStorage key now contains Alpha's leaked message
-      const betaLocalStorage = localStorage.getItem("ai_hub_chat_messages_ai_hub_paper_beta");
+      const betaLocalStorage = localStorage.getItem(
+        "ai_hub_chat_messages_ai_hub_paper_beta"
+      );
       expect(betaLocalStorage).toContain("Alpha Question That Should Disappear on Beta");
     });
   });
@@ -663,7 +686,9 @@ describe("Milestone 2 Adversarial Stress Testing: Chat Persistence Lifecycle", (
       await waitFor(() => {
         expect(clearSpy).toHaveBeenCalled();
         expect(screen.queryByText("Question to clear in AI Hub")).not.toBeInTheDocument();
-        expect(screen.getByText("Ask Questions Grounded in Your Research Library")).toBeInTheDocument();
+        expect(
+          screen.getByText("Ask Questions Grounded in Your Research Library")
+        ).toBeInTheDocument();
       });
     });
   });

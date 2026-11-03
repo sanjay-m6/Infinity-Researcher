@@ -27,12 +27,7 @@ export const PrivacyConfirmationModal: React.FC<PrivacyConfirmationModalProps> =
       maxWidth="md"
       footer={
         <div className="flex items-center justify-between w-full">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-            className="text-xs"
-          >
+          <Button variant="outline" size="sm" onClick={onClose} className="text-xs">
             <CloudOff className="w-3.5 h-3.5 mr-1" />
             Stay 100% Local (Cancel)
           </Button>
@@ -46,8 +41,7 @@ export const PrivacyConfirmationModal: React.FC<PrivacyConfirmationModalProps> =
             }}
             className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
           >
-            <Globe className="w-3.5 h-3.5 mr-1" />
-            I Understand, Send to {provider.name}
+            <Globe className="w-3.5 h-3.5 mr-1" />I Understand, Send to {provider.name}
           </Button>
         </div>
       }
@@ -58,7 +52,9 @@ export const PrivacyConfirmationModal: React.FC<PrivacyConfirmationModalProps> =
           <div className="space-y-1">
             <h4 className="font-bold text-sm">Text Will Leave This Device</h4>
             <p className="leading-relaxed">
-              You selected <strong>{provider.name}</strong>. Unlike our Local Heuristic Engine and local Ollama runtime, this provider runs on a remote cloud server.
+              You selected <strong>{provider.name}</strong>. Unlike our Local Heuristic
+              Engine and local Ollama runtime, this provider runs on a remote cloud
+              server.
             </p>
           </div>
         </div>
@@ -71,19 +67,23 @@ export const PrivacyConfirmationModal: React.FC<PrivacyConfirmationModalProps> =
             <li className="flex items-start gap-2">
               <Lock className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
               <span>
-                <strong>Transport Security:</strong> Text is encrypted in transit using TLS 1.3 to the external endpoint.
+                <strong>Transport Security:</strong> Text is encrypted in transit using
+                TLS 1.3 to the external endpoint.
               </span>
             </li>
             <li className="flex items-start gap-2">
               <Globe className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
               <span>
-                <strong>Scope:</strong> Only the manuscript text currently loaded in the editor is dispatched for stylistic transformation.
+                <strong>Scope:</strong> Only the manuscript text currently loaded in the
+                editor is dispatched for stylistic transformation.
               </span>
             </li>
             <li className="flex items-start gap-2">
               <CloudOff className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
               <span>
-                <strong>Zero Local Footprint:</strong> If your manuscript contains sensitive, unpatented IP or restricted patient data, choose <em>Local Heuristic Engine</em> or <em>Local Ollama</em> instead.
+                <strong>Zero Local Footprint:</strong> If your manuscript contains
+                sensitive, unpatented IP or restricted patient data, choose{" "}
+                <em>Local Heuristic Engine</em> or <em>Local Ollama</em> instead.
               </span>
             </li>
           </ul>
@@ -92,4 +92,3 @@ export const PrivacyConfirmationModal: React.FC<PrivacyConfirmationModalProps> =
     </Modal>
   );
 };
-

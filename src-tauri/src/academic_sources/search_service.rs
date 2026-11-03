@@ -304,7 +304,8 @@ impl AcademicSearchService {
                         let candidate = &merged[c_idx];
 
                         // Year compatibility check: exact, +/- 1 year, or either is unknown
-                        let year_compat = match (work.publication_year, candidate.publication_year) {
+                        let year_compat = match (work.publication_year, candidate.publication_year)
+                        {
                             (Some(y1), Some(y2)) => (y1 - y2).abs() <= 1,
                             _ => true,
                         };
@@ -313,25 +314,26 @@ impl AcademicSearchService {
                         }
 
                         // Author compatibility check
-                        let author_compat = if work.authors.is_empty() || candidate.authors.is_empty() {
-                            // If either has no authors, allow merge only if years match exactly
-                            work.publication_year == candidate.publication_year
-                        } else {
-                            let surnames_work: Vec<String> = work
-                                .authors
-                                .iter()
-                                .map(|a| MetadataNormalizer::extract_family_name(&a.name))
-                                .filter(|s| s.len() >= 3)
-                                .collect();
-                            let surnames_cand: Vec<String> = candidate
-                                .authors
-                                .iter()
-                                .map(|a| MetadataNormalizer::extract_family_name(&a.name))
-                                .filter(|s| s.len() >= 3)
-                                .collect();
+                        let author_compat =
+                            if work.authors.is_empty() || candidate.authors.is_empty() {
+                                // If either has no authors, allow merge only if years match exactly
+                                work.publication_year == candidate.publication_year
+                            } else {
+                                let surnames_work: Vec<String> = work
+                                    .authors
+                                    .iter()
+                                    .map(|a| MetadataNormalizer::extract_family_name(&a.name))
+                                    .filter(|s| s.len() >= 3)
+                                    .collect();
+                                let surnames_cand: Vec<String> = candidate
+                                    .authors
+                                    .iter()
+                                    .map(|a| MetadataNormalizer::extract_family_name(&a.name))
+                                    .filter(|s| s.len() >= 3)
+                                    .collect();
 
-                            surnames_work.iter().any(|s1| surnames_cand.contains(s1))
-                        };
+                                surnames_work.iter().any(|s1| surnames_cand.contains(s1))
+                            };
 
                         if author_compat {
                             existing_idx = Some(c_idx);
@@ -396,10 +398,8 @@ impl AcademicSearchService {
                 if let Some(ref doi) = work.canonical_doi {
                     by_doi.insert(doi.clone(), new_idx);
                 }
-                by_provider_record.insert(
-                    (work.provider_id, work.provider_record_id.clone()),
-                    new_idx,
-                );
+                by_provider_record
+                    .insert((work.provider_id, work.provider_record_id.clone()), new_idx);
                 by_title
                     .entry(work.clean_title_key.clone())
                     .or_default()
@@ -449,7 +449,9 @@ impl AcademicSearchService {
         paper_id: &str,
     ) -> Result<Paper, AcademicError> {
         let (paper, canonical_doi) = {
-            let conn = db.lock().map_err(|e| AcademicError::Database(e.to_string()))?;
+            let conn = db
+                .lock()
+                .map_err(|e| AcademicError::Database(e.to_string()))?;
             let p = PaperRepository::get_by_id(&conn, paper_id)
                 .map_err(|e| AcademicError::Database(e.to_string()))?
                 .ok_or_else(|| AcademicError::Database("Paper not found".to_string()))?;
@@ -506,8 +508,11 @@ impl AcademicSearchService {
                             }
                         }
                         words.sort_by_key(|&(idx, _)| idx);
-                        let reconstructed: String =
-                            words.into_iter().map(|(_, w)| w).collect::<Vec<_>>().join(" ");
+                        let reconstructed: String = words
+                            .into_iter()
+                            .map(|(_, w)| w)
+                            .collect::<Vec<_>>()
+                            .join(" ");
                         if !reconstructed.trim().is_empty() {
                             enriched_abstract = Some(reconstructed);
                         }
@@ -547,7 +552,9 @@ impl AcademicSearchService {
         }
 
         // Apply enrichment to database
-        let mut conn = db.lock().map_err(|e| AcademicError::Database(e.to_string()))?;
+        let mut conn = db
+            .lock()
+            .map_err(|e| AcademicError::Database(e.to_string()))?;
         let mut updated_paper = paper;
 
         if updated_paper.abstract_text.is_none() && enriched_abstract.is_some() {
@@ -566,8 +573,7 @@ impl AcademicSearchService {
         }
         if enriched_oa && !updated_paper.is_open_access {
             updated_paper.is_open_access = true;
-            updated_paper.open_access_status =
-                crate::domain::paper::OA_STATUS_VERIFIED.to_string();
+            updated_paper.open_access_status = crate::domain::paper::OA_STATUS_VERIFIED.to_string();
         }
         updated_paper.metadata_confidence = "high".to_string();
         updated_paper.updated_at = chrono::Utc::now().to_rfc3339();

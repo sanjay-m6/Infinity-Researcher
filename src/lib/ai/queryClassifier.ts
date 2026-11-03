@@ -112,7 +112,7 @@ export function classifyResearchQuery(
     };
   }
 
-  const paperCount = options?.activePaperCount ?? (options?.selectedPaperIds?.length ?? 1);
+  const paperCount = options?.activePaperCount ?? options?.selectedPaperIds?.length ?? 1;
   const isMultiExplicit = paperCount > 1;
 
   // Extract quoted entities or technical terms
@@ -138,12 +138,19 @@ export function classifyResearchQuery(
 
   // Multi-paper heuristic boost
   let isMultiPaper = isMultiExplicit;
-  if (bestIntent === "compare_papers" || /\b(across (both|the|all) papers|in each paper)\b/i.test(trimmed)) {
+  if (
+    bestIntent === "compare_papers" ||
+    /\b(across (both|the|all) papers|in each paper)\b/i.test(trimmed)
+  ) {
     isMultiPaper = true;
   }
 
   // If multi-paper is active and query says "compare" or "contrast" but score was lower
-  if (isMultiPaper && bestIntent === "general_qa" && /\b(both|between|either)\b/i.test(trimmed)) {
+  if (
+    isMultiPaper &&
+    bestIntent === "general_qa" &&
+    /\b(both|between|either)\b/i.test(trimmed)
+  ) {
     bestIntent = "compare_papers";
     highestScore = 0.8;
     matchingRuleReason = "Multi-paper context with comparison pronouns";
@@ -159,4 +166,3 @@ export function classifyResearchQuery(
     reasoning: matchingRuleReason,
   };
 }
-

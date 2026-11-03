@@ -154,8 +154,11 @@ pub async fn download_ai_model(
         req = req.header("Range", format!("bytes={}-", downloaded));
     }
 
-    let res = req.send().await.map_err(|e| format!("Download request failed: {}", e))?;
-    
+    let res = req
+        .send()
+        .await
+        .map_err(|e| format!("Download request failed: {}", e))?;
+
     // Check if range was ignored or 200 OK returned full file
     let status = res.status();
     if status == reqwest::StatusCode::OK && downloaded > 0 {
@@ -182,11 +185,13 @@ pub async fn download_ai_model(
 
     while let Some(chunk_res) = stream.next().await {
         let chunk = chunk_res.map_err(|e| format!("Error receiving download stream: {}", e))?;
-        file.write_all(&chunk).map_err(|e| format!("Failed to write chunk: {}", e))?;
+        file.write_all(&chunk)
+            .map_err(|e| format!("Failed to write chunk: {}", e))?;
         downloaded += chunk.len() as u64;
 
         // Throttle progress events to 10/sec to prevent UI event flood
-        if last_send.elapsed() >= std::time::Duration::from_millis(100) || downloaded >= total_size {
+        if last_send.elapsed() >= std::time::Duration::from_millis(100) || downloaded >= total_size
+        {
             let pct = if total_size > 0 {
                 (downloaded as f64 / total_size as f64) * 100.0
             } else {
@@ -237,8 +242,15 @@ pub fn list_installed_ai_models(app: AppHandle) -> Result<Vec<InstalledModelInfo
         if path.is_file() {
             if let Some(ext) = path.extension() {
                 if ext.to_string_lossy().to_lowercase() == "gguf" {
-                    let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
-                    let size_mb = path.metadata().map(|m| m.len() / (1024 * 1024)).unwrap_or(0);
+                    let filename = path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
+                    let size_mb = path
+                        .metadata()
+                        .map(|m| m.len() / (1024 * 1024))
+                        .unwrap_or(0);
                     list.push(InstalledModelInfo {
                         filename,
                         size_mb,
@@ -268,7 +280,10 @@ async fn resolve_or_download_sidecar_binary(app: &AppHandle) -> Result<PathBuf, 
     let candidate_paths = vec![
         app_data_dir.join("binaries").join("llama-server.exe"),
         app_data_dir.join("binaries").join("llama-server"),
-        current_dir.join("src-tauri").join("binaries").join("llama-server.exe"),
+        current_dir
+            .join("src-tauri")
+            .join("binaries")
+            .join("llama-server.exe"),
         current_dir.join("binaries").join("llama-server.exe"),
         resource_dir.join("binaries").join("llama-server.exe"),
         resource_dir.join("binaries").join("llama-server"),
@@ -298,7 +313,8 @@ async fn resolve_or_download_sidecar_binary(app: &AppHandle) -> Result<PathBuf, 
 
     // If not found anywhere, download CPU Windows release bundle to app_data_dir/binaries
     let dest_dir = app_data_dir.join("binaries");
-    fs::create_dir_all(&dest_dir).map_err(|e| format!("Failed to create binaries directory: {}", e))?;
+    fs::create_dir_all(&dest_dir)
+        .map_err(|e| format!("Failed to create binaries directory: {}", e))?;
     let target_exe = dest_dir.join("llama-server.exe");
 
     let url = "https://github.com/ggml-org/llama.cpp/releases/download/b12032/llama-b12032-bin-win-cpu-x64.zip";
@@ -371,7 +387,12 @@ pub async fn start_in_app_ai_engine(
                     && p.extension().map(|e| e.to_string_lossy().to_lowercase())
                         == Some("gguf".to_string())
                 {
-                    ggufs.push(p.file_name().unwrap_or_default().to_string_lossy().to_string());
+                    ggufs.push(
+                        p.file_name()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                            .to_string(),
+                    );
                 }
             }
             // Prefer instruct-tuned models, else first available
@@ -382,7 +403,8 @@ pub async fn start_in_app_ai_engine(
                 .or_else(|| ggufs.into_iter().next());
         }
         found.ok_or_else(|| {
-            "No downloaded GGUF models found. Please download a model from Tools Hub first.".to_string()
+            "No downloaded GGUF models found. Please download a model from Tools Hub first."
+                .to_string()
         })?
     } else {
         model_filename.clone()
@@ -499,9 +521,12 @@ pub async fn start_in_app_ai_engine(
         cmd.creation_flags(CREATE_NO_WINDOW);
     }
 
-    let child = cmd
-        .spawn()
-        .map_err(|e| format!("Failed to spawn local AI engine (path: {:?}): {}", sidecar_path, e))?;
+    let child = cmd.spawn().map_err(|e| {
+        format!(
+            "Failed to spawn local AI engine (path: {:?}): {}",
+            sidecar_path, e
+        )
+    })?;
 
     {
         let mut guard = state.server_process.lock().map_err(|e| e.to_string())?;
@@ -601,4 +626,3 @@ pub async fn get_ai_engine_status(state: State<'_, LocalAiState>) -> Result<Loca
         endpoint,
     })
 }
-

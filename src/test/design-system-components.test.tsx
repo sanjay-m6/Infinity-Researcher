@@ -40,7 +40,11 @@ describe("Phase 2 — Standardized UI Components & Design System Primitives", ()
       expect(btn).toBeInTheDocument();
       expect(btn.className).toContain("bg-primary");
 
-      rerender(<Button variant="destructive" size="sm">Delete</Button>);
+      rerender(
+        <Button variant="destructive" size="sm">
+          Delete
+        </Button>
+      );
       const destructiveBtn = screen.getByRole("button", { name: "Delete" });
       expect(destructiveBtn.className).toContain("bg-destructive");
       expect(destructiveBtn.className).toContain("text-xs");
@@ -93,7 +97,9 @@ describe("Phase 2 — Standardized UI Components & Design System Primitives", ()
 
   describe("Separator Component", () => {
     it("renders semantic separator with proper orientation and role", () => {
-      const { container } = render(<Separator orientation="horizontal" decorative={false} />);
+      const { container } = render(
+        <Separator orientation="horizontal" decorative={false} />
+      );
       const sep = container.querySelector('[role="separator"]');
       expect(sep).toBeInTheDocument();
       expect(sep).toHaveAttribute("aria-orientation", "horizontal");
@@ -167,7 +173,11 @@ describe("Phase 2 — Standardized UI Components & Design System Primitives", ()
       };
 
       const { rerender } = render(
-        <Switch checked={isChecked} onCheckedChange={handleChange} aria-label="Dark Mode" />
+        <Switch
+          checked={isChecked}
+          onCheckedChange={handleChange}
+          aria-label="Dark Mode"
+        />
       );
 
       const toggle = screen.getByRole("switch");
@@ -176,7 +186,13 @@ describe("Phase 2 — Standardized UI Components & Design System Primitives", ()
       fireEvent.click(toggle);
       expect(isChecked).toBe(true);
 
-      rerender(<Switch checked={isChecked} onCheckedChange={handleChange} aria-label="Dark Mode" />);
+      rerender(
+        <Switch
+          checked={isChecked}
+          onCheckedChange={handleChange}
+          aria-label="Dark Mode"
+        />
+      );
       expect(toggle).toHaveAttribute("aria-checked", "true");
     });
   });
@@ -204,8 +220,12 @@ describe("Phase 2 — Standardized UI Components & Design System Primitives", ()
           <span data-testid="theme">{theme}</span>
           <span data-testid="resolved">{resolvedTheme}</span>
           <span data-testid="isDark">{String(isDark)}</span>
-          <button type="button" onClick={() => setTheme("light")}>Set Light</button>
-          <button type="button" onClick={toggleTheme}>Toggle</button>
+          <button type="button" onClick={() => setTheme("light")}>
+            Set Light
+          </button>
+          <button type="button" onClick={toggleTheme}>
+            Toggle
+          </button>
         </div>
       );
     };

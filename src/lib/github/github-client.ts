@@ -17,14 +17,30 @@ export const DEFAULT_REPO_CONFIG: GitHubRepoConfig = {
 
 export const FALLBACK_REPO_LABELS: GitHubLabel[] = [
   { name: "bug", color: "d73a4a", description: "Confirmed defect or error report" },
-  { name: "enhancement", color: "a2eeef", description: "New feature or capability request" },
-  { name: "ui/ux", color: "c5def5", description: "User interface, layout, or visual experience" },
+  {
+    name: "enhancement",
+    color: "a2eeef",
+    description: "New feature or capability request",
+  },
+  {
+    name: "ui/ux",
+    color: "c5def5",
+    description: "User interface, layout, or visual experience",
+  },
   { name: "onboarding", color: "bfd4f2", description: "First-run setup wizard" },
   { name: "performance", color: "fbca04", description: "Speed or resource optimization" },
-  { name: "scraper", color: "d4c5f9", description: "Academic crawler or connector problem" },
+  {
+    name: "scraper",
+    color: "d4c5f9",
+    description: "Academic crawler or connector problem",
+  },
   { name: "pdf-reader", color: "0075ca", description: "PDF rendering or viewer issue" },
   { name: "ai", color: "7057ff", description: "AI synthesis, RAG, or provider issue" },
-  { name: "installer", color: "e99695", description: "Packaging, MSI, or installer problem" },
+  {
+    name: "installer",
+    color: "e99695",
+    description: "Packaging, MSI, or installer problem",
+  },
   { name: "updater", color: "f9d0c4", description: "In-app signed update check issue" },
   { name: "documentation", color: "0075ca", description: "Documentation additions" },
   { name: "question", color: "d876e3", description: "Usage question or inquiry" },
@@ -38,7 +54,10 @@ export const FALLBACK_REPO_LABELS: GitHubLabel[] = [
 const labelsCache: { [key: string]: { timestamp: number; labels: GitHubLabel[] } } = {};
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-export function mapCategoryToLabels(category: IssueCategory, severity?: IssueSeverity): string[] {
+export function mapCategoryToLabels(
+  category: IssueCategory,
+  severity?: IssueSeverity
+): string[] {
   const labels: string[] = [];
 
   switch (category) {
@@ -76,10 +95,10 @@ export function mapCategoryToLabels(category: IssueCategory, severity?: IssueSev
       severity === "critical"
         ? "priority: critical"
         : severity === "major"
-        ? "priority: high"
-        : severity === "minor"
-        ? "priority: low"
-        : "priority: normal";
+          ? "priority: high"
+          : severity === "minor"
+            ? "priority: low"
+            : "priority: normal";
     labels.push(priorityLabel);
   }
 
@@ -128,9 +147,10 @@ export async function fetchRepositoryLabels(
 }
 
 export function buildBugReportMarkdown(payload: BugReportPayload): string {
-  const sanitizedDiagnostics = payload.includeDiagnostics && payload.diagnosticsText
-    ? redactDiagnostics(payload.diagnosticsText)
-    : "No technical diagnostics included.";
+  const sanitizedDiagnostics =
+    payload.includeDiagnostics && payload.diagnosticsText
+      ? redactDiagnostics(payload.diagnosticsText)
+      : "No technical diagnostics included.";
 
   return `## Summary
 ${payload.whatHappened.trim()}
@@ -186,7 +206,9 @@ export async function createGitHubIssue(
   token: string
 ): Promise<GitHubIssueResponse> {
   if (!token || !token.trim()) {
-    throw new Error("GitHub authorization token is required to create an issue directly.");
+    throw new Error(
+      "GitHub authorization token is required to create an issue directly."
+    );
   }
 
   const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues`;

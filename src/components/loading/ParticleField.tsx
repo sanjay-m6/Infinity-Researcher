@@ -142,7 +142,9 @@ function checkWebGLSupport(): boolean {
     const canvas = document.createElement("canvas");
     return !!(
       (window as unknown as { WebGLRenderingContext?: unknown }).WebGLRenderingContext &&
-      (canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+      (canvas.getContext("webgl2") ||
+        canvas.getContext("webgl") ||
+        canvas.getContext("experimental-webgl"))
     );
   } catch {
     return false;
@@ -176,7 +178,7 @@ function generateParticleFormation(count: number): {
 
     // Base spheroidal distribution
     positions[i3] = r * Math.sin(phi) * Math.cos(theta);
-    positions[i3 + 1] = (r * Math.cos(phi)) * 0.7; // Flatten vertically
+    positions[i3 + 1] = r * Math.cos(phi) * 0.7; // Flatten vertically
     positions[i3 + 2] = r * Math.sin(phi) * Math.sin(theta);
 
     // Add some stream/tendril offsets for organic look
@@ -219,7 +221,9 @@ export const ParticleField: React.FC<ParticleFieldProps> = ({
   const resolvedPrimary = useMemo(() => {
     if (primaryColor !== "#e2e8f0") return primaryColor;
     if (typeof window !== "undefined") {
-      const val = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
+      const val = getComputedStyle(document.documentElement)
+        .getPropertyValue("--primary")
+        .trim();
       if (val && val.startsWith("#")) return val;
     }
     return primaryColor;
@@ -228,13 +232,17 @@ export const ParticleField: React.FC<ParticleFieldProps> = ({
   const resolvedAccent = useMemo(() => {
     if (accentColor !== "#818cf8") return accentColor;
     if (typeof window !== "undefined") {
-      const val = getComputedStyle(document.documentElement).getPropertyValue("--ring").trim();
+      const val = getComputedStyle(document.documentElement)
+        .getPropertyValue("--ring")
+        .trim();
       if (val && val.startsWith("#")) return val;
     }
     return accentColor;
   }, [accentColor]);
 
-  const isParticleDisabled = typeof document !== "undefined" && document.documentElement.getAttribute("data-particles") === "off";
+  const isParticleDisabled =
+    typeof document !== "undefined" &&
+    document.documentElement.getAttribute("data-particles") === "off";
 
   const count = useMemo(
     () => particleCount ?? getAdaptiveParticleCount(),
@@ -334,7 +342,9 @@ export const ParticleField: React.FC<ParticleFieldProps> = ({
         uTime: { value: 0 },
         uSpeed: { value: speed },
         uReducedMotion: { value: reducedMotion ? 1.0 : 0.0 },
-        uPrimaryColor: { value: new THREE.Vector3(primaryVec.x, primaryVec.y, primaryVec.z) },
+        uPrimaryColor: {
+          value: new THREE.Vector3(primaryVec.x, primaryVec.y, primaryVec.z),
+        },
         uAccentColor: { value: new THREE.Vector3(accentVec.x, accentVec.y, accentVec.z) },
         uOpacity: { value: opacity },
       },
@@ -412,8 +422,16 @@ export const ParticleField: React.FC<ParticleFieldProps> = ({
     materialRef.current.uniforms.uSpeed.value = speed;
     materialRef.current.uniforms.uReducedMotion.value = reducedMotion ? 1.0 : 0.0;
     materialRef.current.uniforms.uOpacity.value = opacity;
-    materialRef.current.uniforms.uPrimaryColor.value.set(primaryVec.x, primaryVec.y, primaryVec.z);
-    materialRef.current.uniforms.uAccentColor.value.set(accentVec.x, accentVec.y, accentVec.z);
+    materialRef.current.uniforms.uPrimaryColor.value.set(
+      primaryVec.x,
+      primaryVec.y,
+      primaryVec.z
+    );
+    materialRef.current.uniforms.uAccentColor.value.set(
+      accentVec.x,
+      accentVec.y,
+      accentVec.z
+    );
   }, [speed, reducedMotion, opacity, primaryVec, accentVec]);
 
   const sizeClasses = {
@@ -431,7 +449,10 @@ export const ParticleField: React.FC<ParticleFieldProps> = ({
       >
         <div className="relative w-16 h-16">
           <div className="absolute inset-0 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin" />
-          <div className="absolute inset-2 rounded-full border-2 border-blue-400/15 border-b-blue-400 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+          <div
+            className="absolute inset-2 rounded-full border-2 border-blue-400/15 border-b-blue-400 animate-spin"
+            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+          />
         </div>
       </div>
     );
@@ -448,4 +469,3 @@ export const ParticleField: React.FC<ParticleFieldProps> = ({
 };
 
 export default ParticleField;
-

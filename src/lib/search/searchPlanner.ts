@@ -46,8 +46,10 @@ export function createSearchPlan(
   }
 
   // 2. Resolve Year boundaries (query fields override UI filter if present)
-  let effectiveYearStart: number | undefined = fields.yearStart ?? fields.year ?? (uiFilters.yearStart ?? undefined);
-  let effectiveYearEnd: number | undefined = fields.yearEnd ?? fields.year ?? (uiFilters.yearEnd ?? undefined);
+  let effectiveYearStart: number | undefined =
+    fields.yearStart ?? fields.year ?? uiFilters.yearStart ?? undefined;
+  let effectiveYearEnd: number | undefined =
+    fields.yearEnd ?? fields.year ?? uiFilters.yearEnd ?? undefined;
 
   if (effectiveYearStart && effectiveYearEnd && effectiveYearStart > effectiveYearEnd) {
     structuredQuery.syntaxErrors.push(
@@ -59,11 +61,15 @@ export function createSearchPlan(
   }
 
   // 3. Resolve Author
-  const effectiveAuthor: string | undefined = fields.author || (uiFilters.author?.trim() || undefined);
+  const effectiveAuthor: string | undefined =
+    fields.author || uiFilters.author?.trim() || undefined;
 
   // 4. Resolve Content Type
   const effectiveContentType: string | undefined =
-    fields.contentType || (uiFilters.contentType && uiFilters.contentType !== "all" ? uiFilters.contentType : undefined);
+    fields.contentType ||
+    (uiFilters.contentType && uiFilters.contentType !== "all"
+      ? uiFilters.contentType
+      : undefined);
 
   // 5. Resolve Open Access status
   let effectiveOpenAccess: boolean | undefined = fields.openAccess;
@@ -75,11 +81,14 @@ export function createSearchPlan(
 
   // 6. Resolve Venue
   const effectiveVenue: string | undefined =
-    fields.venue || (uiFilters.venue && uiFilters.venue !== "all" ? uiFilters.venue : undefined);
+    fields.venue ||
+    (uiFilters.venue && uiFilters.venue !== "all" ? uiFilters.venue : undefined);
 
   // 7. Resolve Peer-Reviewed Only
   const effectivePeerReviewed: boolean =
-    fields.peerReviewed !== undefined ? fields.peerReviewed : Boolean(uiFilters.peerReviewedOnly);
+    fields.peerReviewed !== undefined
+      ? fields.peerReviewed
+      : Boolean(uiFilters.peerReviewedOnly);
 
   // 8. Construct clean source query for remote scraping
   // When sending queries to external engines (arXiv, bioRxiv, etc.), we don't want raw "title:foo author:bar"
@@ -221,7 +230,10 @@ export function satisfiesClientPostFilters(
 
   // 6. Content Type filter
   if (filters.contentType && filters.contentType !== "all") {
-    if (paper.content_type && paper.content_type.toLowerCase() !== filters.contentType.toLowerCase()) {
+    if (
+      paper.content_type &&
+      paper.content_type.toLowerCase() !== filters.contentType.toLowerCase()
+    ) {
       return false;
     }
   }

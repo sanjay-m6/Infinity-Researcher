@@ -36,7 +36,8 @@ pub async fn create_matrix_workspace(
     let conn = db.lock()?;
     let now = chrono::Utc::now().to_rfc3339();
     let cols = columns_json.unwrap_or_else(|| {
-        serde_json::to_string(&MatrixService::default_columns()).unwrap_or_else(|_| "[]".to_string())
+        serde_json::to_string(&MatrixService::default_columns())
+            .unwrap_or_else(|_| "[]".to_string())
     });
 
     let ws = MatrixWorkspace {
@@ -158,8 +159,12 @@ pub async fn list_evidence_copilot_sessions(
 ) -> Result<Vec<EvidenceCopilotSession>, CommandError> {
     let db = state.db()?;
     let conn = db.lock()?;
-    MatrixRepository::list_copilot_sessions(&conn, workspace_id.as_deref(), target_paper_id.as_deref())
-        .map_err(Into::into)
+    MatrixRepository::list_copilot_sessions(
+        &conn,
+        workspace_id.as_deref(),
+        target_paper_id.as_deref(),
+    )
+    .map_err(Into::into)
 }
 
 #[tauri::command]
@@ -173,12 +178,25 @@ pub async fn get_evidence_copilot_messages(
 }
 
 #[tauri::command]
+pub async fn clear_evidence_copilot_messages(
+    state: State<'_, AppState>,
+    session_id: String,
+) -> Result<(), CommandError> {
+    let db = state.db()?;
+    let conn = db.lock()?;
+    MatrixRepository::clear_copilot_messages(&conn, &session_id).map_err(Into::into)
+}
+
+#[tauri::command]
 pub async fn ask_evidence_copilot(
     state: State<'_, AppState>,
     session_id: String,
     question: String,
     workspace_id: Option<String>,
     target_paper_id: Option<String>,
+    scope: Option<String>,
+    selected_paper_ids: Option<Vec<String>>,
+    selected_cell_json: Option<String>,
 ) -> Result<EvidenceCopilotMessage, CommandError> {
     let db = state.db()?;
     let (msg, _evidence) = MatrixService::ask_copilot(
@@ -187,6 +205,9 @@ pub async fn ask_evidence_copilot(
         &question,
         workspace_id.as_deref(),
         target_paper_id.as_deref(),
+        scope.as_deref(),
+        selected_paper_ids.as_deref(),
+        selected_cell_json.as_deref(),
     )?;
     Ok(msg)
 }

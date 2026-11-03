@@ -38,6 +38,11 @@ class ArxivSpider(BasePaperSpider):
         yield Request(url, callback=self.parse, errback=self.handle_error)
 
     def parse(self, response: Response) -> Generator[Any, None, None]:
+        is_blocked, reason = self.is_challenge_or_blocked_response(response)
+        if is_blocked:
+            self.record_status("blocked", reason)
+            return
+
         # Detect if response is XML Atom feed or HTML
         if "<feed" in response.text[:500] or "xmlns=" in response.text[:500]:
             soup = BeautifulSoup(response.text, "xml")

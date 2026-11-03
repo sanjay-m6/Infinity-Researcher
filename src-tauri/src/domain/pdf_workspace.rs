@@ -7,17 +7,23 @@ pub enum PdfAvailabilityStatus {
     Unknown,
     Checking,
     OpenAccessAvailable,
+    VerifiedOpenAccess,
+    VerifiedAuthorizedAccess,
     DownloadQueued,
     Downloading,
     Downloaded,
     MetadataOnly,
+    PublicMetadataOnly,
     LandingPageOnly,
     RestrictedOrSubscription,
+    AccessRestricted,
     AuthenticationRequired,
+    SourceUnverified,
     NotFound,
     BlockedByPolicy,
     FailedRetryable,
     FailedPermanent,
+    RetrievalFailed,
     LocalFileMissing,
     FileCorrupt,
 }
@@ -28,17 +34,23 @@ impl PdfAvailabilityStatus {
             Self::Unknown => "unknown",
             Self::Checking => "checking",
             Self::OpenAccessAvailable => "open_access_available",
+            Self::VerifiedOpenAccess => "verified_open_access",
+            Self::VerifiedAuthorizedAccess => "verified_authorized_access",
             Self::DownloadQueued => "download_queued",
             Self::Downloading => "downloading",
             Self::Downloaded => "downloaded",
             Self::MetadataOnly => "metadata_only",
+            Self::PublicMetadataOnly => "public_metadata_only",
             Self::LandingPageOnly => "landing_page_only",
             Self::RestrictedOrSubscription => "restricted_or_subscription",
+            Self::AccessRestricted => "access_restricted",
             Self::AuthenticationRequired => "authentication_required",
+            Self::SourceUnverified => "source_unverified",
             Self::NotFound => "not_found",
             Self::BlockedByPolicy => "blocked_by_policy",
             Self::FailedRetryable => "failed_retryable",
             Self::FailedPermanent => "failed_permanent",
+            Self::RetrievalFailed => "retrieval_failed",
             Self::LocalFileMissing => "local_file_missing",
             Self::FileCorrupt => "file_corrupt",
         }
@@ -49,17 +61,23 @@ impl PdfAvailabilityStatus {
             Self::Unknown => "Status Unknown",
             Self::Checking => "Checking Availability...",
             Self::OpenAccessAvailable => "Open Access PDF Available",
+            Self::VerifiedOpenAccess => "Verified Open Access",
+            Self::VerifiedAuthorizedAccess => "Verified Authorized Access",
             Self::DownloadQueued => "Download Queued",
             Self::Downloading => "Downloading PDF...",
             Self::Downloaded => "Local PDF Ready",
             Self::MetadataOnly => "Metadata Only",
+            Self::PublicMetadataOnly => "Public Metadata Only",
             Self::LandingPageOnly => "Landing Page Only",
             Self::RestrictedOrSubscription => "Access Restricted",
+            Self::AccessRestricted => "Access Restricted (Publisher Closed)",
             Self::AuthenticationRequired => "Login Required",
+            Self::SourceUnverified => "Source Unverified",
             Self::NotFound => "PDF Not Found from Checked Sources",
             Self::BlockedByPolicy => "Blocked by Policy",
             Self::FailedRetryable => "Download Failed (Retryable)",
             Self::FailedPermanent => "Download Failed",
+            Self::RetrievalFailed => "Retrieval Failed",
             Self::LocalFileMissing => "Local File Missing",
             Self::FileCorrupt => "File Corrupted",
         }
@@ -74,7 +92,7 @@ pub struct DownloadJob {
     pub paper_title: String,
     pub url: String,
     pub source_id: String,
-    pub status: String, // queued, downloading, paused, completed, failed, cancelled
+    pub status: String, // queued, resolving, downloading, validating, verifying_identity, completed, failed, cancelling, cancelled
     pub bytes_downloaded: u64,
     pub total_bytes: u64,
     pub progress_percent: f64,
@@ -83,6 +101,18 @@ pub struct DownloadJob {
     pub destination_path: Option<String>,
     pub sha256_hash: Option<String>,
     pub retry_count: u32,
+    pub speed_bps: Option<u64>,
+    pub started_at: Option<String>,
+    pub completed_at: Option<String>,
+    pub error_category: Option<String>,
+    #[serde(default)]
+    pub version_type: Option<String>,
+    #[serde(default)]
+    pub identity_status: Option<String>,
+    #[serde(default)]
+    pub identity_score: Option<f64>,
+    #[serde(default)]
+    pub identity_notes: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -97,6 +127,14 @@ pub struct PdfCandidate {
     pub source_type: String, // direct_api, open_access_resolver, landing_page_meta
     pub access_status: PdfAvailabilityStatus,
     pub evidence_notes: Option<String>,
+    #[serde(default)]
+    pub version_type: Option<String>,
+    #[serde(default)]
+    pub identity_status: Option<String>,
+    #[serde(default)]
+    pub identity_score: Option<f64>,
+    #[serde(default)]
+    pub provenance_json: Option<String>,
     pub last_checked_at: String,
     pub created_at: String,
 }
@@ -141,6 +179,12 @@ pub struct PaperPdfInfo {
     pub rotation: i32,
     pub access_status: PdfAvailabilityStatus,
     pub download_url: Option<String>,
+    #[serde(default)]
+    pub version_type: Option<String>,
+    #[serde(default)]
+    pub identity_status: Option<String>,
+    #[serde(default)]
+    pub identity_score: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -149,6 +193,8 @@ pub struct EnqueueDownloadInput {
     pub paper_title: String,
     pub url: String,
     pub source_id: String,
+    #[serde(default)]
+    pub version_type: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -162,4 +208,19 @@ pub struct BulkDownloadSummary {
     pub skipped: usize,
     pub failed: usize,
     pub reasons: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DownloadStorageMetrics {
+    pub storage_path: String,
+    pub total_bytes: u64,
+    pub pdf_count: usize,
+    pub temp_files_count: usize,
+    pub temp_files_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CleanOrphanedResult {
+    pub files_deleted: usize,
+    pub bytes_freed: u64,
 }

@@ -20,7 +20,9 @@ def normalize_doi(doi: Optional[str]) -> Optional[str]:
     cleaned = doi.strip().lower()
     cleaned = re.sub(r"^https?://(dx\.)?doi\.org/", "", cleaned)
     cleaned = re.sub(r"^doi:\s*", "", cleaned)
-    cleaned = cleaned.strip("/")
+    cleaned = cleaned.strip("/").rstrip(".,;)]")
+    if cleaned.startswith("10.") and "/" in cleaned:
+        return cleaned
     return cleaned if cleaned else None
 
 

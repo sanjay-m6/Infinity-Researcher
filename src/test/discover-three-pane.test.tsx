@@ -5,10 +5,12 @@ import { AppProvider } from "../context/AppContext";
 import { DiscoverView } from "../features/discover/DiscoverView";
 import * as desktopApi from "../lib/desktop-api";
 import { INITIAL_DEMO_PAPERS, INITIAL_DEMO_COLLECTIONS } from "../data/demo-data";
+import { discoverSessionStore } from "../features/discover/discoverSessionStore";
 
 describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
   beforeEach(() => {
     localStorage.clear();
+    discoverSessionStore.clearAll();
     vi.restoreAllMocks();
   });
 
@@ -37,8 +39,10 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
     // Right Pane: Article details & Metadata sections
     expect(screen.getByText(/Article Details/i)).toBeInTheDocument();
     expect(screen.getByText(/Verified Information/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Add to Collection/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Notes/i }));
     expect(screen.getByText(/Research Notes/i)).toBeInTheDocument();
-    expect(screen.getByText(/Collections/i)).toBeInTheDocument();
+
   });
 
   it("selects a paper from the left pane and updates center and right panes", async () => {
@@ -106,6 +110,8 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
       </AppProvider>
     );
 
+    await user.click(screen.getByRole("button", { name: /Notes/i }));
+
     const noteInput = screen.getByPlaceholderText(/Add a private note about this paper/i);
     await user.type(noteInput, "Key transformer architecture insight for local pipeline");
 
@@ -167,4 +173,46 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
 
     expect(enqueueSpy).toHaveBeenCalled();
   });
+
+  it("renders draggable splitter handles between panes and allows double-click reset", async () => {
+    render(
+      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+        <DiscoverView />
+      </AppProvider>
+    );
+
+    const separators = screen.getAllByRole("separator");
+    expect(separators.length).toBeGreaterThanOrEqual(2);
+
+    // Left separator title check
+    expect(separators[0]).toHaveAttribute("title", expect.stringContaining("Drag to resize results list"));
+    // Right separator title check
+    expect(separators[1]).toHaveAttribute("title", expect.stringContaining("Drag to resize assistant panel"));
+
+    // Simulating double click resets widths to 380
+    fireEvent.doubleClick(separators[0]);
+    fireEvent.doubleClick(separators[1]);
+  });
+
+  it("shows drag and drop overlay when dragging files into the Discover workspace", () => {
+    const { container } = render(
+      <AppProvider initialPapers={INITIAL_DEMO_PAPERS} initialCollections={INITIAL_DEMO_COLLECTIONS}>
+        <DiscoverView />
+      </AppProvider>
+    );
+
+    const workspace = container.querySelector(".flex-1.flex.min-h-0.w-full.overflow-hidden.relative");
+    expect(workspace).not.toBeNull();
+
+    if (workspace) {
+      fireEvent.dragOver(workspace, {
+        dataTransfer: {
+          types: ["Files"],
+        },
+      });
+
+      expect(screen.getByText(/Drop PDF to Import & Read/i)).toBeInTheDocument();
+    }
+  });
 });
+

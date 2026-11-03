@@ -11,6 +11,8 @@ import {
   importLocalOaPdf,
   getOpenAccessStats,
   listOpenAccessPapers,
+  extractPdfMetadata,
+  getErrorMessage,
 } from "../../lib/desktop-api";
 import {
   IeeeManualImportInput,
@@ -29,9 +31,12 @@ import {
   FileCheck2,
   AlertTriangle,
   CheckCircle2,
-  Sparkles,
+  FileSearch,
   Clock,
   Eye,
+  Loader2,
+  Link2,
+  HardDrive,
 } from "lucide-react";
 
 export const IeeeOpenAccessView: React.FC = () => {
@@ -62,6 +67,7 @@ export const IeeeOpenAccessView: React.FC = () => {
   const [publicationYear, setPublicationYear] = useState("");
   const [venue, setVenue] = useState("");
   const [canonicalDoi, setCanonicalDoi] = useState("");
+  const [abstractText, setAbstractText] = useState("");
   const [sourcePageUrl, setSourcePageUrl] = useState("");
   const [licenseName, setLicenseName] = useState("CC-BY 4.0");
   const [licenseUrl, setLicenseUrl] = useState("https://creativecommons.org/licenses/by/4.0/");
@@ -69,6 +75,8 @@ export const IeeeOpenAccessView: React.FC = () => {
   const [userConfirmedOa, setUserConfirmedOa] = useState(false);
   const [userNotes, setUserNotes] = useState("");
   const [targetCollectionId, setTargetCollectionId] = useState("");
+  const [copyToLibrary, setCopyToLibrary] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [importResult, setImportResult] = useState<ImportPdfResult | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -109,6 +117,7 @@ export const IeeeOpenAccessView: React.FC = () => {
     setPublicationYear(new Date().getFullYear().toString());
     setVenue(mode === "ieee" ? "IEEE Access" : "Open Access Repository");
     setCanonicalDoi("");
+    setAbstractText("");
     setSourcePageUrl(mode === "ieee" ? "https://ieeexplore.ieee.org/document/" : "");
     setLicenseName("CC-BY 4.0");
     setLicenseUrl("https://creativecommons.org/licenses/by/4.0/");
@@ -116,9 +125,34 @@ export const IeeeOpenAccessView: React.FC = () => {
     setUserConfirmedOa(false);
     setUserNotes("");
     setTargetCollectionId("");
+    setCopyToLibrary(false);
     setImportResult(null);
     setImportError(null);
     setIsImportModalOpen(true);
+  };
+
+  const handleAutoExtract = async () => {
+    if (!filePath.trim()) {
+      setImportError("Please specify a local PDF file path before extracting.");
+      return;
+    }
+    setIsExtracting(true);
+    setImportError(null);
+    try {
+      const meta = await extractPdfMetadata(filePath.trim());
+      if (meta.title && !title) setTitle(meta.title);
+      if (meta.authors && meta.authors.length > 0 && !authors) setAuthors(meta.authors.join(", "));
+      if (meta.publication_year && !publicationYear) setPublicationYear(String(meta.publication_year));
+      if (meta.venue && !venue) setVenue(meta.venue);
+      if (meta.doi && !canonicalDoi) setCanonicalDoi(meta.doi);
+      if (meta.abstract_text && !abstractText) setAbstractText(meta.abstract_text);
+      if (meta.license) setLicenseName(meta.license);
+      showToast(`Analyzed ${meta.page_count} pages (${meta.word_count} words)`, "info");
+    } catch (err: unknown) {
+      setImportError(getErrorMessage(err, "Failed to extract metadata from PDF."));
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const handleSubmitImport = async (e: React.FormEvent) => {
@@ -154,19 +188,23 @@ export const IeeeOpenAccessView: React.FC = () => {
           publication_year: isNaN(Number(parsedYear)) ? undefined : parsedYear,
           venue: venue.trim() || undefined,
           canonical_doi: canonicalDoi.trim() || undefined,
+          abstract_text: abstractText.trim() || undefined,
           source_page_url: sourcePageUrl.trim() || undefined,
           license_name: licenseName.trim() || undefined,
           license_url: licenseUrl.trim() || undefined,
           user_confirmed_oa: userConfirmedOa,
           user_notes: userNotes.trim() || undefined,
           target_collection_id: targetCollectionId || undefined,
+          copy_to_library: copyToLibrary,
         };
         const result = await importIeeePaper(payload);
         setImportResult(result);
         showToast(
           result.is_duplicate
             ? "Duplicate PDF detected via SHA-256 match. Reusing existing library record."
-            : "Successfully imported IEEE Open Access paper to library!",
+            : copyToLibrary
+            ? "Successfully imported IEEE Open Access paper and copied to library storage!"
+            : "Successfully linked IEEE Open Access paper in place (zero copy)!",
           result.is_duplicate ? "info" : "success"
         );
       } else {
@@ -177,6 +215,7 @@ export const IeeeOpenAccessView: React.FC = () => {
           publication_year: isNaN(Number(parsedYear)) ? undefined : parsedYear,
           venue: venue.trim() || undefined,
           canonical_doi: canonicalDoi.trim() || undefined,
+          abstract_text: abstractText.trim() || undefined,
           source_name: sourceName.trim() || undefined,
           source_page_url: sourcePageUrl.trim() || undefined,
           license_name: licenseName.trim() || undefined,
@@ -184,13 +223,16 @@ export const IeeeOpenAccessView: React.FC = () => {
           user_confirmed_oa: userConfirmedOa,
           user_notes: userNotes.trim() || undefined,
           target_collection_id: targetCollectionId || undefined,
+          copy_to_library: copyToLibrary,
         };
         const result = await importLocalOaPdf(payload);
         setImportResult(result);
         showToast(
           result.is_duplicate
             ? "Duplicate PDF detected via SHA-256 match."
-            : "Successfully imported Open Access PDF to library!",
+            : copyToLibrary
+            ? "Successfully imported Open Access PDF and copied to library storage!"
+            : "Successfully linked Open Access paper in place (zero copy)!",
           result.is_duplicate ? "info" : "success"
         );
       }
@@ -198,7 +240,7 @@ export const IeeeOpenAccessView: React.FC = () => {
       await refreshDatabase();
       await loadData();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = getErrorMessage(err, "Failed to import paper.");
       setImportError(msg);
       showToast(msg, "error");
     } finally {
@@ -321,16 +363,16 @@ export const IeeeOpenAccessView: React.FC = () => {
         </div>
 
         {/* Permitted Downloads */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950/20 dark:to-slate-900 border border-indigo-200/80 dark:border-indigo-800/40 shadow-sm">
+        <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-800 dark:text-indigo-300">
-              Permitted Downloads
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              Permitted downloads
             </span>
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               <Download className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white">
+          <div className="text-3xl font-bold tabular-nums text-slate-900 dark:text-white">
             {isLoadingStats ? "..." : stats.permitted_downloads}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -339,16 +381,16 @@ export const IeeeOpenAccessView: React.FC = () => {
         </div>
 
         {/* Pending Verification */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-slate-900 border border-amber-200/80 dark:border-amber-800/40 shadow-sm">
+        <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300">
-              Pending Verification
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              Pending verification
             </span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               <Clock className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white">
+          <div className="text-3xl font-bold tabular-nums text-slate-900 dark:text-white">
             {isLoadingStats ? "..." : stats.pending_verification_count}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -358,11 +400,11 @@ export const IeeeOpenAccessView: React.FC = () => {
       </div>
 
       {/* 4-Step Workflow Walkthrough Banner */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 shadow-sm">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
           <div>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+              <ShieldCheck className="w-5 h-5 text-slate-500 dark:text-slate-400" />
               How the IEEE Open Access Workflow Works
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
@@ -657,22 +699,97 @@ export const IeeeOpenAccessView: React.FC = () => {
             </div>
           )}
 
-          {/* Local File Path */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          {/* Local File Path & Auto Extract */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
               Local PDF File Path <span className="text-rose-500">*</span>
             </label>
-            <input
-              type="text"
-              required
-              value={filePath}
-              onChange={(e) => setFilePath(e.target.value)}
-              placeholder="C:\Users\username\Downloads\ieee_paper.pdf"
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
-            />
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-              Path to the official PDF manually downloaded from IEEE Xplore. File signature (%PDF-) will be verified.
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                required
+                value={filePath}
+                onChange={(e) => setFilePath(e.target.value)}
+                placeholder="C:\Users\username\Downloads\ieee_paper.pdf"
+                className="flex-1 px-3 py-2 text-xs font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!filePath.trim() || isExtracting}
+                onClick={handleAutoExtract}
+                className="shrink-0 text-xs"
+              >
+                {isExtracting ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <FileSearch className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                )}
+                {isExtracting ? "Extracting..." : "Auto-Extract"}
+              </Button>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Path to the official PDF downloaded from IEEE Xplore or Open Access repository.
             </p>
+          </div>
+
+          {/* Storage Mode: Link in Place vs Copy into Library */}
+          <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 space-y-2">
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+              Storage Strategy
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <label
+                className={`p-2 rounded-lg border text-left cursor-pointer transition-all flex items-start gap-2 ${
+                  !copyToLibrary
+                    ? "bg-white dark:bg-slate-700 border-sky-500 shadow-xs"
+                    : "bg-slate-100/60 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="ieee_storage_mode"
+                  checked={!copyToLibrary}
+                  onChange={() => setCopyToLibrary(false)}
+                  className="mt-0.5 text-sky-600"
+                />
+                <div>
+                  <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                    <Link2 className="w-3.5 h-3.5 text-sky-500" />
+                    <span>Link in Place</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Zero duplicate copies. Reader accesses existing download file.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                className={`p-2 rounded-lg border text-left cursor-pointer transition-all flex items-start gap-2 ${
+                  copyToLibrary
+                    ? "bg-white dark:bg-slate-700 border-sky-500 shadow-xs"
+                    : "bg-slate-100/60 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="ieee_storage_mode"
+                  checked={copyToLibrary}
+                  onChange={() => setCopyToLibrary(true)}
+                  className="mt-0.5 text-sky-600"
+                />
+                <div>
+                  <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                    <HardDrive className="w-3.5 h-3.5 text-sky-500" />
+                    <span>Copy to Library</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Copies into managed app storage for standalone offline library.
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Title */}
@@ -744,6 +861,20 @@ export const IeeeOpenAccessView: React.FC = () => {
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
             </div>
+          </div>
+
+          {/* Abstract */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Abstract
+            </label>
+            <textarea
+              rows={3}
+              value={abstractText}
+              onChange={(e) => setAbstractText(e.target.value)}
+              placeholder="Abstract text extracted from PDF or copied from official paper page..."
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 leading-relaxed"
+            />
           </div>
 
           {/* Source Page URL & License */}

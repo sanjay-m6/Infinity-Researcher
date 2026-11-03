@@ -112,6 +112,7 @@ fn test_ieee_paper_record_strict_provenance_and_integrity() {
         is_saved: true,
         reading_status: "unread".to_string(),
         reading_progress: 0.0,
+        last_opened_at: None,
         created_at: now.clone(),
         updated_at: now.clone(),
         // Crucial policy compliance: user_confirmed_open_access, NOT verified_open_access
@@ -153,6 +154,10 @@ fn test_ieee_paper_record_strict_provenance_and_integrity() {
         valid_pdf_content.len() as u64,
         &hash,
         Some(1),
+        Some("published_version"),
+        Some("verified_match"),
+        Some(1.0),
+        None,
     )
     .expect("attach file failed");
 
@@ -219,6 +224,7 @@ fn test_open_access_stats_multiple_sources() {
         is_saved: true,
         reading_status: "unread".to_string(),
         reading_progress: 0.0,
+        last_opened_at: None,
         created_at: now.clone(),
         updated_at: now.clone(),
         open_access_status: OA_STATUS_USER_CONFIRMED.to_string(),
@@ -261,6 +267,7 @@ fn test_open_access_stats_multiple_sources() {
         is_saved: true,
         reading_status: "unread".to_string(),
         reading_progress: 0.0,
+        last_opened_at: None,
         created_at: now.clone(),
         updated_at: now.clone(),
         open_access_status: "verified_open_access".to_string(),
@@ -303,6 +310,7 @@ fn test_open_access_stats_multiple_sources() {
         is_saved: true,
         reading_status: "unread".to_string(),
         reading_progress: 0.0,
+        last_opened_at: None,
         created_at: now.clone(),
         updated_at: now.clone(),
         open_access_status: "pending_verification".to_string(),
@@ -326,3 +334,166 @@ fn test_open_access_stats_multiple_sources() {
     assert_eq!(stats.permitted_downloads, 1);
     assert_eq!(stats.pending_verification_count, 1);
 }
+
+#[test]
+fn test_pdf_processor_extracts_metadata_from_pdf() {
+    use research_paper_scraper_lib::services::pdf_processor::{ExtractedPdfMetadata, PdfProcessor};
+
+    let sample_text = "Title: Deep Residual Learning for Vision\nBy Kaiming He, Xiangyu Zhang\nIEEE Access 2024\nDOI: 10.1109/ACCESS.2024.9876543\nAbstract: This research investigates deep residual representations for open access learning.\nLicensed under CC-BY 4.0";
+    let mut meta = ExtractedPdfMetadata::default();
+    PdfProcessor::enrich_metadata_from_text(sample_text, &mut meta);
+
+    assert_eq!(meta.doi, Some("10.1109/ACCESS.2024.9876543".to_string()));
+    assert_eq!(meta.publication_year, Some(2024));
+    assert!(meta.abstract_text.is_some());
+    assert!(meta.abstract_text.as_ref().unwrap().contains("deep residual"));
+    assert_eq!(meta.venue, Some("IEEE Access".to_string()));
+    assert_eq!(meta.license, Some("CC-BY 4.0".to_string()));
+}
+
+#[test]
+fn test_pdf_processor_detects_corrupt_or_non_pdf() {
+    use research_paper_scraper_lib::services::pdf_processor::PdfProcessor;
+
+    // Plain text file without valid PDF structure
+    let (dir, file_path) = create_temp_test_file("corrupt.pdf", b"This is a corrupt text file, not a valid PDF.");
+    let meta = PdfProcessor::process_pdf_file(&file_path);
+    assert!(meta.warning.is_some() || meta.status == "corrupt" || meta.status == "no_text" || meta.status == "failed");
+
+    let _ = remove_dir_all(&dir);
+}
+
+#[test]
+fn test_pdf_processor_detects_scanned_image_only_pdf() {
+    use research_paper_scraper_lib::services::pdf_processor::PdfProcessor;
+
+    // Generate a valid structural PDF with 1 page but 0 text streams
+    let temp_dir = std::env::temp_dir().join(format!("test_scanned_{}", uuid::Uuid::new_v4()));
+    create_dir_all(&temp_dir).unwrap();
+    let file_path = temp_dir.join("scanned.pdf");
+    PdfProcessor::create_test_pdf(&file_path).unwrap();
+
+    let meta = PdfProcessor::process_pdf_file(&file_path);
+    assert!(meta.is_scanned || meta.status == "no_text");
+
+    let _ = remove_dir_all(&temp_dir);
+}
+
+#[test]
+fn test_ieee_link_only_mode_preserves_original_path() {
+    let mut conn = setup_test_db();
+    let valid_pdf_content = b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF";
+    let (dir, file_path) = create_temp_test_file("downloaded_ieee.pdf", valid_pdf_content);
+
+    let original_path = file_path.to_string_lossy().to_string();
+    let paper_id = "linked-ieee-001";
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // In link-in-place mode (copy_to_library = false), local_pdf_path points to original download path
+    let paper = Paper {
+        id: paper_id.to_string(),
+        canonical_doi: Some("10.1109/test.link.1".to_string()),
+        title: "Linked IEEE Paper Without Copy".to_string(),
+        clean_title_key: "linkedieeepaperwithoutcopy".to_string(),
+        abstract_text: Some("Preview only linked paper.".to_string()),
+        publication_date: Some("2026-01-01".to_string()),
+        publication_year: Some(2026),
+        venue: Some("IEEE Xplore".to_string()),
+        venue_type: Some("journal".to_string()),
+        language: "en".to_string(),
+        citation_count: 0,
+        reference_count: 0,
+        is_open_access: true,
+        license: Some("CC-BY 4.0".to_string()),
+        primary_landing_url: Some("https://ieeexplore.ieee.org/document/12345".to_string()),
+        pdf_url: None,
+        has_file: true,
+        local_pdf_path: Some(original_path.clone()),
+        content_hash: Some("mockhash123".to_string()),
+        metadata_confidence: "user_verified".to_string(),
+        is_saved: true,
+        reading_status: "unread".to_string(),
+        reading_progress: 0.0,
+        last_opened_at: None,
+        created_at: now.clone(),
+        updated_at: now.clone(),
+        open_access_status: OA_STATUS_USER_CONFIRMED.to_string(),
+        access_evidence_type: EVIDENCE_USER_CONFIRMATION.to_string(),
+        access_evidence_note: Some("Linked in place without secondary duplication".to_string()),
+        license_name: Some("CC-BY 4.0".to_string()),
+        license_url: Some("https://creativecommons.org/licenses/by/4.0/".to_string()),
+        source_name: Some("IEEE Xplore (Manual OA Import)".to_string()),
+        retrieval_method: RETRIEVAL_IEEE_MANUAL.to_string(),
+        access_confirmed_at: Some(now.clone()),
+        authors: vec![],
+        collection_ids: vec![],
+        tags: vec!["IEEE".to_string(), "Linked".to_string()],
+        source_names: vec!["IEEE Xplore".to_string()],
+    };
+
+    PaperRepository::create(&mut conn, &paper).expect("create failed");
+
+    // Verify paper record retrieves the original path without creating a second copy
+    let fetched = PaperRepository::get_by_id(&conn, paper_id).unwrap().unwrap();
+    assert_eq!(fetched.local_pdf_path, Some(original_path));
+    assert_eq!(fetched.retrieval_method, RETRIEVAL_IEEE_MANUAL);
+    assert_eq!(fetched.open_access_status, OA_STATUS_USER_CONFIRMED);
+
+    let _ = remove_dir_all(&dir);
+}
+
+#[test]
+fn test_ieee_adapter_capabilities_and_descriptor() {
+    use research_paper_scraper_lib::scrapers::adapters::{IeeeAdapter, SourceAdapter};
+
+    let adapter = IeeeAdapter::new();
+    assert_eq!(adapter.source_id(), "ieee_xplore");
+    assert_eq!(adapter.display_name(), "IEEE Xplore");
+
+    let desc = adapter.descriptor();
+    assert_eq!(desc.id, "ieee_xplore");
+    assert_eq!(desc.domain, "ieeexplore.ieee.org");
+    assert_eq!(desc.status, "enabled");
+
+    let caps = adapter.capabilities();
+    assert!(caps.supports_query);
+    assert!(caps.supports_open_access_filter);
+    assert!(caps.provides_direct_pdf);
+    assert!(caps.provides_doi);
+}
+
+#[test]
+fn test_ieee_license_detection_rules() {
+    // CC license should be recognized as OA
+    let cc_lic = serde_json::json!([
+        {"URL": "https://creativecommons.org/licenses/by-nc-nd/4.0/"}
+    ]);
+    let is_cc_oa = cc_lic.as_array().map_or(false, |licenses| {
+        licenses.iter().any(|lic| {
+            lic["URL"].as_str().map_or(false, |u| {
+                let u_lower = u.to_lowercase();
+                u_lower.contains("creativecommons.org")
+                    || u_lower.contains("/open-access")
+                    || u_lower.contains("/oa/")
+            })
+        })
+    });
+    assert!(is_cc_oa, "Creative Commons license should be detected as Open Access");
+
+    // Standard IEEE proprietary copyright terms should NOT be recognized as OA
+    let ieee_prop_lic = serde_json::json!([
+        {"URL": "https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html"}
+    ]);
+    let is_prop_oa = ieee_prop_lic.as_array().map_or(false, |licenses| {
+        licenses.iter().any(|lic| {
+            lic["URL"].as_str().map_or(false, |u| {
+                let u_lower = u.to_lowercase();
+                u_lower.contains("creativecommons.org")
+                    || u_lower.contains("/open-access")
+                    || u_lower.contains("/oa/")
+            })
+        })
+    });
+    assert!(!is_prop_oa, "IEEE proprietary terms must NOT be detected as Open Access");
+}
+

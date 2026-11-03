@@ -12,7 +12,8 @@ impl PaperRepository {
         p.local_pdf_path, p.content_hash, p.metadata_confidence, p.is_saved,
         p.reading_status, p.reading_progress, p.created_at, p.updated_at,
         p.open_access_status, p.access_evidence_type, p.access_evidence_note,
-        p.license_name, p.license_url, p.source_name, p.retrieval_method, p.access_confirmed_at
+        p.license_name, p.license_url, p.source_name, p.retrieval_method, p.access_confirmed_at,
+        p.last_opened_at
     ";
 
     /// Inserts a canonical paper record along with its authors, collections, and tags in an atomic transaction.
@@ -57,6 +58,7 @@ impl PaperRepository {
             &paper.source_name,
             &paper.retrieval_method,
             &paper.access_confirmed_at,
+            &paper.last_opened_at,
         ];
 
         tx.execute(
@@ -67,8 +69,9 @@ impl PaperRepository {
                 local_pdf_path, content_hash, metadata_confidence, is_saved,
                 reading_status, reading_progress, created_at, updated_at,
                 open_access_status, access_evidence_type, access_evidence_note,
-                license_name, license_url, source_name, retrieval_method, access_confirmed_at
-            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32, ?33)",
+                license_name, license_url, source_name, retrieval_method, access_confirmed_at,
+                last_opened_at
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32, ?33, ?34)",
             params,
         )?;
 
@@ -165,6 +168,7 @@ impl PaperRepository {
             &paper.source_name,
             &paper.retrieval_method,
             &paper.access_confirmed_at,
+            &paper.last_opened_at,
             &paper.id,
         ];
 
@@ -191,8 +195,9 @@ impl PaperRepository {
                 source_name = ?19,
                 retrieval_method = ?20,
                 access_confirmed_at = ?21,
+                last_opened_at = ?22,
                 updated_at = datetime('now')
-             WHERE id = ?22",
+             WHERE id = ?23",
             params,
         )?;
 
@@ -494,6 +499,9 @@ impl PaperRepository {
             Some("citations") => "ORDER BY p.citation_count DESC, p.created_at DESC, p.id ASC",
             Some("title") => "ORDER BY p.title ASC, p.id ASC",
             Some("title_desc") => "ORDER BY p.title DESC, p.id ASC",
+            Some("recently_opened") => {
+                "ORDER BY p.last_opened_at DESC NULLS LAST, p.created_at DESC, p.id ASC"
+            }
             Some("reading_status") => "ORDER BY p.reading_status ASC, p.created_at DESC, p.id ASC",
             Some("added_desc") => "ORDER BY p.created_at DESC, p.id ASC",
             Some("added_asc") => "ORDER BY p.created_at ASC, p.id ASC",
@@ -595,6 +603,15 @@ impl PaperRepository {
             }
         }
         Ok(count)
+    }
+
+    /// Records that a paper was opened, updating `last_opened_at`.
+    pub fn touch_opened(conn: &Connection, id: &str) -> Result<bool> {
+        let rows = conn.execute(
+            "UPDATE papers SET last_opened_at = datetime('now'), updated_at = datetime('now') WHERE id = ?1",
+            params![id],
+        )?;
+        Ok(rows > 0)
     }
 
     /// Rebuilds search indexes (`papers_fts` and `doc_text_fts`) from existing canonical records.
@@ -710,6 +727,7 @@ impl PaperRepository {
             .get::<_, Option<String>>(31)?
             .unwrap_or_else(|| "local_file_import".to_string());
         let access_confirmed_at: Option<String> = row.get(32)?;
+        let last_opened_at: Option<String> = row.get(33)?;
 
         Ok(Paper {
             id,
@@ -737,6 +755,7 @@ impl PaperRepository {
             is_saved: row.get::<_, i32>(20)? == 1,
             reading_status,
             reading_progress,
+            last_opened_at,
             created_at,
             updated_at,
             open_access_status,

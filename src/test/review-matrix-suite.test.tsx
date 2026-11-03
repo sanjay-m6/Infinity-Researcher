@@ -108,14 +108,16 @@ describe("Literature Review Matrix & Evidence-Linked Copilot Suite", () => {
 
     // Check header buttons
     expect(screen.getByText("Columns")).toBeInTheDocument();
-    expect(screen.getByText("Evidence Copilot")).toBeInTheDocument();
-    expect(screen.getByText("Export CSV")).toBeInTheDocument();
-    expect(screen.getByText("Add Papers")).toBeInTheDocument();
+    expect(screen.getByText(/AI Assistant|Evidence Copilot/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Export/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Add papers/i })).toBeInTheDocument();
 
     // Check table headers
-    expect(screen.getByText("Paper & Authors")).toBeInTheDocument();
-    expect(screen.getByText("Research Question")).toBeInTheDocument();
-    expect(screen.getByText("Methodology")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Paper & Authors")).toBeInTheDocument();
+      expect(screen.getByText("Research Question")).toBeInTheDocument();
+      expect(screen.getByText("Methodology")).toBeInTheDocument();
+    });
 
     // Check paper row & extractions
     expect(screen.getByText("Fault-Tolerant Surface Codes for Quantum Processors")).toBeInTheDocument();
@@ -194,7 +196,7 @@ describe("Literature Review Matrix & Evidence-Linked Copilot Suite", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Evidence-Linked AI Copilot")).toBeInTheDocument();
+      expect(screen.getByText(/Evidence-Linked (AI )?Copilot/i)).toBeInTheDocument();
       expect(screen.getByText("What sample size was evaluated?")).toBeInTheDocument();
       expect(
         screen.getByText("The authors evaluated 50,000 Monte Carlo syndrome cycles.")

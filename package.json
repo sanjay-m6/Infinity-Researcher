@@ -18,18 +18,35 @@
     "format:write": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:all": "npm run typecheck && npm run lint && npm run test && npm run build"
+    "version:check": "node scripts/version-check.mjs",
+    "version:bump": "node scripts/version-bump.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "release:notes": "node scripts/release-notes.mjs",
+    "audit:secrets": "node scripts/audit-secrets.mjs",
+    "sbom:generate": "node scripts/generate-sbom.mjs",
+    "license:audit": "node scripts/generate-sbom.mjs",
+    "check:all": "npm run audit:secrets && npm run version:check && npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
     "@tailwindcss/vite": "^4.3.3",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-process": "^2.4.0",
+    "@tauri-apps/plugin-updater": "^2.14.0",
+    "@types/three": "^0.187.0",
+    "framer-motion": "^14.9.0",
     "gsap": "^3.15.0",
     "lucide-react": "^1.61.0",
+    "motion": "^14.8.0",
     "pdfjs-dist": "^6.4.299",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tailwindcss": "^4.3.3"
+    "react-icons": "^5.7.0",
+    "tailwindcss": "^4.3.3",
+    "thinking-orbs": "^0.3.2",
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   FileText,
@@ -45,6 +46,20 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
     }
   }, [extraction]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen || !row || !column) return null;
 
   const handleSave = async (newStatus?: "extracted" | "user_verified" | "flagged") => {
@@ -83,8 +98,17 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
 
   const pageNum = extraction?.page_number ?? 1;
 
-  return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col">
+  return createPortal(
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[100] bg-slate-950/40 backdrop-blur-xs flex justify-end animate-in fade-in duration-200"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-200"
+      >
       {/* Drawer Header */}
       <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
         <div className="flex items-center gap-2">
@@ -245,5 +269,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
         </Button>
       </div>
     </div>
-  );
+  </div>,
+  document.body
+);
 };

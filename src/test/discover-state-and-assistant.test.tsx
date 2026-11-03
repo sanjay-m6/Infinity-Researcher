@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AppProvider } from "../context/AppContext";
 import { AppShell } from "../components/layout/AppShell";
@@ -90,7 +90,7 @@ describe("Discover State Persistence & Grounded Paper Assistant", () => {
 
     // 2. Type search query in Discover search input
     const searchInput = screen.getByPlaceholderText(/Search by topic, title, author/i);
-    await user.type(searchInput, "deep reinforcement learning robotics");
+    fireEvent.change(searchInput, { target: { value: "deep reinforcement learning robotics" } });
     expect(searchInput).toHaveValue("deep reinforcement learning robotics");
 
     // Verify state stored in session store

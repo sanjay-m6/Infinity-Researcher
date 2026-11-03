@@ -6,8 +6,8 @@ use url::Url;
 use crate::academic_sources::adapter::{AcademicSourceAdapter, AdapterSearchResult};
 use crate::academic_sources::errors::AcademicError;
 use crate::academic_sources::types::{
-    AcademicSearchQuery, NormalizedAuthor, NormalizedWork, ProviderCapabilities, ProviderId,
-    ProviderProvenance,
+    AcademicSearchQuery, MetadataCompleteness, NormalizedAuthor, NormalizedWork,
+    ProviderCapabilities, ProviderHealthCheck, ProviderHealthStatus, ProviderId, ProviderProvenance,
 };
 use crate::domain::paper::{compute_clean_title_key, normalize_doi};
 
@@ -111,9 +111,64 @@ impl AcademicSourceAdapter for EuropePmcAdapter {
             supports_year_filter: true,
             supports_open_access_filter: true,
             supports_doi_lookup: true,
+            supports_author_search: true,
+            supports_abstracts: true,
+            supports_pdf_discovery: true,
             supports_pagination: true,
+            supports_cursor_pagination: true,
             requires_api_key: false,
             rate_limit_rps: 10.0,
+            category: "Biomedical & Life Sciences".to_string(),
+            auth_type: "none".to_string(),
+            preferred_identifier: "pmcid".to_string(),
+        }
+    }
+
+    async fn health_check(&self, client: &reqwest::Client) -> ProviderHealthCheck {
+        let start = std::time::Instant::now();
+        let url = "https://europepmc.org/RestfulWebService/rest/search?query=cancer&format=json&pageSize=1";
+        let res = client
+            .get(url)
+            .timeout(std::time::Duration::from_secs(6))
+            .header(
+                "User-Agent",
+                "ResearchPaperScraper/0.1.0 (Desktop Academic Research App)",
+            )
+            .send()
+            .await;
+
+        let latency_ms = start.elapsed().as_millis() as u64;
+        let checked_at = chrono::Utc::now().to_rfc3339();
+
+        match res {
+            Ok(resp) if resp.status().is_success() => ProviderHealthCheck {
+                provider_id: ProviderId::EuropePmc,
+                status: ProviderHealthStatus::Healthy,
+                latency_ms,
+                message: Some("Europe PMC REST API is responding normally.".to_string()),
+                checked_at,
+            },
+            Ok(resp) if resp.status().as_u16() == 429 => ProviderHealthCheck {
+                provider_id: ProviderId::EuropePmc,
+                status: ProviderHealthStatus::RateLimited,
+                latency_ms,
+                message: Some("Europe PMC rate limit reached.".to_string()),
+                checked_at,
+            },
+            Ok(resp) => ProviderHealthCheck {
+                provider_id: ProviderId::EuropePmc,
+                status: ProviderHealthStatus::Degraded,
+                latency_ms,
+                message: Some(format!("Europe PMC returned HTTP {}.", resp.status())),
+                checked_at,
+            },
+            Err(e) => ProviderHealthCheck {
+                provider_id: ProviderId::EuropePmc,
+                status: ProviderHealthStatus::Unavailable,
+                latency_ms,
+                message: Some(format!("Failed to connect to Europe PMC: {}", e)),
+                checked_at,
+            },
         }
     }
 
@@ -271,7 +326,7 @@ impl AcademicSourceAdapter for EuropePmcAdapter {
 
             let work_id = format!("epmc-{}", item.id);
 
-            works.push(NormalizedWork {
+            let mut work = NormalizedWork {
                 id: work_id.clone(),
                 canonical_doi,
                 title,
@@ -294,7 +349,13 @@ impl AcademicSourceAdapter for EuropePmcAdapter {
                     landing_url,
                     retrieved_at: retrieved_at.clone(),
                 }],
-            });
+                metadata_score: 0,
+                completeness: MetadataCompleteness::default(),
+                version_type: Some(if is_oa { "accepted_manuscript".to_string() } else { "published_version".to_string() }),
+                pdf_status: if is_oa { Some("open_access_available".to_string()) } else { None },
+            };
+            work.compute_completeness();
+            works.push(work);
         }
 
         let next_cursor = parsed.next_cursor_mark.filter(|c| c != &cursor_mark);

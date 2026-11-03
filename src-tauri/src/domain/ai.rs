@@ -38,6 +38,13 @@ pub struct AiProviderTaskRoute {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PageTextItem {
+    pub page_number: i64,
+    pub text: String,
+    pub section_heading: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AiPaperChunk {
     pub id: String,
     pub paper_id: String,
@@ -62,6 +69,14 @@ pub struct AiChunkCitation {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifiedEvidenceItem {
+    pub citation: AiChunkCitation,
+    pub is_verified: bool,
+    pub verification_method: String, // 'exact_match', 'token_overlap', 'unverified'
+    pub confidence: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AiRagContext {
     pub query: String,
     pub scope: String, // 'paper', 'library', 'none'
@@ -69,6 +84,15 @@ pub struct AiRagContext {
     pub passages: Vec<AiChunkCitation>,
     pub warnings: Vec<String>,
     pub is_grounded: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AiChatSession {
+    pub id: String,
+    pub paper_id: Option<String>,
+    pub title: String,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -183,6 +207,8 @@ pub struct GenerateRequestInput {
     pub rag_scope: Option<String>, // 'paper', 'library', 'none'
     pub provider_override: Option<String>,
     pub model_override: Option<String>,
+    #[serde(default)]
+    pub ui_context: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -194,4 +220,35 @@ pub struct GenerateResponseOutput {
     pub latency_ms: i64,
     pub is_grounded: bool,
     pub warning: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AiDiagnosticReport {
+    pub provider_id: String,
+    pub display_name: String,
+    pub is_enabled: bool,
+    pub is_local: bool,
+    pub access_category: String,
+    pub endpoint_url: String,
+    pub selected_model: String,
+    pub has_credential: bool,
+    pub is_ready: bool,
+    pub connection_status: String, // 'connected', 'disconnected', 'untested', 'error'
+    pub last_health_message: Option<String>,
+    pub last_error_category: Option<String>,
+    pub latency_ms: Option<i64>,
+    pub streaming_supported: bool,
+    pub embeddings_supported: bool,
+    pub reranker_supported: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiagnosticTestGenResult {
+    pub provider_id: String,
+    pub model_id: String,
+    pub success: bool,
+    pub response_text: Option<String>,
+    pub latency_ms: i64,
+    pub error_category: Option<String>,
+    pub error_message: Option<String>,
 }

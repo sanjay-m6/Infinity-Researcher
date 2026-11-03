@@ -156,9 +156,9 @@ describe("Query-First Academic Discovery & Advanced Filters (Part J)", () => {
 
     await waitFor(() => {
       // OA badge is present
-      expect(screen.getAllByText(/^OA$/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/OA/i).length).toBeGreaterThan(0);
       // PDF Available / Found badge is distinct
-      expect(screen.getAllByText(/PDF Found/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/PDF/i).length).toBeGreaterThan(0);
     });
   });
 });

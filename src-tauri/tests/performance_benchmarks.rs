@@ -66,6 +66,7 @@ fn test_performance_benchmarks_1k_and_10k_records() {
                 _ => "read".to_string(),
             },
             reading_progress: (i % 100) as f64 / 100.0,
+            last_opened_at: None,
             open_access_status: if i % 3 != 0 {
                 "verified_open_access".to_string()
             } else {
@@ -277,6 +278,7 @@ fn test_performance_benchmarks_1k_and_10k_records() {
             is_saved: true,
             reading_status: "unread".to_string(),
             reading_progress: 0.0,
+            last_opened_at: None,
             open_access_status: "verified_open_access".to_string(),
             access_evidence_type: "explicit_source_label".to_string(),
             access_evidence_note: None,

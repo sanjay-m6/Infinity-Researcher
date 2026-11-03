@@ -1,17 +1,24 @@
 import { forwardRef, ButtonHTMLAttributes } from "react";
-import { Loader2 } from "lucide-react";
+import { cn } from "../../lib/utils";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive";
-  size?: "sm" | "md" | "lg" | "icon";
+  variant?:
+    | "default"
+    | "primary"
+    | "secondary"
+    | "outline"
+    | "ghost"
+    | "destructive"
+    | "link";
+  size?: "xs" | "sm" | "md" | "lg" | "icon" | "default";
   isLoading?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
-      variant = "primary",
-      size = "md",
+      variant = "default",
+      size = "default",
       isLoading = false,
       disabled,
       className = "",
@@ -21,23 +28,30 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer";
+      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer";
 
-    const variantStyles = {
+    // Both "default" and "primary" resolve to the scholarly primary action
+    const variantStyles: Record<string, string> = {
+      default:
+        "bg-primary text-primary-foreground hover:bg-primary-hover active:opacity-90 shadow-xs",
       primary:
-        "bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 shadow-sm dark:bg-indigo-500 dark:hover:bg-indigo-600",
+        "bg-primary text-primary-foreground hover:bg-primary-hover active:opacity-90 shadow-xs",
       secondary:
-        "bg-slate-100 text-slate-800 hover:bg-slate-200 active:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700",
+        "bg-secondary text-secondary-foreground hover:bg-secondary-hover active:opacity-90",
       outline:
-        "border border-slate-300 text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800",
+        "border border-border text-foreground hover:bg-muted active:bg-accent",
       ghost:
-        "text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-800/60",
+        "text-foreground hover:bg-muted active:bg-accent",
       destructive:
-        "bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800 shadow-sm dark:bg-rose-500 dark:hover:bg-rose-600",
-    }[variant];
+        "bg-destructive text-destructive-foreground hover:opacity-90 active:opacity-80 shadow-xs",
+      link:
+        "text-primary underline-offset-4 hover:underline p-0 h-auto font-normal",
+    };
 
     const sizeStyles = {
+      xs: "text-[11px] px-2 py-1 gap-1",
       sm: "text-xs px-2.5 py-1.5 gap-1.5",
+      default: "text-sm px-3.5 py-2 gap-2",
       md: "text-sm px-3.5 py-2 gap-2",
       lg: "text-base px-5 py-2.5 gap-2.5",
       icon: "p-2 w-9 h-9",
@@ -47,10 +61,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || isLoading}
-        className={`${baseStyles} ${variantStyles} ${sizeStyles} ${className}`}
+        aria-busy={isLoading ? "true" : undefined}
+        className={cn(baseStyles, variantStyles[variant], sizeStyles, className)}
         {...props}
       >
-        {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+        {isLoading && (
+          <span className="inline-flex gap-1 items-center shrink-0" aria-hidden="true">
+            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80 animate-pulse [animation-delay:150ms]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-100 animate-pulse [animation-delay:300ms]" />
+          </span>
+        )}
         {children}
       </button>
     );
@@ -58,3 +79,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
+export default Button;

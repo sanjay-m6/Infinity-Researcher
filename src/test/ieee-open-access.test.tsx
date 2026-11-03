@@ -61,8 +61,44 @@ describe("IEEE Open Access Hub (Mode A & Provenance System)", () => {
     const confirmationLabel = screen.getByText(/Open Access User Confirmation \(Required by Policy\)/i);
     expect(confirmationLabel).toBeInTheDocument();
 
+    // Verify Auto-Extract button and Storage Strategy options
+    expect(screen.getByRole("button", { name: /Auto-Extract/i })).toBeInTheDocument();
+    expect(screen.getByText(/Link in Place/i)).toBeInTheDocument();
+    expect(screen.getByText(/Copy to Library/i)).toBeInTheDocument();
+
     // Verify submit button is disabled initially
     const submitBtn = screen.getByRole("button", { name: /Confirm & Import PDF/i });
     expect(submitBtn).toBeDisabled();
+  });
+
+  it("renders PaperImportModal in IEEE mode with zero-copy and official handoff", async () => {
+    const { PaperImportModal } = await import("../features/discover/PaperImportModal");
+
+    render(
+      <AppProvider>
+        <PaperImportModal
+          isOpen={true}
+          onClose={() => {}}
+          initialMode="ieee"
+          initialQuery="neural networks"
+        />
+      </AppProvider>
+    );
+
+    // Verify modal title
+    expect(screen.getByRole("heading", { name: /Import IEEE Xplore Paper/i })).toBeInTheDocument();
+
+    // Verify official browser handoff button
+    expect(screen.getByRole("button", { name: /Open IEEE Xplore/i })).toBeInTheDocument();
+
+    // Verify auto extract button
+    expect(screen.getByRole("button", { name: /Auto-Extract Metadata/i })).toBeInTheDocument();
+
+    // Verify Link in Place (Zero Copy) option
+    expect(screen.getByText(/Link in Place \(Zero Copy\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Copy to Library \(Save Offline\)/i)).toBeInTheDocument();
+
+    // Verify OA confirmation
+    expect(screen.getByText(/I confirm this paper is Open Access/i)).toBeInTheDocument();
   });
 });

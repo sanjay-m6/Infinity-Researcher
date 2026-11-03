@@ -226,7 +226,11 @@ describe("Streaming Search & Direct PDF In-Panel Preview (Part K Requirements)",
 
     // Selecting paper triggers fetchRemotePdfPreview without downloading to disk
     await waitFor(() => {
-      expect(fetchPreviewSpy).toHaveBeenCalledWith("https://arxiv.org/pdf/2402.99999.pdf");
+      expect(fetchPreviewSpy).toHaveBeenCalledWith(
+        "https://arxiv.org/pdf/2402.99999.pdf",
+        undefined,
+        "Direct In-Panel Streaming Test Paper"
+      );
     });
 
     // Center panel provides Save Offline action for the user to explicitly save if desired

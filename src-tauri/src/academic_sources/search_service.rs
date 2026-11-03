@@ -1,19 +1,23 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::Instant;
+use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
 use tracing::{error, info, warn};
 
 use crate::academic_sources::adapter::AdapterSearchResult;
 use crate::academic_sources::errors::AcademicError;
+use crate::academic_sources::query_planner::AcademicQueryPlanner;
 use crate::academic_sources::rate_limit::RateLimiter;
 use crate::academic_sources::registry::ProviderRegistry;
 use crate::academic_sources::types::{
-    AcademicSearchQuery, ImportSummary, NormalizedWork, ProviderId, ProviderStatus,
-    ProviderStatusCategory, UnifiedSearchResponse,
+    AcademicSearchQuery, ImportSummary, NormalizedWork, ProviderHealthCheck, ProviderId,
+    ProviderStatus, ProviderStatusCategory, UnifiedSearchResponse,
 };
 use crate::database::Database;
 use crate::domain::paper::{Author, Paper};
 use crate::repositories::{CollectionRepository, PaperRepository};
+use crate::services::metadata_normalizer::MetadataNormalizer;
 
 type SearchTaskHandle = JoinHandle<(ProviderId, Result<AdapterSearchResult, AcademicError>, u64)>;
 
@@ -95,19 +99,41 @@ impl AcademicSearchService {
     ) -> Result<UnifiedSearchResponse, AcademicError> {
         self.validate_query(&query)?;
 
+        // Plan and validate query adaptation across providers
+        let query_planner = AcademicQueryPlanner::new();
+        let query_plan = query_planner.plan(&query, &self.registry);
+
+        let mut all_warnings = query_plan.global_warnings.clone();
+        for p in &query_plan.provider_plans {
+            all_warnings.extend(p.warnings.clone());
+        }
+
         info!(
             query = %query.query,
             providers = ?query.providers,
-            "Initiating unified academic search"
+            "Initiating unified capability-aware academic search"
         );
 
+        let concurrency_semaphore = Arc::new(Semaphore::new(5));
         let mut tasks: Vec<SearchTaskHandle> = Vec::new();
 
         for &provider_id in &query.providers {
             let adapter_opt = self.registry.get_adapter(provider_id);
             let client = self.http_client.clone();
             let rate_limiter = self.rate_limiter.clone();
-            let provider_query = query.clone();
+            let sem = concurrency_semaphore.clone();
+
+            // Locate provider-adapted query if available
+            let native_query_str = query_plan
+                .provider_plans
+                .iter()
+                .find(|p| p.provider_id == provider_id)
+                .map(|p| p.native_query.clone())
+                .unwrap_or_else(|| query.query.clone());
+
+            let mut provider_query = query.clone();
+            provider_query.query = native_query_str;
+
             let api_key = api_keys.get(provider_id.as_str()).cloned();
 
             let handle = tokio::spawn(async move {
@@ -121,6 +147,19 @@ impl AcademicSearchService {
                         )),
                         0,
                     );
+                };
+
+                let _permit = match sem.acquire().await {
+                    Ok(permit) => permit,
+                    Err(_) => {
+                        return (
+                            provider_id,
+                            Err(AcademicError::Internal(
+                                "Concurrency semaphore closed".to_string(),
+                            )),
+                            0,
+                        );
+                    }
                 };
 
                 // Pacing / rate control
@@ -212,8 +251,11 @@ impl AcademicSearchService {
             }
         }
 
-        // Deduplicate and merge results across providers
-        let merged_works = Self::deduplicate_and_merge_works(raw_works);
+        // Apply client-side fallback post-filtering for providers lacking native filter support
+        let filtered_works = query_planner.filter_post_search(raw_works, &query);
+
+        // Deduplicate and merge results across providers using conservative hierarchy
+        let merged_works = Self::deduplicate_and_merge_works(filtered_works);
         let total_found = merged_works.len();
 
         Ok(UnifiedSearchResponse {
@@ -221,36 +263,88 @@ impl AcademicSearchService {
             provider_statuses,
             total_found,
             completed_at: chrono::Utc::now().to_rfc3339(),
+            query_plan: Some(query_plan),
+            warnings: all_warnings,
         })
     }
 
-    /// Deduplicates results across multiple providers based on canonical DOI or clean_title_key.
-    /// Preserves all source provenances so the user sees all services indexing the work.
+    /// Deduplicates results across multiple providers based on a conservative hierarchy:
+    /// Tier 1: Exact canonical DOI
+    /// Tier 2: Provider ID + Provider Record ID
+    /// Tier 3: Clean title key (>= 10 chars) + publication year within 1 year + author surname overlap
+    /// Preserves all source provenances and safely merges metadata.
     pub fn deduplicate_and_merge_works(works: Vec<NormalizedWork>) -> Vec<NormalizedWork> {
         let mut by_doi: HashMap<String, usize> = HashMap::new();
-        let mut by_title_year: HashMap<(String, Option<i32>), usize> = HashMap::new();
+        let mut by_provider_record: HashMap<(ProviderId, String), usize> = HashMap::new();
+        let mut by_title: HashMap<String, Vec<usize>> = HashMap::new();
         let mut merged: Vec<NormalizedWork> = Vec::new();
 
         for work in works {
             let mut existing_idx = None;
 
+            // Tier 1: Canonical DOI match (highest confidence)
             if let Some(ref doi) = work.canonical_doi {
                 if let Some(&idx) = by_doi.get(doi) {
                     existing_idx = Some(idx);
                 }
             }
 
+            // Tier 2: Provider specific record match
             if existing_idx.is_none() {
-                let key = (work.clean_title_key.clone(), work.publication_year);
-                if let Some(&idx) = by_title_year.get(&key) {
+                let prov_key = (work.provider_id, work.provider_record_id.clone());
+                if let Some(&idx) = by_provider_record.get(&prov_key) {
                     existing_idx = Some(idx);
                 }
             }
 
+            // Tier 3: Clean Title + Year Compatibility + Author Overlap
+            if existing_idx.is_none() && work.clean_title_key.len() >= 10 {
+                if let Some(candidate_indices) = by_title.get(&work.clean_title_key) {
+                    for &c_idx in candidate_indices {
+                        let candidate = &merged[c_idx];
+
+                        // Year compatibility check: exact, +/- 1 year, or either is unknown
+                        let year_compat = match (work.publication_year, candidate.publication_year) {
+                            (Some(y1), Some(y2)) => (y1 - y2).abs() <= 1,
+                            _ => true,
+                        };
+                        if !year_compat {
+                            continue;
+                        }
+
+                        // Author compatibility check
+                        let author_compat = if work.authors.is_empty() || candidate.authors.is_empty() {
+                            // If either has no authors, allow merge only if years match exactly
+                            work.publication_year == candidate.publication_year
+                        } else {
+                            let surnames_work: Vec<String> = work
+                                .authors
+                                .iter()
+                                .map(|a| MetadataNormalizer::extract_family_name(&a.name))
+                                .filter(|s| s.len() >= 3)
+                                .collect();
+                            let surnames_cand: Vec<String> = candidate
+                                .authors
+                                .iter()
+                                .map(|a| MetadataNormalizer::extract_family_name(&a.name))
+                                .filter(|s| s.len() >= 3)
+                                .collect();
+
+                            surnames_work.iter().any(|s1| surnames_cand.contains(s1))
+                        };
+
+                        if author_compat {
+                            existing_idx = Some(c_idx);
+                            break;
+                        }
+                    }
+                }
+            }
+
             if let Some(idx) = existing_idx {
-                // Merge provenance and fill missing metadata
                 let target = &mut merged[idx];
 
+                // Merge provenance
                 for prov in work.provenance {
                     if !target
                         .provenance
@@ -261,6 +355,7 @@ impl AcademicSearchService {
                     }
                 }
 
+                // Safe non-destructive field merge
                 if target.canonical_doi.is_none() && work.canonical_doi.is_some() {
                     target.canonical_doi = work.canonical_doi;
                 }
@@ -285,37 +380,217 @@ impl AcademicSearchService {
                 if target.venue_type.is_none() && work.venue_type.is_some() {
                     target.venue_type = work.venue_type;
                 }
-                if target.citation_count.is_none() && work.citation_count.is_some() {
+                if let (Some(cur_c), Some(new_c)) = (target.citation_count, work.citation_count) {
+                    target.citation_count = Some(cur_c.max(new_c));
+                } else if target.citation_count.is_none() {
                     target.citation_count = work.citation_count;
                 }
                 if !target.is_open_access && work.is_open_access {
                     target.is_open_access = true;
                 }
+
+                // Recompute completeness score
+                target.compute_completeness();
             } else {
                 let new_idx = merged.len();
                 if let Some(ref doi) = work.canonical_doi {
                     by_doi.insert(doi.clone(), new_idx);
                 }
-                by_title_year.insert(
-                    (work.clean_title_key.clone(), work.publication_year),
+                by_provider_record.insert(
+                    (work.provider_id, work.provider_record_id.clone()),
                     new_idx,
                 );
-                merged.push(work);
+                by_title
+                    .entry(work.clean_title_key.clone())
+                    .or_default()
+                    .push(new_idx);
+
+                let mut new_work = work;
+                new_work.compute_completeness();
+                merged.push(new_work);
             }
         }
 
-        // Sort results: works with citations or PDF URLs first, then newest year
+        // Sort results: works with PDF URLs first, then highest citation count, then newest year
         merged.sort_by(|a, b| {
             let a_has_pdf = a.pdf_url.is_some();
             let b_has_pdf = b.pdf_url.is_some();
-            b_has_pdf.cmp(&a_has_pdf).then_with(|| {
-                b.publication_year
-                    .unwrap_or(0)
-                    .cmp(&a.publication_year.unwrap_or(0))
-            })
+            b_has_pdf
+                .cmp(&a_has_pdf)
+                .then_with(|| {
+                    b.citation_count
+                        .unwrap_or(0)
+                        .cmp(&a.citation_count.unwrap_or(0))
+                })
+                .then_with(|| {
+                    b.publication_year
+                        .unwrap_or(0)
+                        .cmp(&a.publication_year.unwrap_or(0))
+                })
         });
 
         merged
+    }
+
+    /// Runs health checks on requested providers.
+    pub async fn check_provider_health(
+        &self,
+        target_provider: Option<ProviderId>,
+    ) -> Vec<ProviderHealthCheck> {
+        self.registry
+            .run_health_checks(&self.http_client, target_provider)
+            .await
+    }
+
+    /// Enriches an existing paper record in SQLite with external metadata from OpenAlex.
+    pub async fn enrich_paper_by_id(
+        &self,
+        db: &Database,
+        paper_id: &str,
+    ) -> Result<Paper, AcademicError> {
+        let (paper, canonical_doi) = {
+            let conn = db.lock().map_err(|e| AcademicError::Database(e.to_string()))?;
+            let p = PaperRepository::get_by_id(&conn, paper_id)
+                .map_err(|e| AcademicError::Database(e.to_string()))?
+                .ok_or_else(|| AcademicError::Database("Paper not found".to_string()))?;
+            let doi = p.canonical_doi.clone();
+            (p, doi)
+        };
+
+        let Some(doi) = canonical_doi else {
+            return Err(AcademicError::InvalidQuery(
+                "Paper does not have a canonical DOI for external metadata enrichment.".to_string(),
+            ));
+        };
+
+        // Query OpenAlex for enrichment
+        let openalex_url = format!("https://api.openalex.org/works/https://doi.org/{}", doi);
+        let resp = self
+            .http_client
+            .get(&openalex_url)
+            .header(
+                "User-Agent",
+                "ResearchPaperScraper/0.1.0 (Desktop Academic Research App; mailto:researcher@local-desktop.app)",
+            )
+            .send()
+            .await;
+
+        let mut enriched_abstract = None;
+        let mut enriched_venue = None;
+        let mut enriched_citation_count = None;
+        let mut enriched_pdf_url = None;
+        let mut enriched_oa = false;
+        let mut openalex_record_id = None;
+
+        if let Ok(res) = resp {
+            if res.status().is_success() {
+                if let Ok(json) = res.json::<serde_json::Value>().await {
+                    openalex_record_id = json
+                        .get("id")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
+
+                    // Reconstruct abstract from inverted index if present
+                    if let Some(inv_idx) = json
+                        .get("abstract_inverted_index")
+                        .and_then(|v| v.as_object())
+                    {
+                        let mut words: Vec<(usize, &str)> = Vec::new();
+                        for (word, positions) in inv_idx {
+                            if let Some(pos_array) = positions.as_array() {
+                                for p in pos_array {
+                                    if let Some(idx) = p.as_u64() {
+                                        words.push((idx as usize, word.as_str()));
+                                    }
+                                }
+                            }
+                        }
+                        words.sort_by_key(|&(idx, _)| idx);
+                        let reconstructed: String =
+                            words.into_iter().map(|(_, w)| w).collect::<Vec<_>>().join(" ");
+                        if !reconstructed.trim().is_empty() {
+                            enriched_abstract = Some(reconstructed);
+                        }
+                    }
+
+                    if let Some(host) = json
+                        .get("primary_location")
+                        .and_then(|loc| loc.get("source"))
+                    {
+                        enriched_venue = host
+                            .get("display_name")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
+                    }
+
+                    if let Some(c) = json.get("cited_by_count").and_then(|v| v.as_u64()) {
+                        enriched_citation_count = Some(c as i32);
+                    }
+
+                    if let Some(oa) = json
+                        .get("open_access")
+                        .and_then(|v| v.get("is_oa"))
+                        .and_then(|v| v.as_bool())
+                    {
+                        enriched_oa = oa;
+                    }
+
+                    if let Some(pdf) = json
+                        .get("primary_location")
+                        .and_then(|loc| loc.get("pdf_url"))
+                        .and_then(|v| v.as_str())
+                    {
+                        enriched_pdf_url = Some(pdf.to_string());
+                    }
+                }
+            }
+        }
+
+        // Apply enrichment to database
+        let mut conn = db.lock().map_err(|e| AcademicError::Database(e.to_string()))?;
+        let mut updated_paper = paper;
+
+        if updated_paper.abstract_text.is_none() && enriched_abstract.is_some() {
+            updated_paper.abstract_text = enriched_abstract;
+        }
+        if updated_paper.venue.is_none() && enriched_venue.is_some() {
+            updated_paper.venue = enriched_venue;
+        }
+        if let Some(c) = enriched_citation_count {
+            if c > updated_paper.citation_count {
+                updated_paper.citation_count = c;
+            }
+        }
+        if updated_paper.pdf_url.is_none() && enriched_pdf_url.is_some() {
+            updated_paper.pdf_url = enriched_pdf_url.clone();
+        }
+        if enriched_oa && !updated_paper.is_open_access {
+            updated_paper.is_open_access = true;
+            updated_paper.open_access_status =
+                crate::domain::paper::OA_STATUS_VERIFIED.to_string();
+        }
+        updated_paper.metadata_confidence = "high".to_string();
+        updated_paper.updated_at = chrono::Utc::now().to_rfc3339();
+
+        let _ = PaperRepository::update(&mut conn, &updated_paper);
+
+        // Record provenance if OpenAlex record found
+        if let Some(oa_id) = openalex_record_id {
+            let _ = conn.execute(
+                "INSERT OR IGNORE INTO paper_sources (paper_id, source_id, source_record_id, source_url, open_access_pdf_url, retrieved_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                rusqlite::params![
+                    paper_id,
+                    "openalex",
+                    oa_id,
+                    format!("https://openalex.org/{}", oa_id),
+                    enriched_pdf_url,
+                    chrono::Utc::now().to_rfc3339(),
+                ],
+            );
+        }
+
+        Ok(updated_paper)
     }
 
     /// Imports selected search results into the Phase 4 SQLite database with duplicate awareness.
@@ -415,6 +690,7 @@ impl AcademicSearchService {
                     is_saved: true,
                     reading_status: "unread".to_string(),
                     reading_progress: 0.0,
+                    last_opened_at: None,
                     created_at: now.clone(),
                     updated_at: now.clone(),
                     open_access_status: if work.is_open_access {
@@ -467,12 +743,13 @@ impl AcademicSearchService {
             // Save source provenance
             for prov in work.provenance {
                 let _ = conn.execute(
-                    "INSERT OR IGNORE INTO paper_sources (paper_id, source_id, source_record_id, fetched_at)
-                     VALUES (?1, ?2, ?3, ?4)",
+                    "INSERT OR IGNORE INTO paper_sources (paper_id, source_id, source_record_id, source_url, retrieved_at)
+                     VALUES (?1, ?2, ?3, ?4, ?5)",
                     rusqlite::params![
                         paper_id,
                         prov.provider_id.as_str(),
                         prov.record_id,
+                        prov.landing_url,
                         prov.retrieved_at,
                     ],
                 );
@@ -492,7 +769,7 @@ impl AcademicSearchService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::academic_sources::types::ProviderProvenance;
+    use crate::academic_sources::types::{MetadataCompleteness, ProviderProvenance};
 
     #[test]
     fn test_query_validation_rules() {
@@ -567,6 +844,8 @@ mod tests {
             is_open_access: false,
             landing_url: None,
             pdf_url: None,
+            pdf_status: Some("unknown".to_string()),
+            version_type: Some("unknown_version".to_string()),
             citation_count: Some(50),
             provider_id: ProviderId::OpenAlex,
             provider_record_id: "W1".to_string(),
@@ -576,6 +855,8 @@ mod tests {
                 landing_url: None,
                 retrieved_at: "2026-10-24T00:00:00Z".to_string(),
             }],
+            metadata_score: 0,
+            completeness: MetadataCompleteness::default(),
         };
 
         let work2 = NormalizedWork {
@@ -592,6 +873,8 @@ mod tests {
             is_open_access: true,
             landing_url: Some("https://doi.org/10.1000/182".to_string()),
             pdf_url: Some("https://doi.org/10.1000/182.pdf".to_string()),
+            pdf_status: Some("open_access_available".to_string()),
+            version_type: Some("published_version".to_string()),
             citation_count: None,
             provider_id: ProviderId::Crossref,
             provider_record_id: "10.1000/182".to_string(),
@@ -601,6 +884,8 @@ mod tests {
                 landing_url: Some("https://doi.org/10.1000/182".to_string()),
                 retrieved_at: "2026-10-24T00:00:00Z".to_string(),
             }],
+            metadata_score: 0,
+            completeness: MetadataCompleteness::default(),
         };
 
         let merged = AcademicSearchService::deduplicate_and_merge_works(vec![work1, work2]);

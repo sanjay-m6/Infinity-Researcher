@@ -85,6 +85,17 @@ pub async fn set_ai_provider_enabled(
 }
 
 #[tauri::command]
+pub async fn set_ai_provider_model(
+    state: State<'_, AppState>,
+    provider_id: String,
+    model: String,
+) -> Result<(), CommandError> {
+    let db = state.db()?;
+    let conn = db.lock()?;
+    AiRepository::update_provider_model(&conn, &provider_id, &model).map_err(CommandError::from)
+}
+
+#[tauri::command]
 pub async fn set_ai_provider_credential(
     state: State<'_, AppState>,
     provider_id: String,
@@ -129,6 +140,31 @@ pub async fn test_ai_provider(
     state
         .ai_provider_service
         .test_connection(db, &provider_id)
+        .await
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub async fn diagnose_ai_system(
+    state: State<'_, AppState>,
+) -> Result<Vec<AiDiagnosticReport>, CommandError> {
+    let db = state.db()?;
+    state
+        .ai_provider_service
+        .diagnose_system(db)
+        .await
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub async fn test_ai_generation(
+    state: State<'_, AppState>,
+    provider_id: String,
+) -> Result<DiagnosticTestGenResult, CommandError> {
+    let db = state.db()?;
+    state
+        .ai_provider_service
+        .test_generation(db, &provider_id)
         .await
         .map_err(CommandError::from)
 }
@@ -202,6 +238,17 @@ pub async fn index_paper_for_rag(
     paper_id: String,
 ) -> Result<usize, CommandError> {
     let db = state.db()?;
+
+    // If chunks are already indexed (e.g. from the in-app PDF extractor with multiple pages),
+    // do not overwrite the full text with the 2-chunk abstract fallback!
+    {
+        let conn = db.lock()?;
+        let existing_count = AiRepository::count_chunks_for_paper(&conn, &paper_id).unwrap_or(0);
+        if existing_count > 2 {
+            return Ok(existing_count as usize);
+        }
+    }
+
     let (pdf_path, title, abs_text) = {
         let conn = db.lock()?;
         let p = PaperRepository::get_by_id(&conn, &paper_id)?
@@ -227,6 +274,25 @@ pub async fn index_paper_for_rag(
 }
 
 #[tauri::command]
+pub async fn index_paper_page_texts(
+    state: State<'_, AppState>,
+    paper_id: String,
+    pages: Vec<PageTextItem>,
+    title: Option<String>,
+    canonical_doi: Option<String>,
+) -> Result<usize, CommandError> {
+    let db = state.db()?;
+    AiRagService::index_paper_pages(
+        db,
+        &paper_id,
+        &pages,
+        title.as_deref(),
+        canonical_doi.as_deref(),
+    )
+    .map_err(CommandError::from)
+}
+
+#[tauri::command]
 pub async fn get_paper_rag_chunks(
     state: State<'_, AppState>,
     paper_id: String,
@@ -247,6 +313,34 @@ pub async fn search_rag_passages(
     let db = state.db()?;
     AiRagService::retrieve_context(db, &query, paper_id.as_deref(), &scope, limit.unwrap_or(8))
         .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub async fn search_rag_passages_multi(
+    state: State<'_, AppState>,
+    query: String,
+    paper_ids: Vec<String>,
+    limit: Option<usize>,
+) -> Result<AiRagContext, CommandError> {
+    let db = state.db()?;
+    AiRagService::retrieve_context_multi(db, &query, &paper_ids, limit.unwrap_or(8))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub async fn validate_ai_citations(
+    state: State<'_, AppState>,
+    citations: Vec<AiChunkCitation>,
+) -> Result<Vec<VerifiedEvidenceItem>, CommandError> {
+    let db = state.db()?;
+    let conn = db.lock()?;
+    let mut verified = Vec::new();
+    for c in citations {
+        let item = AiRepository::verify_citation(&conn, &c.chunk_id, &c.paper_id, &c.snippet)
+            .map_err(CommandError::from)?;
+        verified.push(item);
+    }
+    Ok(verified)
 }
 
 // -----------------------------------------------------------------------------
@@ -284,6 +378,35 @@ pub async fn generate_ai_response(
 // -----------------------------------------------------------------------------
 // Chat History
 // -----------------------------------------------------------------------------
+
+#[tauri::command]
+pub async fn list_ai_chat_sessions(
+    state: State<'_, AppState>,
+) -> Result<Vec<AiChatSession>, CommandError> {
+    let db = state.db()?;
+    let conn = db.lock()?;
+    AiRepository::list_sessions(&conn).map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub async fn create_ai_chat_session(
+    state: State<'_, AppState>,
+    session: AiChatSession,
+) -> Result<(), CommandError> {
+    let db = state.db()?;
+    let conn = db.lock()?;
+    AiRepository::create_session(&conn, &session).map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub async fn delete_ai_chat_session(
+    state: State<'_, AppState>,
+    session_id: String,
+) -> Result<(), CommandError> {
+    let db = state.db()?;
+    let conn = db.lock()?;
+    AiRepository::delete_session(&conn, &session_id).map_err(CommandError::from)
+}
 
 #[tauri::command]
 pub async fn list_ai_chat_messages(

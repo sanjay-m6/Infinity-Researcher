@@ -3,10 +3,11 @@ import { useApp } from "../../context/AppContext";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { Card } from "../../components/ui/Card";
 import { Modal } from "../../components/ui/Modal";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { Badge } from "../../components/ui/Badge";
+import { SourceBadge } from "../../components/ui/SourceBadge";
 import {
   FolderPlus,
   FolderOpen,
@@ -175,9 +176,7 @@ export const CollectionsView: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                  <Badge variant="primary" size="sm">
-                    {paper.sourceName}
-                  </Badge>
+                  <SourceBadge sourceName={paper.sourceName} size="sm" />
                   <Button
                     variant="ghost"
                     size="sm"
@@ -240,13 +239,13 @@ export const CollectionsView: React.FC = () => {
       {collections.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {collections.map((col) => (
-            <div
+            <Card
               key={col.id}
               role="button"
               tabIndex={0}
               onClick={() => setSelectedCollectionId(col.id)}
               onKeyDown={(e) => e.key === "Enter" && setSelectedCollectionId(col.id)}
-              className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-400 dark:hover:border-indigo-600 transition-all shadow-2xs cursor-pointer flex flex-col justify-between group"
+              className="p-5 hover:border-primary transition-all shadow-2xs cursor-pointer flex flex-col justify-between group"
             >
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-2">
@@ -299,7 +298,7 @@ export const CollectionsView: React.FC = () => {
                   Updated: {new Date(col.updatedAt).toLocaleDateString()}
                 </span>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       ) : (

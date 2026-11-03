@@ -2,6 +2,7 @@ pub mod adapters;
 pub mod dedup;
 pub mod engine;
 pub mod extractor;
+pub mod ieee_fetcher;
 pub mod job_guard;
 pub mod query_search;
 pub mod robots;
@@ -15,6 +16,7 @@ pub use dedup::{
 };
 pub use engine::CrawlEngine;
 pub use extractor::HtmlExtractor;
+pub use ieee_fetcher::*;
 pub use job_guard::SearchJobGuard;
 pub use query_search::*;
 pub use robots::{RobotsCache, RobotsTxt};

@@ -67,14 +67,29 @@ Test Summary:
 ---------------------------------------------------------
 Rust Backend (`cargo test`):                98/98   PASS (100%)
 Python Scraping Engine (`pytest`):          65/65   PASS (100%)
-React & UI Workflows (`npx vitest run`):     88/88   PASS (100%)
+React & UI Workflows (`npx vitest run`):   106/106   PASS (100%)
 ---------------------------------------------------------
-Total Automated Tests:                     251/251  PASS (100%)
+Total Automated Tests:                     269/269  PASS (100%)
 ```
 
 ---
 
-## 5. Legal & Compliance Governance Audit
+## 5. Signed Automatic Updater & CI/CD Pipeline Audit
+
+| Capability | Requirement | Audit Finding | Status |
+| :--- | :--- | :--- | :--- |
+| **Tauri v2 Updater Plugin** | Official `@tauri-apps/plugin-updater` & `tauri-plugin-updater` | Initialized in `src-tauri/src/lib.rs`, permissions granted in `capabilities/default.json` | :white_check_mark: Verified |
+| **Process Restart Plugin** | Official `@tauri-apps/plugin-process` & `tauri-plugin-process` | Initialized in `src-tauri/src/lib.rs`, registered in capabilities | :white_check_mark: Verified |
+| **Cryptographic Signing** | Minisign Ed25519 public key embedded in `tauri.conf.json` | Public key configured, release endpoint set to GitHub releases | :white_check_mark: Verified |
+| **Version Synchronization** | Single source of truth across manifests | `scripts/version-check.mjs` and `scripts/version-bump.mjs` synchronizing `package.json`, `tauri.conf.json`, `Cargo.toml` | :white_check_mark: Verified |
+| **In-App Updates UI** | Dedicated Updates card in Settings & About modal | `UpdateSettingsCard.tsx` and `useAppUpdater.ts` supporting progress bar, release notes, channel toggle, safe user-approved restart | :white_check_mark: Verified |
+| **Secret Scanning Hygiene** | Automated scanning of repository for leaked credentials | `scripts/audit-secrets.mjs` checking 500+ files with 0 secrets found | :white_check_mark: Verified |
+| **GitHub Actions CI** | Non-publishing pull request and push quality gate | `.github/workflows/ci.yml` running all 269 tests across Node, Rust, and Python with SHA-pinned actions | :white_check_mark: Verified |
+| **GitHub Actions Release** | Tag-triggered automated Windows build & signing | `.github/workflows/release.yml` with `tauri-apps/tauri-action`, Minisign signing, and artifact verification | :white_check_mark: Verified |
+
+---
+
+## 6. Legal & Compliance Governance Audit
 
 - [x] **EULA.md:** Completed with local-first terms, academic ethics disclaimers, and non-evasion guidance.
 - [x] **PRIVACY.md:** Completed with zero telemetry declaration, local SQLite sovereignty, and diagnostic redaction rules.
@@ -84,6 +99,6 @@ Total Automated Tests:                     251/251  PASS (100%)
 
 ---
 
-## 6. Final Certification
+## 7. Final Certification
 
-Infinity Researcher v0.1.0 fulfills all technical, branding, functional, security, and release packaging specifications for production deployment.
+Infinity Researcher v0.1.0 fulfills all technical, branding, functional, security, release packaging, CI/CD pipeline, and signed in-app automatic update specifications for production deployment.

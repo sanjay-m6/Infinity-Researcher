@@ -58,3 +58,21 @@ python-engine/.venv/
 python-engine/__pycache__/
 python-engine/*/__pycache__/
 python-engine/*/*/__pycache__/
+python-engine/build/
+*.spec
+src-tauri/binaries/*.exe
+
+# Cryptographic Keys & Updater Secrets (NEVER commit private keys)
+*.key
+*.priv
+*.pem
+*.pfx
+*.p12
+*.sig.key
+tauri.key
+minisign.key
+
+# Local research document dumps & extracted test PDFs
+downloads/
+extracted_papers/
+scratch/

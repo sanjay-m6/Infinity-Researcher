@@ -4,6 +4,7 @@ import { PageHeader } from "../../components/layout/PageHeader";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Modal";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import {
   listCrawlProfiles,
   createCrawlProfile,
@@ -14,6 +15,7 @@ import {
   startCrawlJob,
   getProviderConfigStatus,
   setProviderApiKey,
+  getErrorMessage,
 } from "../../lib/desktop-api";
 import {
   CrawlProfile,
@@ -35,7 +37,6 @@ import {
   RefreshCw,
   FileText,
   ArrowRight,
-  Sparkles,
   Info,
 } from "lucide-react";
 
@@ -62,6 +63,7 @@ export const SourcesView: React.FC = () => {
   const [previewResult, setPreviewResult] = useState<ExtractionPreviewResult | null>(null);
 
   // Add Website Wizard Modal state
+  const [profileToDelete, setProfileToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3 | 4>(1);
   const [wizardSeedUrl, setWizardSeedUrl] = useState("");
@@ -132,7 +134,7 @@ export const SourcesView: React.FC = () => {
       setApiKeyInput("");
       await loadProviderStatuses();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Failed to save API key.");
       showToast(`Failed to save key: ${msg}`, "error");
     } finally {
       setIsSavingKey(false);
@@ -156,7 +158,7 @@ export const SourcesView: React.FC = () => {
       setPreviewResult(result);
       showToast("Metadata extracted successfully via public HTML parser!", "success");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Metadata extraction failed.");
       showToast(`Extraction failed: ${msg}`, "error");
     } finally {
       setIsPreviewing(false);
@@ -188,7 +190,7 @@ export const SourcesView: React.FC = () => {
       setWizardStep(2);
       showToast("Robots.txt & Website Policy inspected.", "info");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Website policy check failed.");
       showToast(`Policy check failed: ${msg}`, "error");
     } finally {
       setIsCheckingPolicy(false);
@@ -235,7 +237,7 @@ export const SourcesView: React.FC = () => {
         setActiveSection("downloads");
       }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Failed to create profile.");
       showToast(`Failed to create profile: ${msg}`, "error");
     } finally {
       setIsCreatingProfile(false);
@@ -261,15 +263,17 @@ export const SourcesView: React.FC = () => {
     setWizardDoiSel("");
   };
 
-  const handleDeleteProfile = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete profile '${name}'?`)) return;
+  const handleConfirmDeleteProfile = async () => {
+    if (!profileToDelete) return;
     try {
-      await deleteCrawlProfile(id);
-      showToast(`Profile '${name}' deleted`, "info");
+      await deleteCrawlProfile(profileToDelete.id);
+      showToast(`Profile '${profileToDelete.name}' deleted`, "info");
       await loadCrawlProfiles();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Failed to delete profile.");
       showToast(`Failed to delete profile: ${msg}`, "error");
+    } finally {
+      setProfileToDelete(null);
     }
   };
 
@@ -292,7 +296,7 @@ export const SourcesView: React.FC = () => {
       setSingleImportUrl("");
       await refreshDatabase();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Import failed.");
       showToast(`Import failed: ${msg}`, "error");
     } finally {
       setIsImportingSingle(false);
@@ -311,7 +315,7 @@ export const SourcesView: React.FC = () => {
       setCrawlSeedUrl("");
       setActiveSection("downloads");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Failed to start crawl.");
       showToast(`Failed to start crawl: ${msg}`, "error");
     } finally {
       setIsStartingCrawl(false);
@@ -361,13 +365,13 @@ export const SourcesView: React.FC = () => {
       {activeTab === "scraping" && (
         <div className="space-y-8">
           {/* Quick Actions Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl border border-indigo-100 dark:border-indigo-950 bg-gradient-to-r from-indigo-50/50 via-white to-indigo-50/20 dark:from-indigo-950/20 dark:via-slate-900 dark:to-indigo-950/10">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
             <div className="space-y-0.5">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Globe className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 <span>Website-Driven Paper Discovery</span>
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Discover papers via public HTML pages, journal issue archives, and normal hyperlinks.
               </p>
             </div>
@@ -539,8 +543,8 @@ export const SourcesView: React.FC = () => {
             </div>
 
             {isLoadingProfiles ? (
-              <div className="p-8 text-center text-xs text-slate-500 animate-pulse flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-indigo-500" />
+              <div className="p-8 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-slate-500" />
                 <span>Loading website scraping profiles...</span>
               </div>
             ) : (
@@ -573,7 +577,7 @@ export const SourcesView: React.FC = () => {
                         {!p.is_built_in && (
                           <button
                             type="button"
-                            onClick={() => handleDeleteProfile(p.id, p.name)}
+                            onClick={() => setProfileToDelete({ id: p.id, name: p.name })}
                             className="text-slate-400 hover:text-rose-500 p-1"
                             title="Delete Profile"
                           >
@@ -1246,6 +1250,18 @@ export const SourcesView: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Modern Confirm Dialog for Deleting Source Profile */}
+      <ConfirmDialog
+        isOpen={!!profileToDelete}
+        onClose={() => setProfileToDelete(null)}
+        onConfirm={handleConfirmDeleteProfile}
+        title="Delete Crawler Profile"
+        message={`Are you sure you want to delete profile "${profileToDelete?.name || ""}"? This will not remove papers already ingested.`}
+        confirmLabel="Delete Profile"
+        cancelLabel="Cancel"
+        isDestructive={true}
+      />
     </div>
   );
 };

@@ -31,10 +31,20 @@ class PdfDiscoveryExtractor:
         candidates: List[str] = []
         soup = BeautifulSoup(html, "html.parser")
 
-        # 1. citation_pdf_url meta tag
-        meta_pdf = soup.find("meta", attrs={"name": lambda n: n and n.lower() == "citation_pdf_url"})
-        if meta_pdf and meta_pdf.get("content"):
-            candidates.append(meta_pdf["content"].strip())
+        # 1. citation_pdf_url and academic repository meta tags
+        for meta_name in ("citation_pdf_url", "eprints.document_url", "biorxiv_pdf", "biorxiv_url"):
+            meta = soup.find("meta", attrs={"name": lambda n, m=meta_name: n and n.lower() == m})
+            if meta and meta.get("content"):
+                candidates.append(meta["content"].strip())
+
+        meta_prop = soup.find("meta", attrs={"property": lambda p: p and p.lower() == "citation_pdf_url"})
+        if meta_prop and meta_prop.get("content"):
+            candidates.append(meta_prop["content"].strip())
+
+        # Dublin core identifier
+        dc_meta = soup.find("meta", attrs={"name": lambda n: n and n.lower() in ("dc.identifier", "dc.relation")})
+        if dc_meta and dc_meta.get("content") and dc_meta["content"].lower().endswith(".pdf"):
+            candidates.append(dc_meta["content"].strip())
 
         # 2. link rel="alternate" type="application/pdf"
         link_pdf = soup.find("link", rel=lambda r: r and "alternate" in r.lower(), type=lambda t: t and "pdf" in t.lower())
@@ -42,8 +52,8 @@ class PdfDiscoveryExtractor:
             candidates.append(link_pdf["href"].strip())
 
         # 3. Source-specific transformation rules
-        if source_id == "arxiv" or "arxiv.org" in base_url:
-            arxiv_match = re.search(r"arxiv\.org/abs/([0-9]+\.[0-9]+(?:v[0-9]+)?)", base_url)
+        if source_id == "arxiv" or "arxiv.org" in base_url or "ar5iv" in base_url:
+            arxiv_match = re.search(r"arxiv\.org/(?:abs|html|pdf)/([0-9]+\.[0-9]+(?:v[0-9]+)?)", base_url)
             if arxiv_match:
                 candidates.append(f"https://arxiv.org/pdf/{arxiv_match.group(1)}.pdf")
 
@@ -56,6 +66,36 @@ class PdfDiscoveryExtractor:
             doi_match = re.search(r"id=(10\.1371/[^&]+)", base_url)
             if doi_match:
                 candidates.append(f"https://journals.plos.org/plosone/article/file?id={doi_match.group(1)}&type=printable")
+
+        elif "mdpi.com" in base_url:
+            doi_match = re.search(r"(10\.3390/[^/&?#]+)", base_url)
+            if doi_match:
+                candidates.append(f"https://www.mdpi.com/{doi_match.group(1)}/pdf")
+
+        elif "frontiersin.org" in base_url:
+            doi_match = re.search(r"(10\.3389/[^/&?#]+)", base_url)
+            if doi_match:
+                candidates.append(f"https://www.frontiersin.org/articles/{doi_match.group(1)}/pdf")
+
+        elif "springer.com" in base_url or "nature.com" in base_url:
+            doi_match = re.search(r"(10\.(?:1007|1038|1186)/[^/&?#\s]+)", base_url)
+            if doi_match:
+                candidates.append(f"https://link.springer.com/content/pdf/{doi_match.group(1)}.pdf")
+
+        elif "dl.acm.org" in base_url:
+            doi_match = re.search(r"(10\.1145/[^/&?#\s]+)", base_url)
+            if doi_match:
+                candidates.append(f"https://dl.acm.org/doi/pdf/{doi_match.group(1)}")
+
+        elif "wiley.com" in base_url:
+            doi_match = re.search(r"(10\.(?:1002|1111)/[^/&?#\s]+)", base_url)
+            if doi_match:
+                candidates.append(f"https://onlinelibrary.wiley.com/doi/pdfdirect/{doi_match.group(1)}")
+
+        elif "ncbi.nlm.nih.gov" in base_url or "europepmc.org" in base_url:
+            pmc_match = re.search(r"(PMC[0-9]+)", base_url, re.IGNORECASE)
+            if pmc_match:
+                candidates.append(f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={pmc_match.group(1).upper()}&blobtype=pdf")
 
         # 4. Anchor tags containing PDF links
         for a in soup.find_all("a", href=True):

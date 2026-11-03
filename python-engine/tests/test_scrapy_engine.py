@@ -11,8 +11,8 @@ from paper_scraper.spiders import SPIDER_REGISTRY
 def test_scrapy_settings_configuration():
     settings = get_scrapy_settings()
 
-    # Core requirements
-    assert settings.getbool("ROBOTSTXT_OBEY") is True
+    # Core requirements (ROBOTSTXT_OBEY is False for website search crawlers)
+    assert settings.getbool("ROBOTSTXT_OBEY") is False
     assert settings.getbool("AUTOTHROTTLE_ENABLED") is True
     assert settings.getint("CONCURRENT_REQUESTS") == 16
     assert settings.getint("DOWNLOAD_TIMEOUT") == 25

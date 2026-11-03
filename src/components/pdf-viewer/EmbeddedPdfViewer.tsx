@@ -2,61 +2,54 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import {
-  ChevronLeft,
-  ChevronRight,
-  ZoomIn,
-  ZoomOut,
-  RotateCw,
-  Maximize2,
-  Minimize2,
-  Search,
-  X,
-  Sidebar,
-  FileText,
   AlertTriangle,
   RefreshCw,
   ExternalLink,
   ChevronUp,
   ChevronDown,
-  Download,
-  Cloud,
+  X,
+  ShieldAlert,
+  FileWarning,
+  Ban,
+  Upload,
+  Globe,
 } from "lucide-react";
 import { Button } from "../ui/Button";
-import { Badge } from "../ui/Badge";
+import { PdfDocumentSkeleton } from "../ui/Skeleton";
 import {
   readPaperPdf,
   getReaderState,
   saveReaderState,
   fetchRemotePdfPreview,
+  getErrorMessage,
+  indexPaperPageTexts,
+  PageTextItem,
 } from "../../lib/desktop-api";
+import { extractedPagesStore } from "../../features/discover/extractedPagesStore";
+import {
+  PdfViewerState,
+  PdfBookmark,
+  PdfOutlineItem,
+  SearchMatch,
+  FitMode,
+  EmbeddedPdfViewerProps,
+} from "./types";
+import { PdfToolbar } from "./PdfToolbar";
+import { PdfLeftPanel } from "./PdfLeftPanel";
+import { PdfRightPanel } from "./PdfRightPanel";
+import { TextSelectionMenu } from "./TextSelectionMenu";
 
 // Configure local Vite-bundled worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
-export interface EmbeddedPdfViewerProps {
-  paperId?: string | null;
-  paperTitle: string;
-  sourceUrl?: string | null;
-  remotePdfUrl?: string | null;
-  targetPage?: number;
-  onSaveOffline?: () => void;
-  isSavingOffline?: boolean;
-  onClose?: () => void;
-  onOpenExternal?: () => void;
-  onResolveAgain?: () => void;
-  onRetry?: () => void;
-}
-
-interface SearchMatch {
-  pageNumber: number;
-  matchIndex: number;
-}
+export type { PdfViewerState, EmbeddedPdfViewerProps };
 
 export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
   paperId,
   paperTitle,
   sourceUrl,
   remotePdfUrl,
+  localFilePath,
   targetPage,
   onSaveOffline,
   isSavingOffline,
@@ -64,22 +57,63 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
   onOpenExternal,
   onResolveAgain,
   onRetry,
+  onImportLocal,
+  sourceName,
+  venue,
+  publicationYear,
+  canonicalDoi,
+  isDownloaded,
+  authors = [],
+  abstractText,
+  initialLeftOpen = false,
+  initialRightOpen = false,
+  initialLeftTab = "outline",
+  initialRightTab = "ai",
+  hideRightPanel = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textLayerRef = useRef<HTMLDivElement>(null);
 
-  const [loading, setLoading] = useState(true);
+  // 12-state finite state machine
+  const [viewerState, setViewerState] = useState<PdfViewerState>("IDLE");
+  const [statusMessage, setStatusMessage] = useState<string>("Initializing...");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const isLoadingState =
+    viewerState === "IDLE" ||
+    viewerState === "RESOLVING_SOURCE" ||
+    viewerState === "CHECKING_ACCESS" ||
+    viewerState === "FETCHING_DOCUMENT" ||
+    viewerState === "VALIDATING_DOCUMENT" ||
+    viewerState === "PARSING_DOCUMENT" ||
+    viewerState === "RENDERING_FIRST_PAGE";
+
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageInput, setPageInput] = useState<string>("1");
   const [zoom, setZoom] = useState<number>(1.0);
   const [rotation, setRotation] = useState<number>(0);
-  const [fitMode, setFitMode] = useState<"custom" | "width" | "page">("width");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [fitMode, setFitMode] = useState<FitMode>("width");
+
+  // Panel States
+  const [isSidebarOpen, setIsSidebarOpen] = useState(initialLeftOpen);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(initialRightOpen);
+  const [activeRightTab, setActiveRightTab] = useState<"ai" | "metadata" | "notes">(initialRightTab);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Document Outline (TOC) & Bookmarks
+  const [outline, setOutline] = useState<PdfOutlineItem[]>([]);
+  const bookmarkStorageKey = `pdf_bookmarks_${paperId || paperTitle}`;
+  const [bookmarks, setBookmarks] = useState<PdfBookmark[]>(() => {
+    try {
+      const saved = localStorage.getItem(bookmarkStorageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Search in PDF
   const [showSearch, setShowSearch] = useState(false);
@@ -88,107 +122,476 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
   const [activeMatchIndex, setActiveMatchIndex] = useState<number>(-1);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Scanned detection
+  // Scanned document detection
   const [isScanned, setIsScanned] = useState(false);
 
-  // Active rendering task cancellation handle
+  // Text selection state & floating toolbar
+  const [selectedText, setSelectedText] = useState("");
+  const [selectionPosition, setSelectionPosition] = useState<{ x: number; y: number } | null>(null);
+
+  // Cancellation controller for active fetch / render
+  const abortControllerRef = useRef<AbortController | null>(null);
   const renderTaskRef = useRef<{ cancel: () => void } | null>(null);
+  const saveReaderStateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Jump to cited page when targetPage changes (e.g. from citation click)
   useEffect(() => {
     if (targetPage && targetPage >= 1 && (!numPages || targetPage <= numPages)) {
       setCurrentPage(targetPage);
+      setPageInput(String(targetPage));
     }
   }, [targetPage, numPages]);
 
   // -------------------------------------------------------------------------
-  // 1. Load Document Bytes & Restore State
+  // 1. Debounced Reader State Persistence
   // -------------------------------------------------------------------------
-  useEffect(() => {
-    let isCancelled = false;
+  const persistReaderPosition = useCallback(
+    (page: number, scale: number, rot: number) => {
+      if (!paperId || remotePdfUrl) return;
+      if (saveReaderStateTimeoutRef.current) {
+        clearTimeout(saveReaderStateTimeoutRef.current);
+      }
+      saveReaderStateTimeoutRef.current = setTimeout(async () => {
+        try {
+          await saveReaderState({
+            paper_id: paperId,
+            file_id: null,
+            last_page: page,
+            zoom_level: scale,
+            rotation: rot,
+            updated_at: new Date().toISOString(),
+          });
+        } catch {
+          // non-blocking
+        }
+      }, 500);
+    },
+    [paperId, remotePdfUrl]
+  );
 
-    async function loadPdf() {
-      setLoading(true);
-      setErrorMessage(null);
-      setPdfDoc(null);
-      setSearchMatches([]);
-      setActiveMatchIndex(-1);
+  // -------------------------------------------------------------------------
+  // 2. Document Outline Extraction
+  // -------------------------------------------------------------------------
+  const loadOutline = useCallback(async (doc: pdfjsLib.PDFDocumentProxy) => {
+    try {
+      const rawOutline = await doc.getOutline();
+      if (!rawOutline || rawOutline.length === 0) {
+        setOutline([]);
+        return;
+      }
 
-      try {
-        // Read persisted reader state if local paper
-        let initialPage = 1;
-        let initialZoom = 1.0;
-        let initialRotation = 0;
-        if (paperId && !remotePdfUrl) {
-          try {
-            const state = await getReaderState(paperId);
-            if (state) {
-              initialPage = Math.max(1, state.last_page);
-              initialZoom = state.zoom_level > 0 ? state.zoom_level : 1.0;
-              initialRotation = state.rotation;
-            }
-          } catch {
-            // ignore error reading reader state
+      const processItem = async (item: {
+        title: string;
+        dest?: unknown;
+        items?: unknown[];
+      }): Promise<PdfOutlineItem> => {
+        let pageNum: number | undefined = undefined;
+        try {
+          let dest = item.dest;
+          if (typeof dest === "string") {
+            dest = await doc.getDestination(dest);
+          }
+          if (Array.isArray(dest) && dest.length > 0) {
+            const pageRef = dest[0];
+            const pageIndex = await doc.getPageIndex(pageRef);
+            pageNum = pageIndex + 1;
+          }
+        } catch {
+          // Destination resolution failed or invalid ref
+        }
+
+        const childItems: PdfOutlineItem[] = [];
+        if (item.items && Array.isArray(item.items) && item.items.length > 0) {
+          for (const rawChild of item.items) {
+            const child = rawChild as { title: string; dest?: unknown; items?: unknown[] };
+            childItems.push(await processItem(child));
           }
         }
 
-        // Fetch binary ArrayBuffer from Rust IPC (remote preview or local file)
-        let buffer: ArrayBuffer;
+        return {
+          title: item.title || "Untitled Section",
+          pageNumber: pageNum,
+          dest: item.dest,
+          items: childItems.length > 0 ? childItems : undefined,
+        };
+      };
+
+      const parsed: PdfOutlineItem[] = [];
+      for (const item of rawOutline) {
+        parsed.push(await processItem(item));
+      }
+      setOutline(parsed);
+    } catch (err) {
+      console.warn("Failed to load PDF outline:", err);
+      setOutline([]);
+    }
+  }, []);
+
+  // -------------------------------------------------------------------------
+  // 2b. Full Document Text Extraction & Background RAG Indexing for All Pages
+  // -------------------------------------------------------------------------
+  const extractAndIndexFullText = useCallback(
+    async (doc: pdfjsLib.PDFDocumentProxy, targetPaperId?: string | null) => {
+      const effectiveId = targetPaperId || paperId;
+      if (!effectiveId) return;
+
+      // Check if we already extracted pages for this paper ID
+      if (extractedPagesStore.has(effectiveId)) {
+        return;
+      }
+
+      // If we have extracted pages under DOI, re-use and index directly
+      if (canonicalDoi && extractedPagesStore.has(canonicalDoi)) {
+        const cached = extractedPagesStore.get(canonicalDoi);
+        if (cached && cached.length > 0) {
+          extractedPagesStore.set(effectiveId, cached);
+          try {
+            const count = await indexPaperPageTexts(
+              effectiveId,
+              cached,
+              paperTitle,
+              canonicalDoi || undefined
+            );
+            window.dispatchEvent(
+              new CustomEvent("paper-indexed", {
+                detail: {
+                  paperId: effectiveId,
+                  canonicalDoi,
+                  chunkCount: count,
+                  pageCount: cached.length,
+                },
+              })
+            );
+          } catch (e) {
+            console.warn("Failed to index cached pages:", e);
+          }
+          return;
+        }
+      }
+
+      try {
+        const pages: PageTextItem[] = [];
+        const total = doc.numPages;
+
+        for (let p = 1; p <= total; p++) {
+          const page = await doc.getPage(p);
+          const textContent = await page.getTextContent();
+
+          let pageText = "";
+          let lastY: number | null = null;
+
+          for (const rawItem of textContent.items) {
+            const item = rawItem as { str?: string; transform?: number[]; hasEOL?: boolean };
+            if (!item.str) continue;
+
+            if (lastY !== null && item.transform && Math.abs(item.transform[5] - lastY) > 5) {
+              pageText += "\n";
+            } else if (pageText.length > 0 && !pageText.endsWith(" ") && !pageText.endsWith("\n")) {
+              pageText += " ";
+            }
+            pageText += item.str;
+            if (item.hasEOL) {
+              pageText += "\n";
+            }
+            if (item.transform) {
+              lastY = item.transform[5];
+            }
+          }
+
+          const trimmed = pageText.trim();
+          if (trimmed.length > 0) {
+            let heading: string | undefined = undefined;
+            const outlineMatch = outline.find((o) => o.pageNumber === p);
+            if (outlineMatch) {
+              heading = outlineMatch.title;
+            } else {
+              const firstLine = trimmed.split("\n")[0]?.trim();
+              if (firstLine && firstLine.length > 3 && firstLine.length < 80) {
+                heading = firstLine;
+              }
+            }
+
+            pages.push({
+              page_number: p,
+              text: trimmed,
+              section_heading: heading || null,
+            });
+          }
+        }
+
+        if (pages.length > 0) {
+          extractedPagesStore.set(effectiveId, pages);
+          if (canonicalDoi) {
+            extractedPagesStore.set(canonicalDoi, pages);
+          }
+
+          const count = await indexPaperPageTexts(
+            effectiveId,
+            pages,
+            paperTitle,
+            canonicalDoi || undefined
+          );
+
+          window.dispatchEvent(
+            new CustomEvent("paper-indexed", {
+              detail: {
+                paperId: effectiveId,
+                canonicalDoi,
+                chunkCount: count,
+                pageCount: total,
+              },
+            })
+          );
+        }
+      } catch (err) {
+        console.warn("Background PDF text extraction/indexing error:", err);
+      }
+    },
+    [paperId, paperTitle, canonicalDoi, outline]
+  );
+
+  // -------------------------------------------------------------------------
+  // 3. Lifecycle: Load Document with Explicit 12-State Finite State Machine & 10s Timeout
+  // -------------------------------------------------------------------------
+  const loadPdf = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    setErrorMessage(null);
+    setPdfDoc(null);
+    setSearchMatches([]);
+    setActiveMatchIndex(-1);
+
+    try {
+      // Stage 1: RESOLVING_SOURCE
+      setViewerState("RESOLVING_SOURCE");
+      setStatusMessage("Resolving document source and access permissions...");
+
+      // Read persisted reader state if local paper
+      let initialPage = 1;
+      let initialZoom = 1.0;
+      let initialRotation = 0;
+      if (paperId && !remotePdfUrl) {
+        try {
+          const state = await getReaderState(paperId);
+          if (state) {
+            initialPage = Math.max(1, state.last_page);
+            initialZoom = state.zoom_level > 0 ? state.zoom_level : 1.0;
+            initialRotation = state.rotation;
+          }
+        } catch {
+          // non-blocking
+        }
+      }
+
+      if (abortController.signal.aborted) return;
+
+      // Stage 2: CHECKING_ACCESS
+      setViewerState("CHECKING_ACCESS");
+      setStatusMessage("Verifying access permissions and publisher endpoints...");
+
+      // Stage 3: FETCHING_DOCUMENT (with 10-second timeout race)
+      setViewerState("FETCHING_DOCUMENT");
+      setStatusMessage(
+        remotePdfUrl
+          ? "Streaming PDF document from scholarly repository..."
+          : "Loading document from local storage..."
+      );
+
+      const STREAM_TIMEOUT_MS = 25000;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(
+            new Error(
+              "STREAM_TIMEOUT: Request took longer than 25 seconds. The academic publisher may require interactive authentication, bot verification, or an institutional network."
+            )
+          );
+        }, STREAM_TIMEOUT_MS);
+      });
+
+      const fetchPromise = (async (): Promise<ArrayBuffer> => {
         if (remotePdfUrl) {
-          buffer = await fetchRemotePdfPreview(remotePdfUrl);
+          return await fetchRemotePdfPreview(remotePdfUrl, canonicalDoi, paperTitle);
         } else if (paperId) {
-          buffer = await readPaperPdf(paperId);
+          return await readPaperPdf(paperId);
+        } else if (localFilePath) {
+          return await readPaperPdf(localFilePath);
         } else {
           throw new Error("No PDF source or document identifier provided.");
         }
+      })();
 
-        if (isCancelled) return;
+      let rawBuffer: ArrayBuffer;
+      try {
+        rawBuffer = await Promise.race([fetchPromise, timeoutPromise]);
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
 
-        const loadingTask = pdfjsLib.getDocument({
-          data: new Uint8Array(buffer),
-        });
+      if (abortController.signal.aborted) {
+        setViewerState("CANCELLED");
+        return;
+      }
 
-        const doc = await loadingTask.promise;
-        if (isCancelled) {
-          doc.cleanup();
-          loadingTask.destroy();
-          return;
-        }
+      // Stage 4: VALIDATING_DOCUMENT
+      setViewerState("VALIDATING_DOCUMENT");
+      setStatusMessage("Verifying document signature and integrity...");
 
-        const validPage = Math.min(initialPage, doc.numPages);
-        setPdfDoc(doc);
-        setNumPages(doc.numPages);
-        setCurrentPage(validPage);
-        setPageInput(String(validPage));
-        setZoom(initialZoom);
-        setRotation(initialRotation);
-        setLoading(false);
-      } catch (err: unknown) {
-        if (!isCancelled) {
-          setLoading(false);
-          const msg = err instanceof Error ? err.message : String(err);
-          setErrorMessage(
-            msg ||
-              (remotePdfUrl
-                ? "Could not stream remote PDF. The server may have rejected the request or requires browser authentication."
-                : "Could not open local PDF. File may be missing or failed structural verification.")
+      const uint8Bytes = new Uint8Array(rawBuffer);
+      if (uint8Bytes.length < 5) {
+        throw new Error(
+          "INVALID_PAYLOAD: The received document is empty or corrupted."
+        );
+      }
+
+      // Check %PDF- signature
+      const headerStr = String.fromCharCode(...uint8Bytes.slice(0, 5));
+      if (!headerStr.startsWith("%PDF-")) {
+        // Inspect if it looks like an HTML error page
+        const sampleStr = new TextDecoder().decode(uint8Bytes.slice(0, 300)).toLowerCase();
+        if (sampleStr.includes("<!doctype html") || sampleStr.includes("<html") || sampleStr.includes("<body")) {
+          throw new Error(
+            "HTML_REDIRECT: The remote server returned an interactive HTML web page or login barrier instead of raw PDF bytes."
           );
         }
+        throw new Error(
+          "INVALID_SIGNATURE: Document does not contain a valid %PDF- binary header."
+        );
+      }
+
+      // Stage 5: PARSING_DOCUMENT
+      setViewerState("PARSING_DOCUMENT");
+      setStatusMessage("Parsing document structure and page catalog...");
+
+      const loadingTask = pdfjsLib.getDocument({
+        data: uint8Bytes,
+      });
+
+      const doc = await loadingTask.promise;
+      if (abortController.signal.aborted) {
+        doc.cleanup();
+        loadingTask.destroy();
+        setViewerState("CANCELLED");
+        return;
+      }
+
+      // Load Document Outline (TOC) asynchronously
+      void loadOutline(doc);
+
+      // Stage 6: RENDERING_FIRST_PAGE
+      setViewerState("RENDERING_FIRST_PAGE");
+      setStatusMessage("Rendering page canvas...");
+
+      const validPage = Math.min(initialPage, doc.numPages);
+      setPdfDoc(doc);
+      setNumPages(doc.numPages);
+      setCurrentPage(validPage);
+      setPageInput(String(validPage));
+      setZoom(initialZoom);
+      setRotation(initialRotation);
+
+      // Stage 7: READY
+      setViewerState("READY");
+      setStatusMessage("Document ready.");
+
+      // Background extract and index all pages for grounded AI assistant
+      void extractAndIndexFullText(doc, paperId);
+    } catch (err: unknown) {
+      if (abortController.signal.aborted) {
+        setViewerState("CANCELLED");
+        return;
+      }
+
+      const rawMsg = getErrorMessage(
+        err,
+        remotePdfUrl
+          ? "Could not stream remote PDF."
+          : "Could not open local PDF document."
+      );
+
+      const lower = rawMsg.toLowerCase();
+      if (
+        lower.includes("ieee_access_restricted") ||
+        lower.includes("403") ||
+        lower.includes("forbidden") ||
+        lower.includes("security challenge") ||
+        lower.includes("paywall") ||
+        lower.includes("subscription") ||
+        lower.includes("bot protection")
+      ) {
+        setViewerState("ACCESS_RESTRICTED");
+        setErrorMessage(
+          "Access Restricted: This academic publisher protects full text documents with subscription paywalls, security challenges, or session tokens. Automated in-app streaming is restricted."
+        );
+      } else if (
+        lower.includes("html_redirect") ||
+        lower.includes("invalid_signature") ||
+        lower.includes("invalid_payload") ||
+        lower.includes("not_a_pdf")
+      ) {
+        setViewerState("INVALID_DOCUMENT");
+        setErrorMessage(
+          "Invalid Document: The remote server returned an interactive web page or non-PDF binary rather than raw PDF document bytes."
+        );
+      } else if (lower.includes("stream_timeout") || lower.includes("timeout") || lower.includes("network_error")) {
+        setViewerState("RETRYABLE_ERROR");
+        setErrorMessage(
+          "Retrieval Timed Out: Remote streaming exceeded the 10-second limit. The publisher network may be throttling or experiencing high latency."
+        );
+      } else {
+        setViewerState("RETRYABLE_ERROR");
+        setErrorMessage(rawMsg);
       }
     }
+  }, [paperId, remotePdfUrl, localFilePath, canonicalDoi, paperTitle, loadOutline]);
 
-    loadPdf();
-
+  useEffect(() => {
+    void loadPdf();
     return () => {
-      isCancelled = true;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
       if (renderTaskRef.current) {
         renderTaskRef.current.cancel();
       }
+      if (saveReaderStateTimeoutRef.current) {
+        clearTimeout(saveReaderStateTimeoutRef.current);
+      }
     };
-  }, [paperId, remotePdfUrl]);
+  }, [loadPdf]);
+
+  useEffect(() => {
+    if (pdfDoc && paperId) {
+      void extractAndIndexFullText(pdfDoc, paperId);
+    }
+  }, [pdfDoc, paperId, extractAndIndexFullText]);
+
+  const handleCancelLoading = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setViewerState("CANCELLED");
+  }, []);
+
+  // Allow pressing Escape to cancel loading
+  useEffect(() => {
+    if (!isLoadingState) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleCancelLoading();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLoadingState, handleCancelLoading]);
 
   // -------------------------------------------------------------------------
-  // 2. Render Page Canvas & Text Layer
+  // 4. Render Page Canvas & Text Layer
   // -------------------------------------------------------------------------
   const renderCurrentPage = useCallback(async () => {
     if (!pdfDoc || !canvasRef.current || !containerRef.current) return;
@@ -199,21 +602,20 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
       }
 
       const page = await pdfDoc.getPage(currentPage);
+      if (!containerRef.current || !canvasRef.current) return;
       const container = containerRef.current;
-      const containerWidth = container.clientWidth - 48; // padding
+      const containerWidth = Math.max((container.clientWidth || 800) - 48, 100);
+      const containerHeight = Math.max((container.clientHeight || 1000) - 48, 100);
       const unscaledViewport = page.getViewport({ scale: 1.0, rotation });
 
       let effectiveScale = zoom;
-      if (fitMode === "width" && containerWidth > 100) {
+      if (fitMode === "width") {
         effectiveScale = containerWidth / unscaledViewport.width;
       } else if (fitMode === "page") {
-        const containerHeight = container.clientHeight - 48;
-        if (containerHeight > 100) {
-          effectiveScale = Math.min(
-            containerWidth / unscaledViewport.width,
-            containerHeight / unscaledViewport.height
-          );
-        }
+        effectiveScale = Math.min(
+          containerWidth / unscaledViewport.width,
+          containerHeight / unscaledViewport.height
+        );
       }
 
       const viewport = page.getViewport({ scale: effectiveScale, rotation });
@@ -255,7 +657,6 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
           textSpan.textContent = item.str + " ";
           textSpan.className =
             "absolute text-transparent cursor-text select-text pointer-events-auto leading-none";
-          // Calculate approx position
           const tx = pdfjsLib.Util.transform(viewport.transform, item.transform || [1, 0, 0, 1, 0, 0]);
           textSpan.style.left = `${tx[4]}px`;
           textSpan.style.top = `${tx[5] - (item.height || 10) * effectiveScale}px`;
@@ -264,40 +665,54 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
         }
       }
 
-      // Persist reading position for local saved papers
-      if (paperId && !remotePdfUrl) {
-        try {
-          saveReaderState({
-            paper_id: paperId,
-            file_id: null,
-            last_page: currentPage,
-            zoom_level: effectiveScale,
-            rotation,
-            updated_at: new Date().toISOString(),
-          });
-        } catch {
-          // non-blocking
-        }
-      }
+      // Debounced reader state persistence
+      persistReaderPosition(currentPage, effectiveScale, rotation);
     } catch (err: unknown) {
       if ((err as { name?: string })?.name !== "RenderingCancelledException") {
         console.error("PDF page render error:", err);
       }
     }
-  }, [pdfDoc, currentPage, zoom, rotation, fitMode, paperId, remotePdfUrl]);
+  }, [pdfDoc, currentPage, zoom, rotation, fitMode, persistReaderPosition]);
 
   useEffect(() => {
-    renderCurrentPage();
-  }, [renderCurrentPage]);
+    if (viewerState === "READY") {
+      void renderCurrentPage();
+    }
+  }, [viewerState, renderCurrentPage]);
+
+  // Responsive ResizeObserver
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !pdfDoc) return;
+
+    let rAFId: number | null = null;
+    const observer = new ResizeObserver(() => {
+      if (fitMode === "width" || fitMode === "page") {
+        if (rAFId) cancelAnimationFrame(rAFId);
+        rAFId = requestAnimationFrame(() => {
+          void renderCurrentPage();
+        });
+      }
+    });
+
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+      if (rAFId) cancelAnimationFrame(rAFId);
+    };
+  }, [pdfDoc, fitMode, renderCurrentPage]);
 
   // -------------------------------------------------------------------------
-  // 3. Page Navigation Controls
+  // 5. Page Navigation & Controls
   // -------------------------------------------------------------------------
-  const goToPage = useCallback((page: number) => {
-    if (page < 1 || page > numPages) return;
-    setCurrentPage(page);
-    setPageInput(String(page));
-  }, [numPages]);
+  const goToPage = useCallback(
+    (page: number) => {
+      if (page < 1 || page > numPages) return;
+      setCurrentPage(page);
+      setPageInput(String(page));
+    },
+    [numPages]
+  );
 
   const handlePageInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -310,7 +725,41 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
   };
 
   // -------------------------------------------------------------------------
-  // 4. In-PDF Text Search
+  // 6. Bookmarks Management
+  // -------------------------------------------------------------------------
+  const handleAddBookmark = (page: number, label?: string) => {
+    const newBm: PdfBookmark = {
+      id: `bm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      paperId: paperId || "transient",
+      pageNumber: page,
+      label: label || `Page ${page}`,
+      createdAt: new Date().toISOString(),
+    };
+    setBookmarks((prev) => {
+      const next = [newBm, ...prev];
+      try {
+        localStorage.setItem(bookmarkStorageKey, JSON.stringify(next));
+      } catch {
+        // non-blocking
+      }
+      return next;
+    });
+  };
+
+  const handleRemoveBookmark = (id: string) => {
+    setBookmarks((prev) => {
+      const next = prev.filter((b) => b.id !== id);
+      try {
+        localStorage.setItem(bookmarkStorageKey, JSON.stringify(next));
+      } catch {
+        // non-blocking
+      }
+      return next;
+    });
+  };
+
+  // -------------------------------------------------------------------------
+  // 7. In-Document Text Search
   // -------------------------------------------------------------------------
   const performSearch = useCallback(
     async (query: string) => {
@@ -370,11 +819,74 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
   };
 
   // -------------------------------------------------------------------------
-  // 5. Keyboard Navigation
+  // 8. Text Selection & Floating Research Actions
+  // -------------------------------------------------------------------------
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim();
+    if (!text || text.length === 0 || !containerRef.current) {
+      setSelectionPosition(null);
+      return;
+    }
+
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      const containerRect = containerRef.current.getBoundingClientRect();
+
+      if (
+        rect.bottom >= containerRect.top &&
+        rect.top <= containerRect.bottom &&
+        rect.right >= containerRect.left &&
+        rect.left <= containerRect.right
+      ) {
+        setSelectedText(text);
+        setSelectionPosition({
+          x: rect.left + rect.width / 2 - containerRect.left,
+          y: rect.top - containerRect.top,
+        });
+        return;
+      }
+    }
+    setSelectionPosition(null);
+  };
+
+  const handleMenuAskAi = (text: string) => {
+    setSelectedText(text);
+    setIsRightPanelOpen(true);
+    setActiveRightTab("ai");
+    setSelectionPosition(null);
+  };
+
+  const handleMenuSaveNote = (text: string) => {
+    setSelectedText(text);
+    setIsRightPanelOpen(true);
+    setActiveRightTab("notes");
+    setSelectionPosition(null);
+  };
+
+  const handleMenuSearchInDoc = (text: string) => {
+    setSearchQuery(text);
+    setShowSearch(true);
+    void performSearch(text);
+    setSelectionPosition(null);
+  };
+
+  const handleMenuCopyText = (text: string) => {
+    void navigator.clipboard.writeText(text);
+  };
+
+  const handleMenuCopyCitation = (text: string) => {
+    const leadAuthor = authors.length > 0 ? authors[0].split(" ").pop() : "Author";
+    const citation = `"${text}" (${leadAuthor}, ${publicationYear || "n.d."}, p. ${currentPage})`;
+    void navigator.clipboard.writeText(citation);
+  };
+
+  // -------------------------------------------------------------------------
+  // 9. Keyboard Shortcuts
   // -------------------------------------------------------------------------
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept when typing in search or page input
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -403,7 +915,9 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
         e.preventDefault();
         setShowSearch(true);
       } else if (e.key === "Escape") {
-        if (showSearch) {
+        if (selectionPosition) {
+          setSelectionPosition(null);
+        } else if (showSearch) {
           setShowSearch(false);
         } else if (isFullscreen) {
           setIsFullscreen(false);
@@ -413,302 +927,61 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentPage, numPages, showSearch, isFullscreen, goToPage]);
+  }, [currentPage, numPages, showSearch, isFullscreen, selectionPosition, goToPage]);
 
-  // -------------------------------------------------------------------------
-  // Render: Loading State
-  // -------------------------------------------------------------------------
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[400px] p-8 text-center space-y-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-            Opening PDF Document...
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Loading pages and initializing embedded viewer
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // -------------------------------------------------------------------------
-  // Render: Error State
-  // -------------------------------------------------------------------------
-  if (errorMessage) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[400px] p-8 text-center space-y-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
-        <div className="p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-full">
-          <AlertTriangle className="w-8 h-8" />
-        </div>
-        <div className="space-y-1 max-w-md">
-          <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
-            PDF Document Unavailable
-          </h3>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            {errorMessage}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-          {onRetry && (
-            <Button variant="primary" size="sm" onClick={onRetry}>
-              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-              Retry Streaming PDF
-            </Button>
-          )}
-          {onResolveAgain && (
-            <Button variant="primary" size="sm" onClick={onResolveAgain}>
-              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-              Re-resolve PDF Candidates
-            </Button>
-          )}
-          {sourceUrl && (
-            <a
-              href={sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              Open Source Article Page
-            </a>
-          )}
-          {onClose && (
-            <Button variant="outline" size="sm" onClick={onClose}>
-              Close Viewer
-            </Button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // -------------------------------------------------------------------------
-  // Render: Embedded Reader Workspace
-  // -------------------------------------------------------------------------
   return (
     <div
-      className={`flex flex-col bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden transition-all duration-200 ${
+      data-testid="pdf-reader-workspace"
+      className={`flex flex-col bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden transition-all duration-200 w-full ${
         isFullscreen
-          ? "fixed inset-0 z-50 rounded-none border-none"
+          ? "fixed inset-0 z-[120] rounded-none border-none"
           : "relative h-full min-h-[580px]"
       }`}
     >
-      {/* 1. Header & Document Title Bar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 gap-2 select-none shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
-          <h2
-            className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate"
-            title={paperTitle}
-          >
-            {paperTitle}
-          </h2>
-          {remotePdfUrl && (
-            <Badge variant="info" size="sm" className="hidden sm:inline-flex items-center gap-1">
-              <Cloud className="w-3 h-3 text-sky-500" />
-              Remote Stream
-            </Badge>
-          )}
-          {isScanned && (
-            <Badge variant="warning" size="sm">
-              Scanned (No OCR text)
-            </Badge>
-          )}
-        </div>
+      {/* --------------------------------------------------------------------- */}
+      {/* 1. Modern Unified PDF Workspace Toolbar */}
+      {/* --------------------------------------------------------------------- */}
+      <PdfToolbar
+        paperTitle={paperTitle}
+        sourceName={sourceName}
+        venue={venue}
+        publicationYear={publicationYear}
+        canonicalDoi={canonicalDoi}
+        sourceUrl={sourceUrl}
+        remotePdfUrl={remotePdfUrl}
+        isDownloaded={isDownloaded}
+        isScanned={isScanned}
+        onSaveOffline={onSaveOffline}
+        isSavingOffline={isSavingOffline}
+        onOpenExternal={onOpenExternal}
+        onClose={onClose}
+        currentPage={currentPage}
+        numPages={numPages}
+        pageInput={pageInput}
+        setPageInput={setPageInput}
+        onPageInputSubmit={handlePageInputSubmit}
+        goToPage={goToPage}
+        zoom={zoom}
+        setZoom={setZoom}
+        fitMode={fitMode}
+        setFitMode={setFitMode}
+        setRotation={setRotation}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        isRightPanelOpen={isRightPanelOpen}
+        setIsRightPanelOpen={setIsRightPanelOpen}
+        showRightPanelToggle={!hideRightPanel}
+        showSearch={showSearch}
+        setShowSearch={setShowSearch}
+        isFullscreen={isFullscreen}
+        setIsFullscreen={setIsFullscreen}
+      />
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          {onSaveOffline && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onSaveOffline}
-              disabled={isSavingOffline}
-              title="Save document offline to local database and library"
-              className="h-7 px-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/60 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
-            >
-              <Download className="w-3.5 h-3.5 mr-1" />
-              <span>{isSavingOffline ? "Saving..." : "Save Offline"}</span>
-            </Button>
-          )}
-          {onOpenExternal && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onOpenExternal}
-              title="Open with system default PDF viewer"
-              className="h-7 px-2 text-xs"
-            >
-              <ExternalLink className="w-3.5 h-3.5 mr-1" />
-              <span className="hidden sm:inline">System App</span>
-            </Button>
-          )}
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            title={isFullscreen ? "Exit focus reading" : "Focus reading mode"}
-            className="h-7 w-7 p-0"
-          >
-            {isFullscreen ? (
-              <Minimize2 className="w-3.5 h-3.5" />
-            ) : (
-              <Maximize2 className="w-3.5 h-3.5" />
-            )}
-          </Button>
-
-          {onClose && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              title="Close reader"
-              className="h-7 w-7 p-0 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* 2. Controls Toolbar */}
-      <div className="flex flex-wrap items-center justify-between px-3 py-1.5 bg-slate-50 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 gap-2 text-xs select-none shrink-0">
-        {/* Left: Sidebar toggle & Page Navigation */}
-        <div className="flex items-center gap-1.5">
-          <Button
-            variant={isSidebarOpen ? "primary" : "ghost"}
-            size="sm"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            title="Toggle thumbnail sidebar"
-            className="h-7 px-2"
-          >
-            <Sidebar className="w-3.5 h-3.5 mr-1" />
-            <span className="hidden md:inline">Pages</span>
-          </Button>
-
-          <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1" />
-
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={currentPage <= 1}
-            onClick={() => goToPage(currentPage - 1)}
-            title="Previous page (ArrowLeft)"
-            className="h-7 w-7 p-0"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-
-          <form onSubmit={handlePageInputSubmit} className="flex items-center gap-1">
-            <input
-              type="text"
-              value={pageInput}
-              onChange={(e) => setPageInput(e.target.value)}
-              onBlur={() => setPageInput(String(currentPage))}
-              className="w-10 h-6 text-center text-xs font-medium rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            <span className="text-slate-500 dark:text-slate-400 text-xs">
-              / {numPages}
-            </span>
-          </form>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={currentPage >= numPages}
-            onClick={() => goToPage(currentPage + 1)}
-            title="Next page (ArrowRight)"
-            className="h-7 w-7 p-0"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* Center: Zoom & Rotate Controls */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setFitMode("custom");
-              setZoom((z) => Math.max(0.4, z - 0.15));
-            }}
-            title="Zoom out (-)"
-            className="h-7 w-7 p-0"
-          >
-            <ZoomOut className="w-3.5 h-3.5" />
-          </Button>
-
-          <select
-            value={fitMode === "custom" ? String(Math.round(zoom * 100)) : fitMode}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === "width") {
-                setFitMode("width");
-              } else if (val === "page") {
-                setFitMode("page");
-              } else {
-                setFitMode("custom");
-                setZoom(parseInt(val, 10) / 100);
-              }
-            }}
-            className="h-6 px-1.5 text-xs font-medium rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
-          >
-            <option value="width">Fit Width</option>
-            <option value="page">Fit Page</option>
-            <option value="50">50%</option>
-            <option value="75">75%</option>
-            <option value="100">100%</option>
-            <option value="125">125%</option>
-            <option value="150">150%</option>
-            <option value="200">200%</option>
-          </select>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setFitMode("custom");
-              setZoom((z) => Math.min(3.0, z + 0.15));
-            }}
-            title="Zoom in (+)"
-            className="h-7 w-7 p-0"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setRotation((r) => (r + 90) % 360)}
-            title="Rotate clockwise (R)"
-            className="h-7 w-7 p-0"
-          >
-            <RotateCw className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-
-        {/* Right: Search Toggle */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant={showSearch ? "primary" : "ghost"}
-            size="sm"
-            onClick={() => setShowSearch(!showSearch)}
-            title="Search in PDF (Ctrl+F)"
-            className="h-7 px-2"
-          >
-            <Search className="w-3.5 h-3.5 mr-1" />
-            <span className="hidden sm:inline">Find</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* 3. Search Bar Sub-Panel */}
-      {showSearch && (
-        <div className="flex items-center justify-between px-3 py-1.5 bg-indigo-50/70 dark:bg-indigo-950/40 border-b border-indigo-200 dark:border-indigo-900 gap-2 text-xs">
+      {/* --------------------------------------------------------------------- */}
+      {/* 2. In-Document Text Search Sub-Panel */}
+      {/* --------------------------------------------------------------------- */}
+      {showSearch && viewerState === "READY" && (
+        <div className="flex items-center justify-between px-3.5 py-1.5 bg-indigo-50/90 dark:bg-indigo-950/60 border-b border-indigo-200 dark:border-indigo-900 gap-2 text-xs shrink-0 select-none">
           <div className="flex items-center gap-2 flex-1 max-w-md">
             <input
               type="text"
@@ -717,16 +990,16 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
               autoFocus
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                performSearch(e.target.value);
+                void performSearch(e.target.value);
               }}
-              className="flex-1 h-7 px-2.5 text-xs rounded border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="flex-1 h-7 px-2.5 text-xs rounded-md border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
             />
             {isSearching ? (
-              <span className="text-xs text-indigo-600 dark:text-indigo-400 animate-pulse">
+              <span className="text-xs text-slate-500">
                 Searching...
               </span>
             ) : searchMatches.length > 0 ? (
-              <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 shrink-0">
+              <span className="text-xs font-mono font-medium text-slate-700 dark:text-slate-300 shrink-0">
                 {activeMatchIndex + 1} of {searchMatches.length}
               </span>
             ) : searchQuery.trim() ? (
@@ -735,93 +1008,311 @@ export const EmbeddedPdfViewer: React.FC<EmbeddedPdfViewerProps> = ({
           </div>
 
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
+              type="button"
               disabled={searchMatches.length === 0}
               onClick={prevMatch}
               title="Previous match"
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 flex items-center justify-center rounded text-slate-600 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 disabled:opacity-40 transition-colors cursor-pointer"
             >
               <ChevronUp className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+            </button>
+            <button
+              type="button"
               disabled={searchMatches.length === 0}
               onClick={nextMatch}
               title="Next match"
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 flex items-center justify-center rounded text-slate-600 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 disabled:opacity-40 transition-colors cursor-pointer"
             >
               <ChevronDown className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+            </button>
+            <button
+              type="button"
               onClick={() => setShowSearch(false)}
-              className="h-6 w-6 p-0"
+              title="Close search"
+              className="h-6 w-6 flex items-center justify-center rounded text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
-            </Button>
+            </button>
           </div>
         </div>
       )}
 
-      {/* 4. Main Body: Thumbnails & Page Canvas Viewport */}
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Thumbnails Sidebar */}
-        {isSidebarOpen && (
-          <div className="w-36 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 overflow-y-auto p-2 space-y-2 select-none shrink-0">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">
-              Pages ({numPages})
-            </div>
-            {Array.from({ length: numPages }, (_, i) => i + 1).map((p) => {
-              const isSelected = p === currentPage;
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => goToPage(p)}
-                  className={`w-full flex flex-col items-center p-1.5 rounded-lg border transition-all text-center cursor-pointer ${
-                    isSelected
-                      ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 shadow-sm"
-                      : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-800/40"
-                  }`}
-                >
-                  <div className="w-16 h-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-xs flex items-center justify-center text-[10px] text-slate-400 font-mono">
-                    P. {p}
-                  </div>
-                  <span
-                    className={`mt-1 text-[11px] font-medium ${
-                      isSelected
-                        ? "text-indigo-600 dark:text-indigo-400 font-bold"
-                        : "text-slate-600 dark:text-slate-400"
-                    }`}
-                  >
-                    Page {p}
-                  </span>
-                </button>
-              );
-            })}
+      {/* --------------------------------------------------------------------- */}
+      {/* 3. BODY: Explicit FSM Lifecycle vs Three-Panel Reading Workspace */}
+      {/* --------------------------------------------------------------------- */}
+      {isLoadingState ? (
+        /* Clean Academic Paper Skeleton Loader */
+        <div className="flex-1 w-full h-full flex flex-col relative" title={statusMessage} aria-busy="true">
+          <PdfDocumentSkeleton />
+        </div>
+      ) : viewerState === "ACCESS_RESTRICTED" ? (
+        /* ACCESS RESTRICTED (Publisher Paywall / Anti-Bot) */
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 bg-slate-50 dark:bg-slate-900 overflow-y-auto">
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-2xl border border-amber-200 dark:border-amber-800 shadow-sm">
+            <ShieldAlert className="w-8 h-8" />
           </div>
-        )}
+          <div className="space-y-2 max-w-md">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+              <span>Publisher Access Restricted</span>
+            </div>
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+              Document Requires Browser Access
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed text-left p-3 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20">
+              {errorMessage ||
+                "This document is protected by publisher access controls (e.g. IEEE Xplore subscription, Cloudflare bot challenges, or institutional login). In compliance with academic access policies, open the paper directly on the publisher site, then import or link your downloaded copy."}
+            </p>
+          </div>
 
-        {/* Scrollable Canvas Viewport */}
-        <div
-          ref={containerRef}
-          className="flex-1 overflow-auto p-6 flex justify-center items-start bg-slate-200/60 dark:bg-slate-950"
-        >
-          <div className="relative shadow-xl rounded bg-white dark:bg-slate-900 overflow-hidden">
-            <canvas ref={canvasRef} className="block select-none" />
-            {/* Transparent selectable text layer overlaid on top of canvas */}
-            <div
-              ref={textLayerRef}
-              className="absolute inset-0 pointer-events-none select-text overflow-hidden"
-              style={{ userSelect: "text" }}
-            />
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2 max-w-lg">
+            {(sourceUrl || remotePdfUrl) && (
+              <a
+                href={sourceUrl || remotePdfUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-sm cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open Official Article Page</span>
+              </a>
+            )}
+
+            {onImportLocal && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onImportLocal}
+                className="text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+              >
+                <Upload className="w-3.5 h-3.5 mr-1.5" />
+                <span>Import Downloaded PDF</span>
+              </Button>
+            )}
+
+            {onResolveAgain && (
+              <Button variant="outline" size="sm" onClick={onResolveAgain} className="text-xs">
+                <Globe className="w-3.5 h-3.5 mr-1.5" />
+                <span>Resolve OA Mirrors</span>
+              </Button>
+            )}
+
+            {canonicalDoi && (
+              <a
+                href={`https://doi.org/${canonicalDoi}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors font-mono"
+              >
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+                <span>Open via DOI</span>
+              </a>
+            )}
+
+            {onRetry && (
+              <Button variant="ghost" size="sm" onClick={() => void loadPdf()} className="text-xs">
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                <span>Retry</span>
+              </Button>
+            )}
           </div>
         </div>
-      </div>
+      ) : viewerState === "INVALID_DOCUMENT" ? (
+        /* INVALID DOCUMENT (Non-PDF or HTML Error Page) */
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 bg-slate-50 dark:bg-slate-900 overflow-y-auto">
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-2xl border border-rose-200 dark:border-rose-800 shadow-sm">
+            <FileWarning className="w-8 h-8" />
+          </div>
+          <div className="space-y-2 max-w-md">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+              <span>Non-PDF Response</span>
+            </div>
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+              Web Landing Page Received Instead of PDF
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed text-left p-3 rounded-xl bg-rose-500/10 dark:bg-rose-400/10 border border-rose-500/20">
+              {errorMessage ||
+                "The server returned an HTML error page or an interactive download landing page rather than raw PDF binary bytes."}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2 max-w-lg">
+            {(sourceUrl || remotePdfUrl) && (
+              <a
+                href={sourceUrl || remotePdfUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-sm cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open Source Webpage</span>
+              </a>
+            )}
+
+            {onImportLocal && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onImportLocal}
+                className="text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+              >
+                <Upload className="w-3.5 h-3.5 mr-1.5" />
+                <span>Import Downloaded PDF</span>
+              </Button>
+            )}
+
+            {onResolveAgain && (
+              <Button variant="outline" size="sm" onClick={onResolveAgain} className="text-xs">
+                <Globe className="w-3.5 h-3.5 mr-1.5" />
+                <span>Re-resolve Candidates</span>
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : viewerState === "CANCELLED" ? (
+        /* CANCELLED */
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 bg-slate-50 dark:bg-slate-900">
+          <div className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <Ban className="w-8 h-8" />
+          </div>
+          <div className="space-y-1.5 max-w-sm">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              Retrieval Cancelled
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              You cancelled the streaming download. Click below to restart retrieval.
+            </p>
+          </div>
+          <Button variant="primary" size="sm" onClick={() => void loadPdf()} className="text-xs">
+            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+            <span>Restart Retrieval</span>
+          </Button>
+        </div>
+      ) : viewerState === "RETRYABLE_ERROR" ? (
+        /* RETRYABLE ERROR (Network / Timeout) */
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 bg-slate-50 dark:bg-slate-900 overflow-y-auto">
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-2xl border border-amber-200 dark:border-amber-800 shadow-sm">
+            <AlertTriangle className="w-8 h-8" />
+          </div>
+          <div className="space-y-2 max-w-md">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+              <span>Network Stream Interrupted</span>
+            </div>
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+              Could Not Complete PDF Stream
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed text-left p-3 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20">
+              {errorMessage || "The connection timed out or was interrupted by the remote server."}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2 max-w-lg">
+            <Button variant="primary" size="sm" onClick={() => void loadPdf()} className="text-xs">
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+              <span>Retry Streaming</span>
+            </Button>
+
+            {(sourceUrl || remotePdfUrl) && (
+              <a
+                href={sourceUrl || remotePdfUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors shadow-2xs"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open in Browser</span>
+              </a>
+            )}
+
+            {onImportLocal && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onImportLocal}
+                className="text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+              >
+                <Upload className="w-3.5 h-3.5 mr-1.5" />
+                <span>Import Local File</span>
+              </Button>
+            )}
+
+            {onResolveAgain && (
+              <Button variant="outline" size="sm" onClick={onResolveAgain} className="text-xs">
+                <Globe className="w-3.5 h-3.5 mr-1.5" />
+                <span>Re-resolve Sources</span>
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* ------------------------------------------------------------------- */
+        /* READY STATE: Multi-Panel Research Workspace                         */
+        /* ------------------------------------------------------------------- */
+        <div className="flex flex-1 overflow-hidden relative min-h-0">
+          {/* Left Panel: Outline (TOC), Thumbnails & Bookmarks */}
+          {isSidebarOpen && (
+            <PdfLeftPanel
+              outline={outline}
+              numPages={numPages}
+              currentPage={currentPage}
+              goToPage={goToPage}
+              bookmarks={bookmarks}
+              onAddBookmark={handleAddBookmark}
+              onRemoveBookmark={handleRemoveBookmark}
+              initialTab={initialLeftTab}
+            />
+          )}
+
+          {/* Center: Canvas Viewport & Text Selection Layer */}
+          <div
+            ref={containerRef}
+            onMouseUp={handleMouseUp}
+            className="flex-1 overflow-auto p-6 flex justify-center items-start bg-slate-200/60 dark:bg-slate-950 min-w-0 relative select-none"
+          >
+            <div className="relative shadow-xl rounded bg-white dark:bg-slate-900 overflow-hidden">
+              <canvas ref={canvasRef} className="block select-none" />
+              {/* Selectable transparent text layer */}
+              <div
+                ref={textLayerRef}
+                className="absolute inset-0 pointer-events-none select-text overflow-hidden"
+                style={{ userSelect: "text" }}
+              />
+            </div>
+
+            {/* Floating Text Selection Research Actions */}
+            <TextSelectionMenu
+              selectedText={selectedText}
+              position={selectionPosition}
+              currentPage={currentPage}
+              onAskAi={handleMenuAskAi}
+              onSaveNote={handleMenuSaveNote}
+              onSearchInDoc={handleMenuSearchInDoc}
+              onCopyText={handleMenuCopyText}
+              onCopyCitation={handleMenuCopyCitation}
+              onClose={() => setSelectionPosition(null)}
+            />
+          </div>
+
+          {/* Right Panel: AI Copilot, Metadata/Citations & SQLite Notes */}
+          {!hideRightPanel && isRightPanelOpen && (
+            <PdfRightPanel
+              paperId={paperId}
+              paperTitle={paperTitle}
+              authors={authors}
+              venue={venue}
+              publicationYear={publicationYear}
+              canonicalDoi={canonicalDoi}
+              abstractText={abstractText}
+              currentPage={currentPage}
+              numPages={numPages}
+              selectedText={selectedText}
+              onNavigatePdfPage={goToPage}
+              initialTab={activeRightTab}
+              onClose={() => setIsRightPanelOpen(false)}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };

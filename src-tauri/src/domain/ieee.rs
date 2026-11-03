@@ -18,6 +18,8 @@ pub struct IeeeManualImportInput {
     pub user_confirmed_oa: bool,
     pub user_notes: Option<String>,
     pub target_collection_id: Option<String>,
+    pub copy_to_library: Option<bool>,
+    pub abstract_text: Option<String>,
 }
 
 /// Generic input payload for manual local PDF import with Open Access confirmation.
@@ -36,6 +38,8 @@ pub struct LocalOaPdfImportInput {
     pub user_confirmed_oa: bool,
     pub user_notes: Option<String>,
     pub target_collection_id: Option<String>,
+    pub copy_to_library: Option<bool>,
+    pub abstract_text: Option<String>,
 }
 
 /// Statistics covering Open Access papers, provenance, and integrity in the library.

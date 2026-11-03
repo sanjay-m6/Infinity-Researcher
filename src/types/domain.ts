@@ -1,16 +1,40 @@
+export type NavCategory = "research" | "ai_tools" | "workspace" | "system";
+
 export type NavSection =
+  // Research
   | "dashboard"
   | "discover"
+  | "literature_workspace"
   | "library"
+  | "research_assistant"
+  | "paper_comparison"
   | "review_matrix"
-  | "integrity"
-  | "downloads"
-  | "collections"
-  | "sources"
   | "ieee"
+  // AI Tools
+  | "ai_tools"
+  | "ai_writing_detector"
+  | "plagiarism_checker"
+  | "ai_humanizer"
+  | "academic_writing_assistant"
+  | "paraphrasing_tool"
+  | "citation_checker"
+  | "readability_analyzer"
+  | "research_integrity"
+  // Workspace
+  | "projects"
+  | "tasks"
+  | "collections"
+  | "saved_reports"
+  | "history"
+  | "downloads"
   | "activity"
+  // System
+  | "ai_models"
   | "ai_hub"
-  | "settings";
+  | "ai_diagnostics"
+  | "sources"
+  | "settings"
+  | "privacy_security";
 
 
 export type AccessStatus = "open_access" | "restricted" | "preprint";
@@ -49,6 +73,7 @@ export interface Paper {
   localPdfPath?: string | null;
   readingStatus?: string;
   readingProgress?: number;
+  lastOpenedAt?: string | null;
 }
 
 
@@ -122,3 +147,5 @@ export interface SearchFilters {
   hasAbstract: boolean;
   sortBy: "relevance" | "year_desc" | "year_asc" | "citations";
 }
+
+export type { SavedSearch } from "../lib/desktop-api/types";

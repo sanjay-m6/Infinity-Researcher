@@ -218,6 +218,7 @@ mod tests {
             is_saved: true,
             reading_status: "unread".to_string(),
             reading_progress: 0.0,
+            last_opened_at: None,
             created_at: "2026-01-01T00:00:00Z".to_string(),
             updated_at: "2026-01-01T00:00:00Z".to_string(),
             open_access_status: "verified_open_access".to_string(),

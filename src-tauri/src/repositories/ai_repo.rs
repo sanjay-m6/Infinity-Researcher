@@ -1,4 +1,5 @@
 use crate::domain::ai::*;
+use regex::Regex;
 use rusqlite::{params, Connection, Result};
 
 pub struct AiRepository;
@@ -190,6 +191,17 @@ impl AiRepository {
                  updated_at = datetime('now')
              WHERE id = ?2",
             params![credential_ref, id],
+        )?;
+        Ok(())
+    }
+
+    pub fn update_provider_model(conn: &Connection, id: &str, model: &str) -> Result<()> {
+        conn.execute(
+            "UPDATE ai_providers
+             SET default_model = ?1,
+                 updated_at = datetime('now')
+             WHERE id = ?2",
+            params![model, id],
         )?;
         Ok(())
     }
@@ -426,6 +438,7 @@ impl AiRepository {
     }
 
     /// Searches chunks via FTS5 BM25 index with optional paper_id restriction.
+    /// Prioritizes exact page numbers when the query explicitly references a page (e.g. "page 7").
     /// Falls back to simple LIKE search if FTS syntax fails.
     pub fn search_chunks(
         conn: &Connection,
@@ -433,6 +446,50 @@ impl AiRepository {
         paper_id: Option<&str>,
         limit: usize,
     ) -> Result<Vec<AiChunkCitation>> {
+        // 1. Detect explicit page references (e.g. "page 7", "pg 7", "p. 7")
+        let mut targeted_page_citations: Vec<AiChunkCitation> = Vec::new();
+        if let Ok(page_re) = Regex::new(r"(?i)\b(?:page|pg|p\.?)\s*(\d+)\b") {
+            for cap in page_re.captures_iter(query) {
+                if let Some(m) = cap.get(1) {
+                    if let Ok(p_num) = m.as_str().parse::<i64>() {
+                        if p_num > 0 {
+                            if let Some(pid) = paper_id {
+                                if let Ok(mut stmt) = conn.prepare(
+                                    "SELECT c.id, c.paper_id, coalesce(p.title, 'Unknown Paper'), c.page_number,
+                                            c.section_heading, c.content_text
+                                     FROM ai_paper_chunks c
+                                     LEFT JOIN papers p ON p.id = c.paper_id
+                                     WHERE c.paper_id = ?1 AND c.page_number = ?2
+                                     ORDER BY c.chunk_index ASC"
+                                ) {
+                                    if let Ok(rows) = stmt.query_map(params![pid, p_num], |row| {
+                                        Ok(AiChunkCitation {
+                                            chunk_id: row.get(0)?,
+                                            paper_id: row.get(1)?,
+                                            paper_title: row.get(2)?,
+                                            page_number: row.get(3)?,
+                                            section_heading: row.get(4)?,
+                                            snippet: row.get(5)?,
+                                            score: 1.0,
+                                        })
+                                    }) {
+                                        for r in rows.flatten() {
+                                            if !targeted_page_citations
+                                                .iter()
+                                                .any(|existing| existing.chunk_id == r.chunk_id)
+                                            {
+                                                targeted_page_citations.push(r);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Sanitize query tokens for FTS5 (remove special characters that break MATCH)
         let sanitized: String = query
             .chars()
@@ -444,13 +501,35 @@ impl AiRepository {
                 }
             })
             .collect();
-        let tokens: Vec<&str> = sanitized
+
+        const STOPWORDS: &[&str] = &[
+            "a", "an", "the", "in", "on", "at", "to", "for", "of", "with", "by", "from",
+            "is", "are", "was", "were", "be", "been", "being",
+            "have", "has", "had", "do", "does", "did",
+            "what", "which", "who", "whom", "this", "that", "these", "those",
+            "it", "its", "they", "them", "their",
+            "and", "or", "but", "if", "so", "as", "than", "too", "very", "can", "will", "just",
+        ];
+
+        let all_tokens: Vec<&str> = sanitized
             .split_whitespace()
-            .filter(|w| w.len() > 1)
+            .filter(|w| w.len() > 1 || w.chars().all(|c| c.is_numeric()))
             .collect();
 
+        let filtered_tokens: Vec<&str> = all_tokens
+            .iter()
+            .copied()
+            .filter(|w| !STOPWORDS.contains(&w.to_lowercase().as_str()))
+            .collect();
+
+        let tokens = if !filtered_tokens.is_empty() {
+            filtered_tokens
+        } else {
+            all_tokens
+        };
+
         if tokens.is_empty() {
-            return Ok(Vec::new());
+            return Ok(targeted_page_citations);
         }
 
         let fts_query = tokens.join(" OR ");
@@ -475,7 +554,7 @@ impl AiRepository {
              LIMIT ?2"
         };
 
-        let result = if let Some(pid) = paper_id {
+        let search_results: Vec<AiChunkCitation> = if let Some(pid) = paper_id {
             let mut stmt = conn.prepare(sql)?;
             let rows = stmt.query_map(params![fts_query, pid, limit as i64], |row| {
                 let rank: f64 = row.get(6).unwrap_or(0.0);
@@ -498,9 +577,9 @@ impl AiRepository {
                     for r in mapped {
                         citations.push(r?);
                     }
-                    Ok(citations)
+                    citations
                 }
-                Err(_) => Self::fallback_like_search(conn, &tokens, paper_id, limit),
+                Err(_) => Self::fallback_like_search(conn, &tokens, paper_id, limit)?,
             }
         } else {
             let mut stmt = conn.prepare(sql)?;
@@ -524,13 +603,22 @@ impl AiRepository {
                     for r in mapped {
                         citations.push(r?);
                     }
-                    Ok(citations)
+                    citations
                 }
-                Err(_) => Self::fallback_like_search(conn, &tokens, paper_id, limit),
+                Err(_) => Self::fallback_like_search(conn, &tokens, paper_id, limit)?,
             }
         };
 
-        result
+        // Combine: Page-targeted chunks come first, followed by relevant BM25 hits
+        let mut final_results = targeted_page_citations;
+        for c in search_results {
+            if !final_results.iter().any(|existing| existing.chunk_id == c.chunk_id) {
+                final_results.push(c);
+            }
+        }
+        final_results.truncate((limit + 4).max(8));
+
+        Ok(final_results)
     }
 
     fn fallback_like_search(
@@ -597,16 +685,306 @@ impl AiRepository {
         }
     }
 
+    pub fn search_chunks_multi(
+        conn: &Connection,
+        query: &str,
+        paper_ids: &[String],
+        limit: usize,
+    ) -> Result<Vec<AiChunkCitation>> {
+        if paper_ids.is_empty() {
+            return Self::search_chunks(conn, query, None, limit);
+        }
+        if paper_ids.len() == 1 {
+            return Self::search_chunks(conn, query, Some(&paper_ids[0]), limit);
+        }
+
+        let sanitized: String = query
+            .chars()
+            .map(|c| if c.is_alphanumeric() || c == ' ' { c } else { ' ' })
+            .collect();
+        let tokens: Vec<&str> = sanitized
+            .split_whitespace()
+            .filter(|w| w.len() > 1)
+            .collect();
+
+        if tokens.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let fts_query = tokens.join(" OR ");
+        let placeholders: Vec<String> = (0..paper_ids.len()).map(|i| format!("?{}", i + 2)).collect();
+        let in_clause = placeholders.join(",");
+
+        let sql = format!(
+            "SELECT c.id, c.paper_id, coalesce(p.title, 'Unknown Paper'), c.page_number,
+                    c.section_heading, c.content_text, bm25(ai_chunks_fts) as rank
+             FROM ai_chunks_fts
+             JOIN ai_paper_chunks c ON c.rowid = ai_chunks_fts.rowid
+             LEFT JOIN papers p ON p.id = c.paper_id
+             WHERE ai_chunks_fts MATCH ?1 AND c.paper_id IN ({})
+             ORDER BY rank ASC
+             LIMIT ?{}",
+            in_clause,
+            paper_ids.len() + 2
+        );
+
+        let mut stmt = conn.prepare(&sql)?;
+        let mut params_vec: Vec<rusqlite::types::Value> = Vec::new();
+        params_vec.push(rusqlite::types::Value::Text(fts_query));
+        for pid in paper_ids {
+            params_vec.push(rusqlite::types::Value::Text(pid.clone()));
+        }
+        params_vec.push(rusqlite::types::Value::Integer(limit as i64));
+
+        let rows = stmt.query_map(rusqlite::params_from_iter(params_vec), |row| {
+            let rank: f64 = row.get(6).unwrap_or(0.0);
+            let score = (1.0 / (1.0 + rank.abs())).min(1.0);
+            Ok(AiChunkCitation {
+                chunk_id: row.get(0)?,
+                paper_id: row.get(1)?,
+                paper_title: row.get(2)?,
+                page_number: row.get(3)?,
+                section_heading: row.get(4)?,
+                snippet: row.get(5)?,
+                score,
+            })
+        });
+
+        match rows {
+            Ok(mapped) => {
+                let mut citations = Vec::new();
+                for r in mapped {
+                    citations.push(r?);
+                }
+                Ok(citations)
+            }
+            Err(_) => Self::search_chunks(conn, query, None, limit),
+        }
+    }
+
+    pub fn verify_citation(
+        conn: &Connection,
+        chunk_id: &str,
+        expected_paper_id: &str,
+        snippet: &str,
+    ) -> Result<VerifiedEvidenceItem> {
+        let mut stmt = conn.prepare(
+            "SELECT c.id, c.paper_id, coalesce(p.title, 'Unknown Paper'), c.page_number,
+                    c.section_heading, c.content_text
+             FROM ai_paper_chunks c
+             LEFT JOIN papers p ON p.id = c.paper_id
+             WHERE c.id = ?1 AND c.paper_id = ?2",
+        )?;
+
+        let mut rows = stmt.query(params![chunk_id, expected_paper_id])?;
+        if let Some(row) = rows.next()? {
+            let actual_content: String = row.get(5)?;
+            let citation = AiChunkCitation {
+                chunk_id: row.get(0)?,
+                paper_id: row.get(1)?,
+                paper_title: row.get(2)?,
+                page_number: row.get(3)?,
+                section_heading: row.get(4)?,
+                snippet: actual_content.clone(),
+                score: 1.0,
+            };
+
+            let clean_snip = snippet.trim().to_lowercase();
+            let clean_content = actual_content.to_lowercase();
+
+            if clean_content.contains(&clean_snip) || clean_snip.contains(&clean_content) {
+                Ok(VerifiedEvidenceItem {
+                    citation,
+                    is_verified: true,
+                    verification_method: "exact_match".into(),
+                    confidence: 1.0,
+                })
+            } else {
+                let snip_words: std::collections::HashSet<&str> = clean_snip.split_whitespace().collect();
+                let content_words: std::collections::HashSet<&str> = clean_content.split_whitespace().collect();
+                let overlap_count = snip_words.intersection(&content_words).count();
+                let overlap_ratio = if !snip_words.is_empty() {
+                    overlap_count as f64 / snip_words.len() as f64
+                } else {
+                    0.0
+                };
+
+                if overlap_ratio >= 0.35 {
+                    Ok(VerifiedEvidenceItem {
+                        citation,
+                        is_verified: true,
+                        verification_method: "token_overlap".into(),
+                        confidence: overlap_ratio,
+                    })
+                } else {
+                    Ok(VerifiedEvidenceItem {
+                        citation,
+                        is_verified: false,
+                        verification_method: "unverified".into(),
+                        confidence: overlap_ratio,
+                    })
+                }
+            }
+        } else {
+            Ok(VerifiedEvidenceItem {
+                citation: AiChunkCitation {
+                    chunk_id: chunk_id.to_string(),
+                    paper_id: expected_paper_id.to_string(),
+                    paper_title: "Unverified Reference".into(),
+                    page_number: 1,
+                    section_heading: None,
+                    snippet: snippet.to_string(),
+                    score: 0.0,
+                },
+                is_verified: false,
+                verification_method: "unverified".into(),
+                confidence: 0.0,
+            })
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Chat Sessions & Messages
     // -------------------------------------------------------------------------
+
+    pub fn create_session(conn: &Connection, session: &AiChatSession) -> Result<()> {
+        let valid_paper_id = match &session.paper_id {
+            Some(pid) if !pid.trim().is_empty() => {
+                let exists: bool = conn
+                    .query_row("SELECT 1 FROM papers WHERE id = ?1", params![pid], |_| Ok(()))
+                    .is_ok();
+                if exists {
+                    Some(pid.clone())
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        };
+        let created_at = if session.created_at.trim().is_empty() {
+            chrono::Utc::now().to_rfc3339()
+        } else {
+            session.created_at.clone()
+        };
+        let updated_at = if session.updated_at.trim().is_empty() {
+            created_at.clone()
+        } else {
+            session.updated_at.clone()
+        };
+
+        conn.execute(
+            "INSERT INTO ai_chat_sessions (id, paper_id, title, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![session.id, valid_paper_id, session.title, created_at, updated_at],
+        )?;
+        Ok(())
+    }
+
+    pub fn list_sessions(conn: &Connection) -> Result<Vec<AiChatSession>> {
+        let mut stmt = conn.prepare(
+            "SELECT id, paper_id, title, created_at, updated_at
+             FROM ai_chat_sessions
+             ORDER BY updated_at DESC, created_at DESC",
+        )?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok(AiChatSession {
+                id: row.get(0)?,
+                paper_id: row.get(1)?,
+                title: row.get(2)?,
+                created_at: row.get(3)?,
+                updated_at: row.get(4)?,
+            })
+        })?;
+
+        let mut sessions = Vec::new();
+        for r in rows {
+            sessions.push(r?);
+        }
+        Ok(sessions)
+    }
+
+    pub fn get_session(conn: &Connection, session_id: &str) -> Result<Option<AiChatSession>> {
+        let mut stmt = conn.prepare(
+            "SELECT id, paper_id, title, created_at, updated_at
+             FROM ai_chat_sessions
+             WHERE id = ?1",
+        )?;
+
+        let mut rows = stmt.query_map(params![session_id], |row| {
+            Ok(AiChatSession {
+                id: row.get(0)?,
+                paper_id: row.get(1)?,
+                title: row.get(2)?,
+                created_at: row.get(3)?,
+                updated_at: row.get(4)?,
+            })
+        })?;
+
+        if let Some(session_res) = rows.next() {
+            Ok(Some(session_res?))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn delete_session(conn: &Connection, session_id: &str) -> Result<()> {
+        conn.execute(
+            "DELETE FROM ai_chat_sessions WHERE id = ?1",
+            params![session_id],
+        )?;
+        Ok(())
+    }
+
+    pub fn ensure_session_exists(
+        conn: &Connection,
+        session_id: &str,
+        paper_id: Option<&str>,
+        default_title: &str,
+    ) -> Result<()> {
+        let exists: bool = conn
+            .query_row(
+                "SELECT 1 FROM ai_chat_sessions WHERE id = ?1",
+                params![session_id],
+                |_| Ok(()),
+            )
+            .is_ok();
+
+        if !exists {
+            let valid_paper_id = match paper_id {
+                Some(pid) if !pid.trim().is_empty() => {
+                    let p_exists: bool = conn
+                        .query_row("SELECT 1 FROM papers WHERE id = ?1", params![pid], |_| Ok(()))
+                        .is_ok();
+                    if p_exists {
+                        Some(pid)
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            };
+            let title = if default_title.trim().is_empty() {
+                "Chat Session"
+            } else {
+                default_title
+            };
+            let now = chrono::Utc::now().to_rfc3339();
+            conn.execute(
+                "INSERT INTO ai_chat_sessions (id, paper_id, title, created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5)",
+                params![session_id, valid_paper_id, title, now, now],
+            )?;
+        }
+        Ok(())
+    }
 
     pub fn list_messages(conn: &Connection, session_id: &str) -> Result<Vec<AiChatMessage>> {
         let mut stmt = conn.prepare(
             "SELECT id, session_id, paper_id, role, content, citations_json, provider_id, model_id, retrieval_mode, created_at
              FROM ai_chat_messages
              WHERE session_id = ?1
-             ORDER BY created_at ASC"
+             ORDER BY created_at ASC",
         )?;
 
         let rows = stmt.query_map(params![session_id], |row| {
@@ -635,16 +1013,66 @@ impl AiRepository {
     }
 
     pub fn save_message(conn: &Connection, msg: &AiChatMessage) -> Result<()> {
+        // Automatically ensure parent session exists so foreign key references never fail
+        Self::ensure_session_exists(
+            conn,
+            &msg.session_id,
+            msg.paper_id.as_deref(),
+            "Chat Session",
+        )?;
+
+        // Validate paper_id against papers table; bind None if unknown to prevent FK violation
+        let valid_paper_id = match &msg.paper_id {
+            Some(pid) if !pid.trim().is_empty() => {
+                let exists: bool = conn
+                    .query_row("SELECT 1 FROM papers WHERE id = ?1", params![pid], |_| Ok(()))
+                    .is_ok();
+                if exists {
+                    Some(pid.clone())
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        };
+
+        let message_id = if msg.id.trim().is_empty() {
+            uuid::Uuid::new_v4().to_string()
+        } else {
+            msg.id.clone()
+        };
+
+        let created_at = if msg.created_at.trim().is_empty() {
+            chrono::Utc::now().to_rfc3339()
+        } else {
+            msg.created_at.clone()
+        };
+
         let cits_json = serde_json::to_string(&msg.citations).unwrap_or_else(|_| "[]".to_string());
         conn.execute(
             "INSERT INTO ai_chat_messages (
                 id, session_id, paper_id, role, content, citations_json, provider_id, model_id, retrieval_mode, created_at
-             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, datetime('now'))",
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
-                msg.id, msg.session_id, msg.paper_id, msg.role, msg.content,
-                cits_json, msg.provider_id, msg.model_id, msg.retrieval_mode
+                message_id,
+                msg.session_id,
+                valid_paper_id,
+                msg.role,
+                msg.content,
+                cits_json,
+                msg.provider_id,
+                msg.model_id,
+                msg.retrieval_mode,
+                created_at
             ],
         )?;
+
+        // Touch session updated_at
+        let _ = conn.execute(
+            "UPDATE ai_chat_sessions SET updated_at = ?1 WHERE id = ?2",
+            params![created_at, msg.session_id],
+        );
+
         Ok(())
     }
 

@@ -12,6 +12,7 @@ import {
   Laptop,
   Bug,
   GitPullRequest,
+  Heart,
 } from "lucide-react";
 import { GithubIcon } from "../ui/GithubIcon";
 
@@ -25,6 +26,7 @@ export const BottomBar: React.FC = () => {
     setTheme,
     setActiveSection,
     setIsAboutModalOpen,
+    setIsDonationModalOpen,
     openFeedbackCenter,
   } = useApp();
 
@@ -33,14 +35,14 @@ export const BottomBar: React.FC = () => {
     (j) => j.status === "running" || j.status === "queued"
   );
 
-  const toggleTheme = () => {
-    if (theme === "dark") setTheme("light");
-    else if (theme === "light") setTheme("system");
-    else setTheme("dark");
+  const toggleTheme = (e?: React.MouseEvent) => {
+    if (theme === "dark") setTheme("light", e);
+    else if (theme === "light") setTheme("system", e);
+    else setTheme("dark", e);
   };
 
   return (
-    <footer className="h-7 w-full bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between select-none z-30 shrink-0 px-3 font-sans transition-colors duration-200">
+    <footer className="h-7 w-full bg-slate-100 dark:bg-[#070b12] border-t border-slate-200 dark:border-white/[0.06] text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between select-none z-30 shrink-0 px-3 font-sans transition-colors duration-200">
       {/* Left Group: Core Engine & Workload Status */}
       <div className="flex items-center gap-3 truncate">
         {/* SQLite Status */}
@@ -111,7 +113,7 @@ export const BottomBar: React.FC = () => {
       <div className="hidden lg:flex items-center gap-2 text-slate-500 dark:text-slate-400 max-w-sm truncate">
         {readingPaper ? (
           <span className="truncate text-sky-600 dark:text-sky-300 font-medium flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
             Reading: {readingPaper.title}
           </span>
         ) : (
@@ -182,6 +184,19 @@ export const BottomBar: React.FC = () => {
         >
           <GitPullRequest className="w-3 h-3 text-indigo-500 shrink-0" />
           <span className="text-[10px] hidden sm:inline">Contribute</span>
+        </button>
+
+        <span className="text-slate-300 dark:text-slate-700">|</span>
+
+        {/* Support & Donation */}
+        <button
+          type="button"
+          onClick={() => setIsDonationModalOpen(true)}
+          className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-medium transition-colors cursor-pointer px-1.5 py-0.5 rounded bg-rose-50/80 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200/70 dark:border-rose-900/60 shadow-2xs"
+          title="Support Sanjay & Infinity Researcher (Donate / Sponsor)"
+        >
+          <Heart className="w-3 h-3 fill-current text-rose-500 shrink-0 animate-pulse" />
+          <span className="text-[10px] font-semibold">Support & Donate</span>
         </button>
 
         <span className="text-slate-300 dark:text-slate-700">|</span>

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
-  Sparkles,
+  BookOpen,
   Send,
   Loader2,
   FileText,
@@ -18,6 +19,8 @@ import {
 } from "../../lib/desktop-api/types";
 import * as desktopApi from "../../lib/desktop-api";
 import { Button } from "../../components/ui/Button";
+import { AITypingIndicator } from "../../components/loading";
+import { MarkdownMessage } from "../../components/ui/MarkdownMessage";
 
 interface EvidenceCopilotModalProps {
   isOpen: boolean;
@@ -25,6 +28,10 @@ interface EvidenceCopilotModalProps {
   workspaceId: string;
   rows: MatrixRow[];
   onNavigateToPdf?: (paperId: string, pageNumber: number) => void;
+}
+
+function generateId(prefix: string): string {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 }
 
 export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
@@ -41,19 +48,7 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
   const [expandedEvidence, setExpandedEvidence] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadMessages();
-    }
-  }, [isOpen, workspaceId]);
-
-  useEffect(() => {
-    if (typeof messagesEndRef.current?.scrollIntoView === "function") {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, isLoading]);
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     try {
       const history = await desktopApi.getEvidenceCopilotMessages(sessionId);
       if (history && history.length > 0) {
@@ -74,7 +69,28 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
     } catch (err) {
       console.warn("Could not load copilot messages:", err);
     }
-  };
+  }, [sessionId, rows.length]);
+
+  useEffect(() => {
+    if (isOpen) {
+      void loadMessages();
+    }
+  }, [isOpen, loadMessages]);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   const handleSend = async (queryToSend?: string) => {
     const q = queryToSend || inputQuery;
@@ -85,7 +101,7 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
 
     // Optimistic user message
     const tempUserMsg: EvidenceCopilotMessage = {
-      id: `usr_${Date.now()}`,
+      id: generateId("usr"),
       session_id: sessionId,
       role: "user",
       content: q,
@@ -104,11 +120,12 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
       console.error("Copilot request failed:", err);
+      const msg = desktopApi.getErrorMessage(err, "Failed to communicate with local AI assistant.");
       const errorMsg: EvidenceCopilotMessage = {
-        id: `err_${Date.now()}`,
+        id: generateId("err"),
         session_id: sessionId,
         role: "assistant",
-        content: `Error generating response: ${err instanceof Error ? err.message : String(err)}. Please check local index.`,
+        content: `Error generating response: ${msg}. Please check local index.`,
         evidence_sources_json: "[]",
         created_at: new Date().toISOString(),
       };
@@ -131,19 +148,27 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
     "Synthesize the research questions and objectives",
   ];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-3xl h-[85vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
+  return createPortal(
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200 select-none"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-3xl h-[85vh] max-h-[760px] bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden my-auto select-text"
+      >
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-cyan-100 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400">
-              <Sparkles className="w-5 h-5" />
+            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              <BookOpen className="w-5 h-5 stroke-[1.5]" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Evidence-Linked AI Copilot</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-950 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300">
+                <span>Evidence-Linked Copilot</span>
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
                   Grounded QA
                 </span>
               </h2>
@@ -178,12 +203,13 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
         {/* Message Stream */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {messages.map((msg) => {
-            let evidenceList: EvidenceSource[] = [];
-            try {
-              evidenceList = JSON.parse(msg.evidence_sources_json || "[]");
-            } catch {
-              evidenceList = [];
-            }
+            const evidenceList: EvidenceSource[] = (() => {
+              try {
+                return JSON.parse(msg.evidence_sources_json || "[]");
+              } catch {
+                return [];
+              }
+            })();
             const isAssistant = msg.role === "assistant";
             const isEvidenceOpen = expandedEvidence[msg.id];
 
@@ -205,7 +231,11 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
                       : "bg-cyan-600 text-white rounded-br-xs"
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                  {isAssistant ? (
+                    <MarkdownMessage content={msg.content} />
+                  ) : (
+                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                  )}
 
                   {/* Evidence Drawer in Assistant Messages */}
                   {isAssistant && evidenceList.length > 0 && (
@@ -270,17 +300,13 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
             );
           })}
 
-          {isLoading && (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 animate-pulse">
-                <Bot className="w-4 h-4" />
-              </div>
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs text-slate-500 flex items-center gap-2">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-500" />
-                <span>Searching local library passages and synthesizing verifiable evidence...</span>
-              </div>
-            </div>
-          )}
+          <AITypingIndicator
+            visible={isLoading}
+            activityState="generating"
+            context="matrix_copilot"
+            statusMessage="Searching local library passages and synthesizing verifiable evidence..."
+            variant="chat"
+          />
 
           <div ref={messagesEndRef} />
         </div>
@@ -314,6 +340,7 @@ export const EvidenceCopilotModal: React.FC<EvidenceCopilotModalProps> = ({
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -6,6 +6,10 @@ pub struct Note {
     pub paper_id: String,
     pub title: String,
     pub content_markdown: String,
+    #[serde(default)]
+    pub page_number: Option<i32>,
+    #[serde(default)]
+    pub highlighted_text: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -16,4 +20,8 @@ pub struct NoteSaveInput {
     pub paper_id: String,
     pub title: Option<String>,
     pub content_markdown: String,
+    #[serde(default)]
+    pub page_number: Option<i32>,
+    #[serde(default)]
+    pub highlighted_text: Option<String>,
 }

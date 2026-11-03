@@ -1,54 +1,97 @@
 @import "tailwindcss";
+@import "./tokens.css";
+@import "./motion.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  --bg-app: #f8fafc;
-  --surface: #ffffff;
-  --surface-hover: #f1f5f9;
-  --surface-active: #e2e8f0;
-  --card: #ffffff;
-  --border: #e2e8f0;
-  --border-subtle: #f1f5f9;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-fg: #ffffff;
-  --success: #059669;
-  --success-bg: #ecfdf5;
-  --warning: #d97706;
-  --warning-bg: #fffbeb;
-  --destructive: #dc2626;
-  --destructive-bg: #fef2f2;
-}
+@theme {
+  /* Surface & Canvas Tokens */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-elevated: var(--surface-elevated);
 
-.dark {
-  --bg-app: #090d16;
-  --surface: #0f172a;
-  --surface-hover: #1e293b;
-  --surface-active: #334155;
-  --card: #131c31;
-  --border: #1e293b;
-  --border-subtle: #172338;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-fg: #ffffff;
-  --success: #10b981;
-  --success-bg: #064e3b;
-  --warning: #f59e0b;
-  --warning-bg: #451a03;
-  --destructive: #ef4444;
-  --destructive-bg: #450a0a;
+  /* Brand & Action Tokens */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  /* Muted & Interactive Accents */
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* Status & Feedback Tokens */
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-muted: var(--destructive-muted);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted: var(--warning-muted);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-muted: var(--info-muted);
+
+  /* Structural & Borders */
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Research-Specific Visual State Colors */
+  --color-paper-oa: var(--paper-oa);
+  --color-paper-oa-fg: var(--paper-oa-fg);
+  --color-paper-oa-bg: var(--paper-oa-bg);
+  --color-paper-restricted: var(--paper-restricted);
+  --color-paper-restricted-fg: var(--paper-restricted-fg);
+  --color-paper-restricted-bg: var(--paper-restricted-bg);
+  --color-paper-saved: var(--paper-saved);
+  --color-paper-saved-fg: var(--paper-saved-fg);
+
+  --color-task-queued: var(--task-queued);
+  --color-task-running: var(--task-running);
+  --color-task-completed: var(--task-completed);
+  --color-task-failed: var(--task-failed);
+  --color-task-paused: var(--task-paused);
+
+  --color-ai-active: var(--ai-active);
+  --color-ai-idle: var(--ai-idle);
+  --color-citation-highlight: var(--citation-highlight);
+
+  /* Legacy Backward-Compatibility Tokens */
+  --color-bg-app: var(--bg-app);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-text: var(--text-main);
+  --color-text-muted: var(--text-muted);
+
+  /* Radii */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-full: var(--radius-full);
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg-app);
-  color: var(--text-main);
+  background-color: var(--background);
+  color: var(--foreground);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     sans-serif;
@@ -56,7 +99,23 @@ body {
   min-height: 100vh;
 }
 
-/* Custom scrollbars for desktop data grids */
+/* Restrained Theme Transitions (WCAG 2.1 AA Compliant) */
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    transition: background-color 150ms ease-out, color 150ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom scrollbars for desktop scholarly data grids */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -70,4 +129,17 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.5);
+}
+
+/* Tauri window drag support */
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+}
+
+[data-tauri-drag-region] button,
+[data-tauri-drag-region] a,
+[data-tauri-drag-region] input,
+[data-tauri-drag-region] select,
+[data-tauri-drag-region] .no-drag {
+  -webkit-app-region: no-drag;
 }

@@ -111,6 +111,7 @@ impl PaperService {
             is_saved: input.is_saved.unwrap_or(true),
             reading_status: input.reading_status.unwrap_or_else(|| "unread".to_string()),
             reading_progress: input.reading_progress.unwrap_or(0.0),
+            last_opened_at: input.last_opened_at,
             created_at: now.clone(),
             updated_at: now,
             open_access_status: input.open_access_status.unwrap_or(default_oa_status),
@@ -274,11 +275,11 @@ impl PaperService {
     }
 
     pub fn update_reading_status(db: &Database, id: &str, status: &str) -> Result<bool, AppError> {
-        let valid_statuses = ["unread", "reading", "read"];
+        let valid_statuses = ["unread", "reading", "in_progress", "read", "archived"];
         let norm_status = status.trim().to_lowercase();
         if !valid_statuses.contains(&norm_status.as_str()) {
             return Err(AppError::Validation(format!(
-                "Invalid reading status '{}'. Must be one of: unread, reading, read",
+                "Invalid reading status '{}'. Must be one of: unread, reading, in_progress, read, archived",
                 status
             )));
         }
@@ -308,17 +309,23 @@ impl PaperService {
         ids: &[String],
         status: &str,
     ) -> Result<usize, AppError> {
-        let valid_statuses = ["unread", "reading", "read"];
+        let valid_statuses = ["unread", "reading", "in_progress", "read", "archived"];
         let norm_status = status.trim().to_lowercase();
         if !valid_statuses.contains(&norm_status.as_str()) {
             return Err(AppError::Validation(format!(
-                "Invalid reading status '{}'. Must be one of: unread, reading, read",
+                "Invalid reading status '{}'. Must be one of: unread, reading, in_progress, read, archived",
                 status
             )));
         }
         let conn = db.lock()?;
         PaperRepository::bulk_update_reading_status(&conn, ids, &norm_status)
             .map_err(|e| AppError::Internal(format!("Failed to bulk update reading status: {}", e)))
+    }
+
+    pub fn touch_paper_opened(db: &Database, id: &str) -> Result<bool, AppError> {
+        let conn = db.lock()?;
+        PaperRepository::touch_opened(&conn, id)
+            .map_err(|e| AppError::Internal(format!("Failed to record paper opened: {}", e)))
     }
 
     pub fn rebuild_search_index(db: &Database) -> Result<usize, AppError> {

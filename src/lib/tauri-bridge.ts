@@ -51,6 +51,38 @@ export function normalizeCommandError(error: unknown): CommandError {
 }
 
 /**
+ * Extracts a human-readable error message string from any error object, CommandError, or exception.
+ * Guarantees that "[object Object]" is NEVER returned to the user interface.
+ */
+export function getErrorMessage(error: unknown, fallbackMessage = "An unexpected error occurred."): string {
+  if (!error) return fallbackMessage;
+  if (typeof error === "string") {
+    const trimmed = error.trim();
+    return trimmed && trimmed !== "[object Object]" ? trimmed : fallbackMessage;
+  }
+  if (error instanceof Error) {
+    const msg = error.message.trim();
+    return msg && msg !== "[object Object]" ? msg : fallbackMessage;
+  }
+  if (typeof error === "object" && error !== null) {
+    const obj = error as Record<string, unknown>;
+    if (typeof obj.message === "string" && obj.message.trim() && obj.message.trim() !== "[object Object]") {
+      return obj.message.trim();
+    }
+    if (typeof obj.error === "string" && obj.error.trim() && obj.error.trim() !== "[object Object]") {
+      return obj.error.trim();
+    }
+    if (typeof obj.reason === "string" && obj.reason.trim() && obj.reason.trim() !== "[object Object]") {
+      return obj.reason.trim();
+    }
+    if (typeof obj.details === "string" && obj.details.trim() && obj.details.trim() !== "[object Object]") {
+      return obj.details.trim();
+    }
+  }
+  return fallbackMessage;
+}
+
+/**
  * Invokes the Rust app_health command to probe backend status and subsystem states.
  */
 export async function getAppHealth(): Promise<HealthResponse> {

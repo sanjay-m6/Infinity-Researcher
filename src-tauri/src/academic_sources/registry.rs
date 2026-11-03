@@ -58,6 +58,40 @@ impl ProviderRegistry {
     pub fn is_supported(&self, id: ProviderId) -> bool {
         self.adapters.contains_key(&id)
     }
+
+    /// Runs non-destructive health checks across all (or a specific) registered provider adapters.
+    pub async fn run_health_checks(
+        &self,
+        client: &reqwest::Client,
+        target_provider: Option<ProviderId>,
+    ) -> Vec<crate::academic_sources::types::ProviderHealthCheck> {
+        let mut checks = Vec::new();
+
+        if let Some(pid) = target_provider {
+            if let Some(adapter) = self.get_adapter(pid) {
+                checks.push(adapter.health_check(client).await);
+            }
+        } else {
+            let mut handles = Vec::new();
+            for adapter in self.adapters.values() {
+                let adapter = adapter.clone();
+                let client = client.clone();
+                handles.push(tokio::spawn(async move {
+                    adapter.health_check(&client).await
+                }));
+            }
+
+            for handle in handles {
+                if let Ok(check) = handle.await {
+                    checks.push(check);
+                }
+            }
+        }
+
+        // Sort predictably by provider name
+        checks.sort_by(|a, b| a.provider_id.as_str().cmp(b.provider_id.as_str()));
+        checks
+    }
 }
 
 #[cfg(test)]

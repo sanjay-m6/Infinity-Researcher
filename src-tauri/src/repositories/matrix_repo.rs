@@ -86,7 +86,11 @@ impl MatrixRepository {
     // Workspace Papers
     // -----------------------------------------------------------------------
 
-    pub fn add_paper_to_workspace(conn: &Connection, workspace_id: &str, paper_id: &str) -> Result<()> {
+    pub fn add_paper_to_workspace(
+        conn: &Connection,
+        workspace_id: &str,
+        paper_id: &str,
+    ) -> Result<()> {
         conn.execute(
             "INSERT OR IGNORE INTO matrix_workspace_papers (workspace_id, paper_id, added_at)
              VALUES (?1, ?2, datetime('now'))",
@@ -100,7 +104,11 @@ impl MatrixRepository {
         Ok(())
     }
 
-    pub fn remove_paper_from_workspace(conn: &Connection, workspace_id: &str, paper_id: &str) -> Result<()> {
+    pub fn remove_paper_from_workspace(
+        conn: &Connection,
+        workspace_id: &str,
+        paper_id: &str,
+    ) -> Result<()> {
         conn.execute(
             "DELETE FROM matrix_workspace_papers WHERE workspace_id = ?1 AND paper_id = ?2",
             params![workspace_id, paper_id],
@@ -117,14 +125,15 @@ impl MatrixRepository {
         Ok(())
     }
 
-    pub fn get_workspace_papers(conn: &Connection, workspace_id: &str) -> Result<Vec<(String, String)>> {
+    pub fn get_workspace_papers(
+        conn: &Connection,
+        workspace_id: &str,
+    ) -> Result<Vec<(String, String)>> {
         let mut stmt = conn.prepare(
             "SELECT paper_id, added_at FROM matrix_workspace_papers WHERE workspace_id = ?1 ORDER BY added_at ASC",
         )?;
 
-        let rows = stmt.query_map(params![workspace_id], |row| {
-            Ok((row.get(0)?, row.get(1)?))
-        })?;
+        let rows = stmt.query_map(params![workspace_id], |row| Ok((row.get(0)?, row.get(1)?)))?;
 
         let mut list = Vec::new();
         for r in rows {
@@ -150,7 +159,10 @@ impl MatrixRepository {
                  FROM matrix_extractions
                  WHERE workspace_id = ?1 AND paper_id = ?2
                  ORDER BY created_at ASC",
-                vec![Box::new(workspace_id.to_string()), Box::new(pid.to_string())],
+                vec![
+                    Box::new(workspace_id.to_string()),
+                    Box::new(pid.to_string()),
+                ],
             ),
             None => (
                 "SELECT id, workspace_id, paper_id, field_key, extracted_value, confidence,
@@ -323,7 +335,10 @@ impl MatrixRepository {
         Ok(())
     }
 
-    pub fn get_copilot_messages(conn: &Connection, session_id: &str) -> Result<Vec<EvidenceCopilotMessage>> {
+    pub fn get_copilot_messages(
+        conn: &Connection,
+        session_id: &str,
+    ) -> Result<Vec<EvidenceCopilotMessage>> {
         let mut stmt = conn.prepare(
             "SELECT id, session_id, role, content, evidence_sources_json, created_at
              FROM evidence_copilot_messages
@@ -347,5 +362,13 @@ impl MatrixRepository {
             list.push(r?);
         }
         Ok(list)
+    }
+
+    pub fn clear_copilot_messages(conn: &Connection, session_id: &str) -> Result<()> {
+        conn.execute(
+            "DELETE FROM evidence_copilot_messages WHERE session_id = ?1",
+            params![session_id],
+        )?;
+        Ok(())
     }
 }

@@ -3,6 +3,7 @@ import { useApp } from "../../context/AppContext";
 import { Drawer } from "../../components/ui/Drawer";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
+import { SourceBadge } from "../../components/ui/SourceBadge";
 import {
   Bookmark,
   BookmarkCheck,
@@ -11,7 +12,6 @@ import {
   FolderPlus,
   BookOpen,
   Calendar,
-  Layers,
   Check,
   Download,
   RefreshCw,
@@ -20,6 +20,7 @@ import {
   getPaperPdfInfo,
   resolvePaperPdf,
   enqueuePdfDownload,
+  getErrorMessage,
 } from "../../lib/desktop-api";
 import { PaperPdfInfo } from "../../lib/desktop-api/types";
 
@@ -91,8 +92,8 @@ export const PaperDetailDrawer: React.FC = () => {
       const updated = await getPaperPdfInfo(paper.id);
       setPdfInfo(updated);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      showToast(msg || "Failed to resolve PDF candidates", "error");
+      const msg = getErrorMessage(e, "Failed to resolve PDF candidates");
+      showToast(msg, "error");
     } finally {
       setIsResolving(false);
     }
@@ -117,8 +118,8 @@ export const PaperDetailDrawer: React.FC = () => {
       const updated = await getPaperPdfInfo(paper.id);
       setPdfInfo(updated);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      showToast(msg || "Failed to enqueue PDF download", "error");
+      const msg = getErrorMessage(e, "Failed to enqueue PDF download");
+      showToast(msg, "error");
     } finally {
       setIsDownloading(false);
     }
@@ -172,10 +173,7 @@ export const PaperDetailDrawer: React.FC = () => {
 
           {/* Metadata badges */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <Badge variant="primary" size="sm">
-              <Layers className="w-3 h-3" />
-              {paper.sourceName}
-            </Badge>
+            <SourceBadge sourceName={paper.sourceName} size="md" />
 
             <Badge
               variant={

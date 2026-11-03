@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import applicationIcon from "../../assets/application.png";
 import {
-  Sparkles,
+  Globe,
   Compass,
   BookOpen,
   TableProperties,
-  FileCheck2,
   ShieldCheck,
   CheckCircle2,
   ArrowRight,
@@ -74,7 +74,9 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
         if (savedTopics) {
           try {
             setSelectedTopics(JSON.parse(savedTopics));
-          } catch {}
+          } catch {
+            // Ignore corrupted JSON
+          }
         }
 
         const savedWorkflow = await getAppSetting("primary_workflow");
@@ -142,18 +144,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="onboarding-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 select-none"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 select-none"
     >
       <div className="w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 p-0.5 bg-white dark:bg-slate-800">
+            <div className="w-7 h-7 shrink-0 flex items-center justify-center">
               <img src={applicationIcon} alt="Infinity Researcher" className="w-full h-full object-contain" />
             </div>
             <div>
@@ -174,11 +176,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 onClick={() => setTheme("light")}
                 aria-label="White theme"
                 title="White (Light) Theme"
-                className={`px-2 py-1 rounded-md text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  theme === "light"
-                    ? "bg-white text-indigo-600 shadow-2xs"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                }`}
+                className={`px-2 py-1 rounded-md text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${theme === "light"
+                  ? "bg-white text-indigo-600 shadow-2xs"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                  }`}
               >
                 <Sun className="w-3 h-3 text-amber-500" />
                 <span className="text-[10px]">White</span>
@@ -188,11 +189,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 onClick={() => setTheme("dark")}
                 aria-label="Black theme"
                 title="Black (Dark) Theme"
-                className={`px-2 py-1 rounded-md text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  theme === "dark"
-                    ? "bg-slate-900 text-indigo-400 shadow-2xs"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                }`}
+                className={`px-2 py-1 rounded-md text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${theme === "dark"
+                  ? "bg-slate-900 text-indigo-400 shadow-2xs"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                  }`}
               >
                 <Moon className="w-3 h-3 text-indigo-400" />
                 <span className="text-[10px]">Black</span>
@@ -202,11 +202,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 onClick={() => setTheme("system")}
                 aria-label="System theme"
                 title="Sync with System Theme"
-                className={`p-1 rounded-md text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  theme === "system"
-                    ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                }`}
+                className={`p-1 rounded-md text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${theme === "system"
+                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                  }`}
               >
                 <Laptop className="w-3 h-3 text-slate-400" />
               </button>
@@ -243,7 +242,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           {currentStep === 1 && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div className="text-center space-y-2 max-w-lg mx-auto pt-2">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 p-2 mx-auto flex items-center justify-center shadow-md">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center">
                   <img src={applicationIcon} alt="Infinity Researcher" className="w-full h-full object-contain" />
                 </div>
                 <h1 id="onboarding-title" className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
@@ -284,13 +283,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
 
                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:border-slate-300 dark:hover:border-slate-700 space-y-2 transition-colors">
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center">
-                    <FileCheck2 className="w-4 h-4" />
+                    <Bot className="w-4 h-4" />
                   </div>
                   <h2 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                    Research Integrity
+                    AI Assistant
                   </h2>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Local-first text similarity checker, AI-writing signals, and academic writing polish.
+                    Context-grounded PDF chat, multi-perspective synthesis, and research query intelligence.
                   </p>
                 </div>
               </div>
@@ -318,11 +317,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                       key={topic}
                       type="button"
                       onClick={() => handleToggleTopic(topic)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1.5 ${
-                        isSelected
-                          ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs"
-                          : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 hover:border-slate-300"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1.5 ${isSelected
+                        ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs"
+                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 hover:border-slate-300"
+                        }`}
                     >
                       {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
                       <span>{topic}</span>
@@ -380,31 +378,23 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                     desc: "Manage collections, read PDFs offline, and track reading progress.",
                     icon: <BookOpen className="w-4 h-4 text-emerald-500" />,
                   },
-                  {
-                    id: "integrity" as NavSection,
-                    title: "Check Research Integrity",
-                    desc: "Inspect text similarity, AI signals, and polish academic tone.",
-                    icon: <FileCheck2 className="w-4 h-4 text-purple-500" />,
-                  },
                 ].map((wf) => {
                   const isSelected = primaryWorkflow === wf.id;
                   return (
                     <div
                       key={wf.id}
                       onClick={() => setPrimaryWorkflow(wf.id)}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                        isSelected
-                          ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 shadow-xs ring-1 ring-indigo-500"
-                          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700"
-                      }`}
+                      className={`p-3.5 rounded-xl border cursor-pointer transition-all ${isSelected
+                        ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 shadow-xs ring-1 ring-indigo-500"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700"
+                        }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-2">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center border transition-colors ${
-                            isSelected
-                              ? "bg-indigo-100 dark:bg-indigo-900/60 border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400"
-                              : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                          }`}>
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center border transition-colors ${isSelected
+                            ? "bg-indigo-100 dark:bg-indigo-900/60 border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400"
+                            : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                            }`}>
                             {wf.icon}
                           </div>
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -460,7 +450,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                     id: "hosted",
                     title: "Connect Cloud Provider (OpenAI, Anthropic, Gemini)",
                     desc: "Enter your own API key in Settings for advanced section synthesis.",
-                    icon: <Sparkles className="w-4 h-4 text-purple-500" />,
+                    icon: <Globe className="w-4 h-4 text-slate-500" />,
                   },
                   {
                     id: "skip",
@@ -473,19 +463,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                   return (
                     <div
                       key={opt.id}
-                      onClick={() => setAiPreference(opt.id as any)}
-                      className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
-                        isSelected
-                          ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 shadow-xs ring-1 ring-indigo-500"
-                          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700"
-                      }`}
+                      onClick={() => setAiPreference(opt.id as "local" | "hosted" | "later" | "skip")}
+                      className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${isSelected
+                        ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 shadow-xs ring-1 ring-indigo-500"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
-                          isSelected
-                            ? "bg-indigo-100 dark:bg-indigo-900/60 border-indigo-200 dark:border-indigo-700"
-                            : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                        }`}>
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${isSelected
+                          ? "bg-indigo-100 dark:bg-indigo-900/60 border-indigo-200 dark:border-indigo-700"
+                          : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                          }`}>
                           {opt.icon}
                         </div>
                         <div>
@@ -533,11 +521,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => setTheme("light")}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      theme === "light"
-                        ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 ring-1 ring-indigo-500 shadow-xs"
-                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80"
-                    }`}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${theme === "light"
+                      ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 ring-1 ring-indigo-500 shadow-xs"
+                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80"
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center">
@@ -552,11 +539,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => setTheme("dark")}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      theme === "dark"
-                        ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 ring-1 ring-indigo-500 shadow-xs"
-                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80"
-                    }`}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${theme === "dark"
+                      ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 ring-1 ring-indigo-500 shadow-xs"
+                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80"
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
@@ -571,11 +557,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => setTheme("system")}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      theme === "system"
-                        ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 ring-1 ring-indigo-500 shadow-xs"
-                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80"
-                    }`}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${theme === "system"
+                      ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 ring-1 ring-indigo-500 shadow-xs"
+                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80"
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="w-7 h-7 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-500 flex items-center justify-center">
@@ -693,6 +678,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

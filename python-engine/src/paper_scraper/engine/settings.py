@@ -16,8 +16,20 @@ def get_scrapy_settings(custom_overrides: Dict[str, Any] = None) -> Settings:
     s = Settings()
 
     base_settings = {
-        # Respect robots.txt policies
-        "ROBOTSTXT_OBEY": True,
+        # User research search queries (disable robots.txt filtering for website search)
+        "ROBOTSTXT_OBEY": False,
+
+        # Standard modern browser User-Agent and headers for scholarly portals
+        "USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "DEFAULT_REQUEST_HEADERS": {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1",
+        },
 
         # AutoThrottle: latency-adaptive rate control
         "AUTOTHROTTLE_ENABLED": True,
@@ -30,7 +42,7 @@ def get_scrapy_settings(custom_overrides: Dict[str, Any] = None) -> Settings:
         "CONCURRENT_REQUESTS": 16,
         "CONCURRENT_REQUESTS_PER_DOMAIN": 4,
         "DOWNLOAD_TIMEOUT": 25,
-        "COOKIES_ENABLED": False,
+        "COOKIES_ENABLED": True,
         "TELNETCONSOLE_ENABLED": False,
 
         # Stderr-isolated logging (keeps stdout clean for JSON Lines protocol)

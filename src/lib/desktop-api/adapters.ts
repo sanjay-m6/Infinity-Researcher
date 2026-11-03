@@ -52,6 +52,7 @@ export function dbPaperToPaper(db: DbPaper): Paper {
     localPdfPath: db.local_pdf_path,
     readingStatus: db.reading_status,
     readingProgress: db.reading_progress,
+    lastOpenedAt: db.last_opened_at,
   };
 }
 

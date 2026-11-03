@@ -35,7 +35,7 @@ export const FALLBACK_REPO_LABELS: GitHubLabel[] = [
   { name: "needs-triage", color: "ededed", description: "Awaiting maintainer review" },
 ];
 
-let labelsCache: { [key: string]: { timestamp: number; labels: GitHubLabel[] } } = {};
+const labelsCache: { [key: string]: { timestamp: number; labels: GitHubLabel[] } } = {};
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export function mapCategoryToLabels(category: IssueCategory, severity?: IssueSeverity): string[] {

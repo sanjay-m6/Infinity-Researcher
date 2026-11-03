@@ -43,6 +43,10 @@ fn test_import_search_results_into_database() {
             landing_url: Some("https://www.semanticscholar.org/paper/s2_rec_123".to_string()),
             retrieved_at: "2026-10-24T00:00:00Z".to_string(),
         }],
+        metadata_score: 80,
+        completeness: Default::default(),
+        version_type: None,
+        pdf_status: None,
     };
 
     let summary = AcademicSearchService::import_works(&db, vec![work.clone()], None)
@@ -125,6 +129,10 @@ fn test_import_with_target_collection() {
             landing_url: Some("https://arxiv.org/abs/1706.03762".to_string()),
             retrieved_at: "2026-10-24T00:00:00Z".to_string(),
         }],
+        metadata_score: 80,
+        completeness: Default::default(),
+        version_type: None,
+        pdf_status: None,
     };
 
     let summary = AcademicSearchService::import_works(&db, vec![work], Some(collection.id.clone()))
@@ -166,6 +174,10 @@ fn test_deduplicate_and_merge_cross_provider_records() {
             landing_url: Some("https://arxiv.org/abs/2301.00001".to_string()),
             retrieved_at: "2026-10-24T00:00:00Z".to_string(),
         }],
+        metadata_score: 80,
+        completeness: Default::default(),
+        version_type: None,
+        pdf_status: None,
     };
 
     let work_crossref = NormalizedWork {
@@ -202,6 +214,10 @@ fn test_deduplicate_and_merge_cross_provider_records() {
             landing_url: Some("https://doi.org/10.48550/arXiv.2301.00001".to_string()),
             retrieved_at: "2026-10-24T00:01:00Z".to_string(),
         }],
+        metadata_score: 80,
+        completeness: Default::default(),
+        version_type: None,
+        pdf_status: None,
     };
 
     let merged =
@@ -238,4 +254,62 @@ fn test_deduplicate_and_merge_cross_provider_records() {
         Some("https://arxiv.org/pdf/2301.00001.pdf"),
         "PDF URL from arXiv should be preserved"
     );
+}
+
+#[test]
+fn test_canonical_routes_and_magic_bytes() {
+    use research_paper_scraper_lib::services::candidate_verifier::CandidateVerifier;
+    use research_paper_scraper_lib::services::pdf_resolver::PdfResolverService;
+
+    // Test canonical arXiv generation
+    let arxiv = PdfResolverService::generate_canonical_candidates(
+        Some("10.48550/arXiv.1706.03762"),
+        None,
+        "paper-arxiv",
+    );
+    assert_eq!(arxiv.len(), 1);
+    assert_eq!(arxiv[0].url, "https://arxiv.org/pdf/1706.03762.pdf");
+
+    // Test canonical bioRxiv generation
+    let biorxiv = PdfResolverService::generate_canonical_candidates(
+        Some("10.1101/2021.05.01.442111"),
+        None,
+        "paper-biorxiv",
+    );
+    assert_eq!(biorxiv.len(), 1);
+    assert_eq!(biorxiv[0].url, "https://www.biorxiv.org/content/10.1101/2021.05.01.442111.full.pdf");
+
+    // Test canonical PLOS generation
+    let plos = PdfResolverService::generate_canonical_candidates(
+        Some("10.1371/journal.pone.0298765"),
+        None,
+        "paper-plos",
+    );
+    assert_eq!(plos.len(), 1);
+    assert_eq!(plos[0].url, "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0298765&type=printable");
+
+    // Test canonical PMC generation
+    let pmc = PdfResolverService::generate_canonical_candidates(
+        None,
+        Some("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8901234/"),
+        "paper-pmc",
+    );
+    assert_eq!(pmc.len(), 1);
+    assert_eq!(pmc[0].url, "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8901234/pdf/");
+
+    // Test BOM & Comment PDF Magic Bytes validation
+    assert!(CandidateVerifier::has_valid_pdf_magic_bytes(b"%PDF-1.7\n"));
+    assert!(CandidateVerifier::has_valid_pdf_magic_bytes(b"\xef\xbb\xbf%PDF-1.4\n"));
+    assert!(CandidateVerifier::has_valid_pdf_magic_bytes(b"   \r\n% Repository Banner\r\n%PDF-1.5"));
+    assert!(!CandidateVerifier::has_valid_pdf_magic_bytes(b"<!DOCTYPE html><html>%PDF-"));
+
+    // Test Explainable Confidence Score
+    let score = CandidateVerifier::calculate_confidence_score(
+        true,
+        Some("application/pdf"),
+        Some(0.92),
+        "https://arxiv.org/pdf/1706.03762.pdf",
+        false,
+    );
+    assert!(score >= 95.0);
 }

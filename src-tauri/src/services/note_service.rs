@@ -26,6 +26,8 @@ impl NoteService {
             paper_id: input.paper_id,
             title: input.title.unwrap_or_else(|| "Research Notes".to_string()),
             content_markdown: content.to_string(),
+            page_number: input.page_number,
+            highlighted_text: input.highlighted_text,
             created_at: now.clone(),
             updated_at: now,
         };
@@ -35,6 +37,12 @@ impl NoteService {
             .map_err(|e| AppError::Internal(format!("Failed to save note: {}", e)))?;
 
         Ok(note)
+    }
+
+    pub fn search_notes(db: &Database, query: &str) -> Result<Vec<Note>, AppError> {
+        let conn = db.lock()?;
+        NoteRepository::search_notes(&conn, query)
+            .map_err(|e| AppError::Internal(format!("Failed to search notes: {}", e)))
     }
 
     pub fn delete_note(db: &Database, id: &str) -> Result<bool, AppError> {

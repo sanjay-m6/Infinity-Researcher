@@ -7,8 +7,8 @@ use url::Url;
 use crate::academic_sources::adapter::{AcademicSourceAdapter, AdapterSearchResult};
 use crate::academic_sources::errors::AcademicError;
 use crate::academic_sources::types::{
-    AcademicSearchQuery, NormalizedAuthor, NormalizedWork, ProviderCapabilities, ProviderId,
-    ProviderProvenance,
+    AcademicSearchQuery, MetadataCompleteness, NormalizedAuthor, NormalizedWork,
+    ProviderCapabilities, ProviderHealthCheck, ProviderHealthStatus, ProviderId, ProviderProvenance,
 };
 use crate::domain::paper::{compute_clean_title_key, normalize_doi};
 
@@ -168,7 +168,7 @@ pub fn parse_arxiv_atom_feed(xml_str: &str) -> Result<Vec<NormalizedWork>, Acade
                             Some(abstract_text)
                         };
 
-                        works.push(NormalizedWork {
+                        let mut work = NormalizedWork {
                             id: format!("arxiv-{}", arxiv_record_id.replace('/', "_")),
                             canonical_doi,
                             title,
@@ -191,7 +191,13 @@ pub fn parse_arxiv_atom_feed(xml_str: &str) -> Result<Vec<NormalizedWork>, Acade
                                 landing_url,
                                 retrieved_at: retrieved_at.clone(),
                             }],
-                        });
+                            metadata_score: 0,
+                            completeness: MetadataCompleteness::default(),
+                            version_type: Some("preprint".to_string()),
+                            pdf_status: Some("open_access_available".to_string()),
+                        };
+                        work.compute_completeness();
+                        works.push(work);
                     }
                 }
                 current_tag.clear();
@@ -222,9 +228,64 @@ impl AcademicSourceAdapter for ArxivAdapter {
             supports_year_filter: false, // arXiv API search_query syntax does not have a clean year range filter without complex boolean terms
             supports_open_access_filter: false, // All arXiv preprints are open access by definition
             supports_doi_lookup: true,
+            supports_author_search: true,
+            supports_abstracts: true,
+            supports_pdf_discovery: true,
             supports_pagination: true,
+            supports_cursor_pagination: false,
             requires_api_key: false,
             rate_limit_rps: 0.33, // 1 request per 3 seconds
+            category: "Preprints".to_string(),
+            auth_type: "none".to_string(),
+            preferred_identifier: "arxiv_id".to_string(),
+        }
+    }
+
+    async fn health_check(&self, client: &reqwest::Client) -> ProviderHealthCheck {
+        let start = std::time::Instant::now();
+        let url = "https://export.arxiv.org/api/query?search_query=all:electron&max_results=1";
+        let res = client
+            .get(url)
+            .timeout(std::time::Duration::from_secs(6))
+            .header(
+                "User-Agent",
+                "ResearchPaperScraper/0.1.0 (Desktop Academic Research App)",
+            )
+            .send()
+            .await;
+
+        let latency_ms = start.elapsed().as_millis() as u64;
+        let checked_at = chrono::Utc::now().to_rfc3339();
+
+        match res {
+            Ok(resp) if resp.status().is_success() => ProviderHealthCheck {
+                provider_id: ProviderId::Arxiv,
+                status: ProviderHealthStatus::Healthy,
+                latency_ms,
+                message: Some("arXiv API is responding normally.".to_string()),
+                checked_at,
+            },
+            Ok(resp) if resp.status().as_u16() == 429 => ProviderHealthCheck {
+                provider_id: ProviderId::Arxiv,
+                status: ProviderHealthStatus::RateLimited,
+                latency_ms,
+                message: Some("arXiv rate limit reached (max 1 req / 3 sec).".to_string()),
+                checked_at,
+            },
+            Ok(resp) => ProviderHealthCheck {
+                provider_id: ProviderId::Arxiv,
+                status: ProviderHealthStatus::Degraded,
+                latency_ms,
+                message: Some(format!("arXiv returned status HTTP {}.", resp.status())),
+                checked_at,
+            },
+            Err(e) => ProviderHealthCheck {
+                provider_id: ProviderId::Arxiv,
+                status: ProviderHealthStatus::Unavailable,
+                latency_ms,
+                message: Some(format!("Failed to connect to arXiv: {}", e)),
+                checked_at,
+            },
         }
     }
 

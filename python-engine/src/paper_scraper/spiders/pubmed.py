@@ -38,6 +38,11 @@ class PubmedSpider(BasePaperSpider):
         yield Request(url, callback=self.parse, errback=self.handle_error)
 
     def parse(self, response: Response) -> Generator[Any, None, None]:
+        is_blocked, reason = self.is_challenge_or_blocked_response(response)
+        if is_blocked:
+            self.record_status("blocked", reason)
+            return
+
         soup = BeautifulSoup(response.text, "html.parser")
         docsums = soup.select(".docsum-wrap, article.full-docsum")
 

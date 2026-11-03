@@ -26,16 +26,15 @@ PDF_MAGIC = b"%PDF-"
 def verify_pdf_signature(header_bytes: bytes) -> Tuple[bool, Optional[str]]:
     """
     Check if the first bytes match a legitimate PDF (%PDF-).
+    Tolerates UTF-8 BOM, UTF-16 BOM, leading whitespace, and initial comment lines.
+    Rejects HTML masquerading or access-restricted pages.
     Returns (is_valid, error_reason).
     """
     if len(header_bytes) < 5:
         return False, "File is too small to be a valid PDF"
 
-    if header_bytes.startswith(PDF_MAGIC):
-        return True, None
-
-    # Check for HTML masquerading as PDF
-    lower = header_bytes[:200].lower()
+    # Quick check for HTML masquerading
+    lower = header_bytes[:512].lower()
     if lower.startswith(b"<!doc") or lower.startswith(b"<html") or b"<head" in lower:
         return (
             False,
@@ -43,7 +42,45 @@ def verify_pdf_signature(header_bytes: bytes) -> Tuple[bool, Optional[str]]:
             "This paper may require an institutional login or subscription on the source website.",
         )
 
-    return False, "Remote file did not contain a valid PDF signature (%PDF-)"
+    # Search for %PDF- within the first 1024 bytes
+    window = header_bytes[:1024]
+    pos = window.find(PDF_MAGIC)
+    if pos == -1:
+        return False, "Remote file did not contain a valid PDF signature (%PDF-)"
+
+    prefix = window[:pos]
+    # Check if prefix contains HTML tags
+    prefix_lower = prefix.lower()
+    if b"<html" in prefix_lower or b"<!doctype" in prefix_lower or b"<head" in prefix_lower:
+        return (
+            False,
+            "Remote server returned an HTML webpage instead of a direct PDF. "
+            "This paper may require an institutional login or subscription on the source website.",
+        )
+
+    # Ensure prefix is only BOMs, whitespace, or comments
+    i = 0
+    while i < len(prefix):
+        # UTF-8 BOM: 0xEF 0xBB 0xBF
+        if prefix[i : i + 3] == b"\xef\xbb\xbf":
+            i += 3
+            continue
+        # UTF-16 BOM
+        if prefix[i : i + 2] in (b"\xfe\xff", b"\xff\xfe"):
+            i += 2
+            continue
+        # PDF comment line: % ... until newline
+        if prefix[i] == ord(b"%"):
+            while i < len(prefix) and prefix[i] not in (ord(b"\r"), ord(b"\n")):
+                i += 1
+            continue
+        # Whitespace
+        if prefix[i] in (ord(b" "), ord(b"\t"), ord(b"\r"), ord(b"\n")):
+            i += 1
+            continue
+        return False, "Remote file did not contain a valid PDF signature (%PDF-)"
+
+    return True, None
 
 
 class PdfManager:

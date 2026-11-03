@@ -12,10 +12,14 @@ import httpx
 from paper_scraper.adapters.arxiv import ArxivAdapter
 from paper_scraper.adapters.base import BaseAdapter
 from paper_scraper.adapters.biorxiv import BiorxivAdapter
+from paper_scraper.adapters.ieee import IeeeAdapter
 from paper_scraper.adapters.medrxiv import MedrxivAdapter
 from paper_scraper.adapters.nature import NatureAdapter
 from paper_scraper.adapters.plos import PlosAdapter
 from paper_scraper.adapters.pubmed import PubmedAdapter
+from paper_scraper.adapters.semantic_scholar import SemanticScholarAdapter
+from paper_scraper.adapters.openalex import OpenAlexAdapter
+from paper_scraper.adapters.core_api import CoreApiAdapter
 from paper_scraper.models import SourceDescriptor
 
 
@@ -34,6 +38,10 @@ class SourceRegistry:
         self.register(PubmedAdapter())
         self.register(PlosAdapter())
         self.register(NatureAdapter())
+        self.register(IeeeAdapter())
+        self.register(SemanticScholarAdapter())
+        self.register(OpenAlexAdapter())
+        self.register(CoreApiAdapter())
 
     def register(self, adapter: BaseAdapter) -> None:
         self.adapters[adapter.id] = adapter
@@ -64,6 +72,14 @@ class SourceRegistry:
             return self.adapters.get("nature_srep")
         if source_id == "nature_srep":
             return self.adapters.get("nature_srep")
+        if source_id in ("ieee", "ieee_xplore"):
+            return self.adapters.get("ieee_xplore")
+        if source_id in ("s2", "semanticscholar", "semantic_scholar"):
+            return self.adapters.get("semantic_scholar")
+        if source_id in ("core", "core_api"):
+            return self.adapters.get("core_api")
+        if source_id in ("openalex", "oa"):
+            return self.adapters.get("openalex")
         return None
 
     def list_descriptors(self) -> List[SourceDescriptor]:

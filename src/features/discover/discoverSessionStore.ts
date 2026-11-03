@@ -3,6 +3,8 @@ import {
   SourceSearchStatus,
   AiChatMessage,
   AiChunkCitation,
+  saveAiChatMessage,
+  clearAiChatSession,
 } from "../../lib/desktop-api";
 
 export interface PaperAiInsight {
@@ -16,6 +18,8 @@ export interface PaperAiInsight {
 export interface DiscoverSessionState {
   // Search parameters
   searchQuery: string;
+  submittedQuery?: string;
+  activeJobId?: string | null;
   isSearching: boolean;
   discoveredResults: DiscoveredSearchResult[];
   sourceStatuses: SourceSearchStatus[];
@@ -27,6 +31,8 @@ export interface DiscoverSessionState {
   activeRightTab: "details" | "chat" | "insights" | "notes";
   isLeftPaneCollapsed: boolean;
   isRightPaneCollapsed: boolean;
+  leftPaneWidth: number;
+  rightPaneWidth: number;
   targetPdfPage: number | undefined;
 
   // Filters
@@ -37,7 +43,7 @@ export interface DiscoverSessionState {
   filterAuthor: string;
   filterVenue: string;
   filterPeerReviewedOnly: boolean;
-  sortBy: "best_match" | "newest" | "oldest" | "title_az" | "author_az";
+  sortBy: "best_match" | "newest" | "oldest" | "title_az" | "author_az" | "citations";
   quickFilter: "all" | "oa" | "downloaded";
   textFilter: string;
   limitPerSource?: number;
@@ -56,10 +62,13 @@ const initialDefaultSources = [
   "plos",
   "nature_srep",
   "pmc",
+  "ieee_xplore",
 ];
 
 const defaultSessionState: DiscoverSessionState = {
   searchQuery: "",
+  submittedQuery: "",
+  activeJobId: null,
   isSearching: false,
   discoveredResults: [],
   sourceStatuses: [],
@@ -70,6 +79,8 @@ const defaultSessionState: DiscoverSessionState = {
   activeRightTab: "details",
   isLeftPaneCollapsed: false,
   isRightPaneCollapsed: false,
+  leftPaneWidth: 380,
+  rightPaneWidth: 380,
   targetPdfPage: undefined,
 
   filterYearStart: null,
@@ -121,6 +132,8 @@ function persistState() {
   try {
     const toSave: Partial<DiscoverSessionState> = {
       searchQuery: memoryState.searchQuery,
+      submittedQuery: memoryState.submittedQuery,
+      activeJobId: memoryState.activeJobId,
       discoveredResults: memoryState.discoveredResults,
       sourceStatuses: memoryState.sourceStatuses,
       selectedSources: memoryState.selectedSources,
@@ -129,6 +142,8 @@ function persistState() {
       activeRightTab: memoryState.activeRightTab,
       isLeftPaneCollapsed: memoryState.isLeftPaneCollapsed,
       isRightPaneCollapsed: memoryState.isRightPaneCollapsed,
+      leftPaneWidth: memoryState.leftPaneWidth,
+      rightPaneWidth: memoryState.rightPaneWidth,
       filterYearStart: memoryState.filterYearStart,
       filterYearEnd: memoryState.filterYearEnd,
       filterContentType: memoryState.filterContentType,
@@ -188,16 +203,34 @@ export const discoverSessionStore = {
     this.setState({ targetPdfPage: page });
   },
 
-  addChatMessage(paperId: string, message: AiChatMessage) {
+  addChatMessage(paperId: string, message: AiChatMessage, skipPersist = false) {
+    const msgWithSession: AiChatMessage = {
+      ...message,
+      session_id: message.session_id || `discover_${paperId}`,
+    };
     this.setState((prev) => {
       const existing = prev.chatHistoryByPaper[paperId] || [];
       return {
         chatHistoryByPaper: {
           ...prev.chatHistoryByPaper,
-          [paperId]: [...existing, message],
+          [paperId]: [...existing, msgWithSession],
         },
       };
     });
+    if (!skipPersist) {
+      saveAiChatMessage(msgWithSession).catch((e) =>
+        console.warn("Failed to persist discover chat message to SQLite:", e)
+      );
+    }
+  },
+
+  setChatMessages(paperId: string, messages: AiChatMessage[]) {
+    this.setState((prev) => ({
+      chatHistoryByPaper: {
+        ...prev.chatHistoryByPaper,
+        [paperId]: messages,
+      },
+    }));
   },
 
   clearChat(paperId: string) {
@@ -206,6 +239,10 @@ export const discoverSessionStore = {
       delete updated[paperId];
       return { chatHistoryByPaper: updated };
     });
+    const sessionId = `discover_${paperId}`;
+    clearAiChatSession(sessionId).catch((e) =>
+      console.warn("Failed to clear discover chat session in SQLite:", e)
+    );
   },
 
   setInsight(paperId: string, insightType: string, insight: PaperAiInsight) {

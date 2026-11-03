@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "./Button";
+import { cn } from "../../lib/utils";
 
 export interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -7,6 +8,8 @@ export interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   onAction?: () => void;
+  actionNode?: React.ReactNode;
+  compact?: boolean;
   className?: string;
 }
 
@@ -16,28 +19,45 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   description,
   actionLabel,
   onAction,
+  actionNode,
+  compact = false,
   className = "",
 }) => {
   return (
     <div
-      className={`flex flex-col items-center justify-center p-8 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 ${className}`}
+      className={cn(
+        "flex flex-col items-center justify-center text-center rounded-xl border border-dashed border-border bg-card/40 transition-colors",
+        compact ? "p-4 space-y-2" : "p-8 space-y-3",
+        className
+      )}
     >
       {icon && (
-        <div className="p-3 mb-3 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+        <div
+          className={cn(
+            "rounded-full bg-muted text-muted-foreground flex items-center justify-center",
+            compact ? "p-2 mb-1" : "p-3 mb-2"
+          )}
+        >
           {icon}
         </div>
       )}
-      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">
-        {title}
-      </h3>
-      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-4 leading-relaxed">
-        {description}
-      </p>
-      {actionLabel && onAction && (
-        <Button variant="primary" size="sm" onClick={onAction}>
+      <div className="space-y-1">
+        <h3 className={cn("font-semibold text-foreground tracking-tight", compact ? "text-xs" : "text-sm")}>
+          {title}
+        </h3>
+        <p className={cn("text-muted-foreground max-w-sm leading-relaxed", compact ? "text-[11px]" : "text-xs")}>
+          {description}
+        </p>
+      </div>
+      {actionNode ? (
+        actionNode
+      ) : actionLabel && onAction ? (
+        <Button variant="default" size="sm" onClick={onAction}>
           {actionLabel}
         </Button>
-      )}
+      ) : null}
     </div>
   );
 };
+
+export default EmptyState;

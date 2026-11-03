@@ -18,6 +18,7 @@ pub struct AppState {
     pub crawl_engine: Arc<CrawlEngine>,
     pub download_manager: Arc<DownloadManager>,
     pub ai_provider_service: Arc<crate::services::AiProviderService>,
+    pub auth_service: Option<Arc<crate::services::AuthService>>,
 }
 
 impl Default for AppState {
@@ -34,6 +35,7 @@ impl Default for AppState {
             crawl_engine: Arc::new(CrawlEngine::new()),
             download_manager,
             ai_provider_service: Arc::new(crate::services::AiProviderService::new()),
+            auth_service: None,
         }
     }
 }
@@ -43,6 +45,7 @@ impl AppState {
         let storage_dir = config.default_library_dir.clone();
         let download_manager = Arc::new(DownloadManager::new(database.clone(), storage_dir));
         let _ = download_manager.recover_interrupted_jobs();
+        let auth_service = database.as_ref().map(|db| Arc::new(crate::services::AuthService::new(db.clone())));
 
         Self {
             config: Arc::new(RwLock::new(config)),
@@ -52,6 +55,7 @@ impl AppState {
             crawl_engine: Arc::new(CrawlEngine::new()),
             download_manager,
             ai_provider_service: Arc::new(crate::services::AiProviderService::new()),
+            auth_service,
         }
     }
 
@@ -65,5 +69,12 @@ impl AppState {
         self.database
             .as_ref()
             .ok_or_else(|| AppError::Internal("Database is not initialized".to_string()))
+    }
+
+    /// Returns a reference to the active AuthService or errors if not initialized.
+    pub fn auth(&self) -> Result<&Arc<crate::services::AuthService>, AppError> {
+        self.auth_service
+            .as_ref()
+            .ok_or_else(|| AppError::Internal("AuthService is not initialized".to_string()))
     }
 }

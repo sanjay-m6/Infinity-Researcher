@@ -39,6 +39,8 @@ pub struct Paper {
     pub reading_status: String,
     #[serde(default)]
     pub reading_progress: f64,
+    #[serde(default)]
+    pub last_opened_at: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 
@@ -115,6 +117,7 @@ pub struct PaperCreateInput {
     pub is_saved: Option<bool>,
     pub reading_status: Option<String>,
     pub reading_progress: Option<f64>,
+    pub last_opened_at: Option<String>,
     pub open_access_status: Option<String>,
     pub access_evidence_type: Option<String>,
     pub access_evidence_note: Option<String>,
@@ -144,6 +147,7 @@ pub struct PaperUpdateInput {
     pub is_saved: Option<bool>,
     pub reading_status: Option<String>,
     pub reading_progress: Option<f64>,
+    pub last_opened_at: Option<String>,
     pub open_access_status: Option<String>,
     pub access_evidence_type: Option<String>,
     pub access_evidence_note: Option<String>,

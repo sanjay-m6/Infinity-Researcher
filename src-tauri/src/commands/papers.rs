@@ -88,6 +88,15 @@ pub async fn bulk_update_reading_status(
 }
 
 #[tauri::command]
+pub async fn touch_paper_opened(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<bool, CommandError> {
+    let db = state.db()?;
+    PaperService::touch_paper_opened(db, &id).map_err(Into::into)
+}
+
+#[tauri::command]
 pub async fn rebuild_search_index(state: State<'_, AppState>) -> Result<usize, CommandError> {
     let db = state.db()?;
     PaperService::rebuild_search_index(db).map_err(Into::into)

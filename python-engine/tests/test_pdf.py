@@ -8,6 +8,18 @@ def test_verify_pdf_signature_valid():
     assert is_valid is True
     assert reason is None
 
+    # UTF-8 BOM
+    bom_pdf = b"\xef\xbb\xbf%PDF-1.4\n1 0 obj"
+    is_valid, reason = verify_pdf_signature(bom_pdf)
+    assert is_valid is True
+    assert reason is None
+
+    # Leading whitespace and comments
+    whitespace_pdf = b"   \r\n% Repository file banner\r\n%PDF-1.5"
+    is_valid, reason = verify_pdf_signature(whitespace_pdf)
+    assert is_valid is True
+    assert reason is None
+
 
 def test_verify_pdf_signature_html_masquerade(fake_pdf_login_html):
     html_bytes = fake_pdf_login_html.encode("utf-8")

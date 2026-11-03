@@ -31,6 +31,21 @@ impl Database {
                 error!(error = %e, path = %parent.display(), "Failed to create database parent directory");
                 AppError::Internal(format!("Failed to create database directory: {}", e))
             })?;
+
+            // If database file already exists, create timestamped safety backup before running migrations
+            if path.exists() {
+                let backup_dir = parent.join("backups");
+                let _ = fs::create_dir_all(&backup_dir);
+                let backup_file = backup_dir.join(format!(
+                    "pre_migration_{}.sqlite3.bak",
+                    chrono::Utc::now().format("%Y%m%d_%H%M%S")
+                ));
+                if let Err(e) = fs::copy(path, &backup_file) {
+                    tracing::warn!(error = %e, "Could not create pre-migration database backup");
+                } else {
+                    info!(backup = %backup_file.display(), "Created automatic pre-migration database backup");
+                }
+            }
         }
 
         let mut conn = Connection::open(path).map_err(|e| {

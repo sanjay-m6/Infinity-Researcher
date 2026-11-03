@@ -3,7 +3,7 @@ import { Modal } from "../../components/ui/Modal";
 import { Button } from "../../components/ui/Button";
 import {
   Bug,
-  Sparkles,
+  Lightbulb,
   ExternalLink,
   CheckCircle2,
   AlertTriangle,
@@ -35,7 +35,7 @@ import {
   buildFeatureRequestMarkdown,
   FALLBACK_REPO_LABELS,
 } from "../../lib/github/github-client";
-import { getAppSetting, setAppSetting } from "../../lib/desktop-api";
+import { getAppSetting, setAppSetting, getErrorMessage } from "../../lib/desktop-api";
 import { useApp } from "../../context/AppContext";
 
 export type ViewLayout = "split" | "edit" | "preview";
@@ -227,8 +227,9 @@ Timestamp: ${new Date().toISOString()}`;
 
       setSubmissionResult(result);
       showToast(`GitHub Issue #${result.number} created successfully!`, "success");
-    } catch (err: any) {
-      setErrorMessage(err.message || "Failed to create issue on GitHub.");
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err, "Failed to create issue on GitHub.");
+      setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -321,7 +322,6 @@ Timestamp: ${new Date().toISOString()}`;
                 <option value="Discover / Search">Discover / Search</option>
                 <option value="Literature Review Matrix">Literature Review Matrix</option>
                 <option value="PDF Reader">PDF Reader</option>
-                <option value="Research Integrity Suite">Research Integrity Suite</option>
                 <option value="AI Workspace">AI Workspace</option>
                 <option value="Library / Collections">Library / Collections</option>
                 <option value="Sources & Crawls">Sources & Crawls</option>
@@ -545,8 +545,8 @@ Timestamp: ${new Date().toISOString()}`;
           <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
             Live GitHub Issue Preview
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             Live Sync
           </span>
         </div>
@@ -783,7 +783,7 @@ Timestamp: ${new Date().toISOString()}`;
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                <Lightbulb className="w-3.5 h-3.5 text-slate-500" />
                 <span>Request a Feature</span>
               </button>
             </div>
@@ -798,7 +798,7 @@ Timestamp: ${new Date().toISOString()}`;
                     ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 font-semibold shadow-2xs"
                     : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
                 }`}
-                title="Double-sided view: Form editor and live Markdown preview side-by-side"
+                title="Split view: Form editor and live Markdown preview side-by-side"
               >
                 <Columns className="w-3.5 h-3.5" />
                 <span>Double-Sided</span>
@@ -853,7 +853,7 @@ Timestamp: ${new Date().toISOString()}`;
             </div>
           )}
 
-          {/* Dynamic Layout: Double-Sided (Split), Form Only, or Preview Only */}
+          {/* Dynamic Layout: Split View, Form Only, or Preview Only */}
           {viewLayout === "split" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
               {/* Left Column: Form Editor */}

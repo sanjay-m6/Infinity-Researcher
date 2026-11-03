@@ -14,17 +14,13 @@ describe("AppShell Integration Tests", () => {
     render(<App />);
 
     expect(screen.getAllByText("Infinity Researcher").length).toBeGreaterThan(0);
-    expect(screen.getByText("Discover. Understand.")).toBeInTheDocument();
 
     const nav = screen.getByRole("navigation", { name: "Main Navigation" });
-    expect(within(nav).getByRole("button", { name: /Dashboard/i })).toBeInTheDocument();
     expect(within(nav).getByRole("button", { name: /Discover/i })).toBeInTheDocument();
     expect(within(nav).getByRole("button", { name: /Library/i })).toBeInTheDocument();
-    expect(within(nav).getByRole("button", { name: /Downloads/i })).toBeInTheDocument();
-    expect(within(nav).getByRole("button", { name: /Collections/i })).toBeInTheDocument();
-    expect(within(nav).getByRole("button", { name: /Sources/i })).toBeInTheDocument();
-    expect(within(nav).getByRole("button", { name: /Activity/i })).toBeInTheDocument();
-    expect(within(nav).getByRole("button", { name: /Settings/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("button", { name: /Assistant/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("button", { name: /Comparison/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("button", { name: /IEEE/i })).toBeInTheDocument();
   });
 
   it("navigates across main sections via sidebar", async () => {
@@ -50,17 +46,23 @@ describe("AppShell Integration Tests", () => {
       screen.getByRole("heading", { name: "Saved Paper Library", level: 1 })
     ).toBeInTheDocument();
 
-    // Navigate to Downloads
-    await user.click(within(nav).getByRole("button", { name: /Downloads/i }));
-    expect(
-      screen.getByRole("heading", { name: "Downloads & Retrieval Jobs", level: 1 })
-    ).toBeInTheDocument();
+    // Switch to Workspace rail
+    await user.click(screen.getByTitle(/Workspace \(Click to open\)/i));
 
     // Navigate to Collections
     await user.click(within(nav).getByRole("button", { name: /Collections/i }));
     expect(
-      screen.getByRole("heading", { name: "Research Collections", level: 1 })
+      screen.getAllByRole("heading", { name: "Research Collections", level: 1 })[0]
     ).toBeInTheDocument();
+
+    // Navigate to History / Downloads
+    await user.click(within(nav).getByRole("button", { name: /History/i }));
+    expect(
+      screen.getByRole("heading", { name: /Download.*Retrieval/i, level: 1 })
+    ).toBeInTheDocument();
+
+    // Switch to System rail
+    await user.click(screen.getByTitle(/System \(Click to open\)/i));
 
     // Navigate to Sources
     await user.click(within(nav).getByRole("button", { name: /Sources/i }));
@@ -69,12 +71,6 @@ describe("AppShell Integration Tests", () => {
         name: "Website Sources & Scraper Profiles",
         level: 1,
       })
-    ).toBeInTheDocument();
-
-    // Navigate to Activity
-    await user.click(within(nav).getByRole("button", { name: /Activity/i }));
-    expect(
-      screen.getByRole("heading", { name: "Activity & Event Logs", level: 1 })
     ).toBeInTheDocument();
 
     // Navigate to Settings
@@ -125,6 +121,9 @@ describe("AppShell Integration Tests", () => {
     render(<App initialCollections={INITIAL_DEMO_COLLECTIONS} />);
 
     const nav = screen.getByRole("navigation", { name: "Main Navigation" });
+
+    // Switch to Workspace rail
+    await user.click(screen.getByTitle(/Workspace \(Click to open\)/i));
 
     // Go to Collections screen
     await user.click(within(nav).getByRole("button", { name: /Collections/i }));

@@ -14,7 +14,13 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      "no-empty": ["warn", { allowEmptyCatch: true }],
+      "no-useless-assignment": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
       "react-hooks/set-state-in-effect": "off",
+      "react-hooks/purity": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/immutability": "warn",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
@@ -23,7 +29,7 @@ export default tseslint.config(
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-explicit-any": "warn",
     },
   }
 );

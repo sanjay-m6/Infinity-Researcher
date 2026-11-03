@@ -90,7 +90,7 @@ struct SourceMetricRecord {
 static SOURCE_METRICS: Mutex<Option<HashMap<String, SourceMetricRecord>>> = Mutex::new(None);
 static RECENT_JOBS: Mutex<Option<VecDeque<SearchJobSummary>>> = Mutex::new(None);
 
-fn record_source_metric(
+pub fn record_source_metric(
     source_id: &str,
     success: bool,
     papers_count: usize,
@@ -111,7 +111,7 @@ fn record_source_metric(
     record.last_elapsed_ms = elapsed_ms;
 }
 
-fn record_job_summary(summary: SearchJobSummary) {
+pub fn record_job_summary(summary: SearchJobSummary) {
     let mut lock = RECENT_JOBS.lock().unwrap();
     let queue = lock.get_or_insert_with(|| VecDeque::with_capacity(25));
     if queue.len() >= 25 {
@@ -246,6 +246,7 @@ impl WebsiteSearchEngine {
                 "plos".to_string(),
                 "nature_srep".to_string(),
                 "pmc".to_string(),
+                "ieee_xplore".to_string(),
             ],
         };
 
@@ -366,6 +367,7 @@ impl WebsiteSearchEngine {
                 "plos".to_string(),
                 "nature_srep".to_string(),
                 "pmc".to_string(),
+                "ieee_xplore".to_string(),
             ],
         };
 
@@ -698,7 +700,7 @@ pub mod tests {
 
         let ieee = sources.iter().find(|s| s.id == "ieee_xplore");
         assert!(ieee.is_some());
-        assert_eq!(ieee.unwrap().status, "manual_only");
+        assert_eq!(ieee.unwrap().status, "enabled");
 
         let scholar = sources.iter().find(|s| s.id == "google_scholar");
         assert!(scholar.is_some());

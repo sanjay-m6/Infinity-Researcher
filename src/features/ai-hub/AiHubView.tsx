@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import {
-  Sparkles,
   Bot,
   Cpu,
   BookOpen,
+  FileSearch,
   Compass,
   Database,
   Shield,
@@ -23,13 +23,29 @@ import {
   Play,
   RotateCcw,
   ChevronDown,
+  Edit2,
+  ShieldCheck,
+  Sparkles,
+  Copy,
+  PanelLeftClose,
+  PanelLeft,
+  ChevronRight,
+  Zap,
+  Brain,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
+import { PaperUnderstandingPanel } from "./PaperUnderstandingPanel";
+import { MultiPaperComparisonPanel } from "./MultiPaperComparisonPanel";
+import { InAppModelManagerModal } from "../ai-tools/components/InAppModelManagerModal";
+import { MarkdownMessage } from "../../components/ui/MarkdownMessage";
+import { classifyResearchQuery } from "../../lib/ai/queryClassifier";
+import { AITypingIndicator } from "../../components/loading";
 import {
   DEFAULT_AI_PROVIDERS,
   DEFAULT_AI_TASK_ROUTES,
   listAiProviders,
   setAiProviderEnabled,
+  setAiProviderModel,
   setAiProviderCredential,
   clearAiProviderCredential,
   testAiProvider,
@@ -47,6 +63,10 @@ import {
   listAiFinetuningJobs,
   getAiHardwareInfo,
   createAiFinetuningJob,
+  getErrorMessage,
+  listAiChatMessages,
+  saveAiChatMessage,
+  clearAiChatSession,
 } from "../../lib/desktop-api";
 import type {
   AiProvider,
@@ -64,6 +84,8 @@ import type {
 type AiHubTab =
   | "providers"
   | "chat"
+  | "understanding"
+  | "comparison"
   | "recommendations"
   | "indexing"
   | "finetuning"
@@ -75,6 +97,29 @@ function createAiHubMsgId(prefix: string): string {
   aiHubMsgCounter += 1;
   return `${prefix}_${Date.now()}_${aiHubMsgCounter}`;
 }
+
+const POPULAR_PROVIDER_MODELS: Record<string, string[]> = {
+  nvidia_nim: [
+    "nvidia/nemotron-3-ultra-550b-a55b",
+    "mistralai/mistral-large-4-1t-a52b",
+    "meta/llama-3.3-70b-instruct",
+    "deepseek-ai/deepseek-r1",
+    "nvidia/llama-3.1-nemotron-70b-instruct",
+  ],
+  in_app_local: [
+    "DeepSeek-R1-Distill-Qwen-8B-Q4_K_M.gguf",
+    "qwen2.5-7b-instruct-q4_k_m.gguf",
+    "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",
+    "qwen2.5-3b-instruct-q4_k_m.gguf",
+    "Mistral-7B-Instruct-v0.3-Q4_K_M.gguf",
+  ],
+  ollama_local: ["llama3.2:latest", "mistral:latest", "qwen2.5:latest"],
+  groq_cloud: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
+  openrouter: ["meta-llama/llama-3.2-3b-instruct:free", "google/gemini-2.0-flash-exp:free"],
+  gemini_api: ["gemini-1.5-flash", "gemini-1.5-pro"],
+  cerebras: ["llama3.1-8b", "llama3.1-70b"],
+  huggingface: ["meta-llama/Llama-3.2-3B-Instruct", "mistralai/Mistral-7B-Instruct-v0.3"],
+};
 
 export const AiHubView: React.FC = () => {
   const { papers, selectedPaperId, setSelectedPaperId, setReadingPaper, showToast } = useApp();
@@ -91,7 +136,51 @@ export const AiHubView: React.FC = () => {
     showToast(message ? `${title}: ${message}` : title, type === "warning" ? "warning" : type === "error" ? "error" : "info");
   };
 
-  const [activeTab, setActiveTab] = useState<AiHubTab>("providers");
+  // Persisted active tab so switching tabs never resets the view back to default
+  const [activeTab, setActiveTab] = useState<AiHubTab>(() => {
+    try {
+      const saved = localStorage.getItem("ai_hub_active_tab") as AiHubTab;
+      const validTabs: AiHubTab[] = [
+        "providers",
+        "chat",
+        "understanding",
+        "comparison",
+        "recommendations",
+        "indexing",
+        "finetuning",
+        "evaluations",
+        "privacy",
+      ];
+      return validTabs.includes(saved) ? saved : "providers";
+    } catch {
+      return "providers";
+    }
+  });
+
+  // Collapsible side-nav state persisted across sessions
+  const [isSideNavCollapsed, setIsSideNavCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("ai_hub_nav_collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSideNav = () => {
+    setIsSideNavCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("ai_hub_nav_collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ai_hub_active_tab", activeTab);
+    } catch {}
+  }, [activeTab]);
 
   // Providers & Settings state
   const [providers, setProviders] = useState<AiProvider[]>(DEFAULT_AI_PROVIDERS);
@@ -101,15 +190,104 @@ export const AiHubView: React.FC = () => {
   const [testResults, setTestResults] = useState<Record<string, ProviderTestResult>>({});
   const [apiKeyInputs, setApiKeyInputs] = useState<Record<string, string>>({});
   const [savingKeyId, setSavingKeyId] = useState<string | null>(null);
+  const [editingModelProviderId, setEditingModelProviderId] = useState<string | null>(null);
+  const [modelInputs, setModelInputs] = useState<Record<string, string>>({});
+  const [isModelPanelOpen, setIsModelPanelOpen] = useState(false);
 
-  // Chat & Reading Assistant state
-  const [chatMessages, setChatMessages] = useState<AiChatMessage[]>([]);
+  // Chat & Reading Assistant state (persisted across tab switches)
+  const [chatMessages, setChatMessages] = useState<AiChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem("ai_hub_chat_messages");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [chatPrompt, setChatPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedAudience, setSelectedAudience] = useState("researcher");
   const [selectedReadingMode, setSelectedReadingMode] = useState("deep_read");
-  const [activeRagScope, setActiveRagScope] = useState<"paper" | "library" | "none">("paper");
-  const [targetPaperId, setTargetPaperId] = useState<string>(selectedPaper?.id || "");
+  const [activeRagScope, setActiveRagScope] = useState<"paper" | "library" | "none">(() => {
+    return (localStorage.getItem("ai_hub_rag_scope") as "paper" | "library" | "none") || "paper";
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ai_hub_rag_scope", activeRagScope);
+    } catch {}
+  }, [activeRagScope]);
+
+  const [targetPaperId, setTargetPaperId] = useState<string>(() => {
+    return localStorage.getItem("ai_hub_target_paper_id") || selectedPaper?.id || "";
+  });
+
+  useEffect(() => {
+    if (targetPaperId) {
+      try {
+        localStorage.setItem("ai_hub_target_paper_id", targetPaperId);
+      } catch {}
+    }
+  }, [targetPaperId]);
+
+  // Load persisted messages from SQLite for current session (with fallback to localStorage)
+  useEffect(() => {
+    let isCancelled = false;
+    const sessionId = targetPaperId ? `ai_hub_${targetPaperId}` : "ai_hub_default";
+
+    listAiChatMessages(sessionId)
+      .then((msgs) => {
+        if (!isCancelled && msgs && msgs.length > 0) {
+          setChatMessages(msgs);
+        }
+      })
+      .catch((e) => {
+        console.warn("Failed to load AI Hub messages from SQLite:", e);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [targetPaperId]);
+
+  useEffect(() => {
+    try {
+      const sessionId = targetPaperId ? `ai_hub_${targetPaperId}` : "ai_hub_default";
+      localStorage.setItem("ai_hub_chat_messages", JSON.stringify(chatMessages));
+      localStorage.setItem(`ai_hub_chat_messages_${sessionId}`, JSON.stringify(chatMessages));
+    } catch {}
+  }, [chatMessages, targetPaperId]);
+
+  // Chat Engine & Model Switcher State (Cloud API vs Local Offline)
+  const [selectedChatProviderId, setSelectedChatProviderId] = useState<string>(() => {
+    return localStorage.getItem("ai_hub_chat_provider_id") || "nvidia_nim";
+  });
+
+  const [selectedChatModelId, setSelectedChatModelId] = useState<string>(() => {
+    return localStorage.getItem("ai_hub_chat_model_id") || "";
+  });
+
+  useEffect(() => {
+    if (selectedChatProviderId) {
+      try {
+        localStorage.setItem("ai_hub_chat_provider_id", selectedChatProviderId);
+      } catch {}
+    }
+  }, [selectedChatProviderId]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ai_hub_chat_model_id", selectedChatModelId);
+    } catch {}
+  }, [selectedChatModelId]);
+
+  const activeChatProvider =
+    providers.find((p) => p.id === selectedChatProviderId) ||
+    providers.find((p) => p.is_enabled) ||
+    providers[0];
+
+  const currentChatModel =
+    selectedChatModelId || activeChatProvider?.default_model || "default";
 
   // Recommendations state
   const [recommendations, setRecommendations] = useState<AiRecommendation[]>([]);
@@ -262,10 +440,10 @@ export const AiHubView: React.FC = () => {
       }
       loadProviders();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = getErrorMessage(err, "Could not connect to provider endpoint.");
       addToast({
         title: "Test Failed",
-        message: msg || "Could not connect to provider endpoint.",
+        message: msg,
         type: "error",
       });
     } finally {
@@ -283,7 +461,7 @@ export const AiHubView: React.FC = () => {
         type: "info",
       });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Failed to update provider status.");
       addToast({ title: "Failed to update provider", message: msg, type: "error" });
     }
   };
@@ -305,7 +483,7 @@ export const AiHubView: React.FC = () => {
         type: "success",
       });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Error saving API key.");
       addToast({ title: "Error saving key", message: msg, type: "error" });
     } finally {
       setSavingKeyId(null);
@@ -318,8 +496,28 @@ export const AiHubView: React.FC = () => {
       loadProviders();
       addToast({ title: "Credential Removed", message: "Saved key reference deleted.", type: "info" });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Error clearing API key.");
       addToast({ title: "Error clearing key", message: msg, type: "error" });
+    }
+  };
+
+  const handleSaveModel = async (providerId: string) => {
+    const newModel = modelInputs[providerId]?.trim();
+    if (!newModel) return;
+    try {
+      await setAiProviderModel(providerId, newModel);
+      setProviders((prev) =>
+        prev.map((p) => (p.id === providerId ? { ...p, default_model: newModel } : p))
+      );
+      setEditingModelProviderId(null);
+      addToast({
+        title: "Model Updated",
+        message: `Default model updated to ${newModel}`,
+        type: "success",
+      });
+    } catch (e: unknown) {
+      const msg = getErrorMessage(e, "Failed to update default model.");
+      addToast({ title: "Update failed", message: msg, type: "error" });
     }
   };
 
@@ -336,19 +534,20 @@ export const AiHubView: React.FC = () => {
         type: "info",
       });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Failed to save AI settings.");
       addToast({ title: "Failed to save settings", message: msg, type: "error" });
     }
   };
 
-  // Generation / Reading Assistant
   const handleGenerate = async (presetPrompt?: string) => {
     const promptToSend = presetPrompt || chatPrompt;
     if (!promptToSend.trim()) return;
 
+    const sessionId = targetPaperId ? `ai_hub_${targetPaperId}` : "ai_hub_default";
+
     const userMsg: AiChatMessage = {
       id: createAiHubMsgId("usr"),
-      session_id: "default_session",
+      session_id: sessionId,
       paper_id: targetPaperId || null,
       role: "user",
       content: promptToSend,
@@ -358,10 +557,20 @@ export const AiHubView: React.FC = () => {
     };
 
     setChatMessages((prev) => [...prev, userMsg]);
+    saveAiChatMessage(userMsg).catch((e) =>
+      console.warn("Failed to persist AI Hub user message to SQLite:", e)
+    );
     if (!presetPrompt) setChatPrompt("");
     setIsGenerating(true);
 
     try {
+      const activeChatProvider =
+        providers.find((p) => p.id === selectedChatProviderId) ||
+        providers.find((p) => p.is_enabled) ||
+        providers[0];
+      const currentChatModel =
+        selectedChatModelId || activeChatProvider?.default_model || "default";
+
       const resp = await generateAiResponse({
         prompt: promptToSend,
         paper_id: targetPaperId || null,
@@ -369,35 +578,43 @@ export const AiHubView: React.FC = () => {
         audience_level: selectedAudience,
         reading_mode: selectedReadingMode,
         rag_scope: activeRagScope,
+        provider_override: selectedChatProviderId,
+        model_override: currentChatModel,
       });
 
       const assistantMsg: AiChatMessage = {
         id: createAiHubMsgId("ast"),
-        session_id: "default_session",
+        session_id: sessionId,
         paper_id: targetPaperId || null,
         role: "assistant",
         content: resp.text,
         citations: resp.citations,
-        provider_id: resp.provider_id,
-        model_id: resp.model_id,
+        provider_id: resp.provider_id || selectedChatProviderId,
+        model_id: resp.model_id || currentChatModel,
         retrieval_mode: activeRagScope,
         created_at: new Date().toISOString(),
       };
 
       setChatMessages((prev) => [...prev, assistantMsg]);
+      saveAiChatMessage(assistantMsg).catch((e) =>
+        console.warn("Failed to persist AI Hub assistant message to SQLite:", e)
+      );
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Failed to generate AI response. Check connection and privacy settings.");
       const errorMsg: AiChatMessage = {
         id: createAiHubMsgId("err"),
-        session_id: "default_session",
+        session_id: sessionId,
         paper_id: targetPaperId || null,
         role: "assistant",
-        content: `⚠️ Error: ${msg || "Failed to generate AI response. Check connection and privacy settings."}`,
+        content: `⚠️ Error: ${msg}`,
         citations: [],
         retrieval_mode: activeRagScope,
         created_at: new Date().toISOString(),
       };
       setChatMessages((prev) => [...prev, errorMsg]);
+      saveAiChatMessage(errorMsg).catch((e) =>
+        console.warn("Failed to persist AI Hub error message to SQLite:", e)
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -415,10 +632,10 @@ export const AiHubView: React.FC = () => {
         type: "success",
       });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Could not extract or index paper text.");
       addToast({
         title: "Indexing Failed",
-        message: msg || "Could not extract or index paper text.",
+        message: msg,
         type: "error",
       });
     } finally {
@@ -438,7 +655,7 @@ export const AiHubView: React.FC = () => {
         type: "success",
       });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Evaluation benchmark failed.");
       addToast({ title: "Evaluation failed", message: msg, type: "error" });
     } finally {
       setIsRunningEval(false);
@@ -462,7 +679,7 @@ export const AiHubView: React.FC = () => {
         type: "success",
       });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = getErrorMessage(e, "Job creation error.");
       addToast({ title: "Job creation error", message: msg, type: "error" });
     }
   };
@@ -470,84 +687,314 @@ export const AiHubView: React.FC = () => {
   // Current paper info
   const activePaper = papers.find((p) => p.id === targetPaperId) || selectedPaper;
 
+  const NAV_GROUPS: {
+    name: string;
+    items: {
+      id: AiHubTab;
+      label: string;
+      shortLabel?: string;
+      icon: React.ComponentType<{ className?: string }>;
+      description: string;
+      badge?: string | number | null;
+    }[];
+  }[] = [
+    {
+      name: "Research Intelligence",
+      items: [
+        {
+          id: "chat",
+          label: "Reading Assistant & Chat",
+          shortLabel: "Assistant & Chat",
+          icon: BookOpen,
+          description: "Evidence-grounded conversational paper analysis",
+          badge: chatMessages.length > 0 ? chatMessages.length : null,
+        },
+        {
+          id: "understanding",
+          label: "Paper Understanding",
+          shortLabel: "Understanding",
+          icon: FileSearch,
+          description: "Deep claim verification, methodology & limits analysis",
+          badge: activePaper ? "Paper" : null,
+        },
+        {
+          id: "comparison",
+          label: "Multi-Paper & Gaps",
+          shortLabel: "Multi-Paper",
+          icon: Layers,
+          description: "Cross-paper comparative matrices & research gap detection",
+        },
+        {
+          id: "recommendations",
+          label: "Recommendations",
+          shortLabel: "Suggestions",
+          icon: Compass,
+          description: "Transparent algorithmic related paper suggestions",
+          badge: recommendations.length > 0 ? recommendations.length : null,
+        },
+      ],
+    },
+    {
+      name: "Engines & Knowledge Base",
+      items: [
+        {
+          id: "providers",
+          label: "Providers & Models",
+          shortLabel: "Providers",
+          icon: Bot,
+          description: "Configure local LLMs & NVIDIA cloud APIs",
+          badge: `${providers.filter((p) => p.is_enabled).length} ready`,
+        },
+        {
+          id: "indexing",
+          label: "Library Indexing (RAG)",
+          shortLabel: "RAG Indexing",
+          icon: Database,
+          description: "Chunking, vector embeddings, & BM25 indices",
+          badge: `${papers.length} papers`,
+        },
+        {
+          id: "finetuning",
+          label: "Fine-Tuning Lab",
+          shortLabel: "Fine-Tuning",
+          icon: Cpu,
+          description: "Hardware preflight checks & custom model training",
+        },
+        {
+          id: "evaluations",
+          label: "Evaluations & Quality",
+          shortLabel: "Evaluations",
+          icon: Activity,
+          description: "Local hallucination and citation quality benchmarks",
+        },
+        {
+          id: "privacy",
+          label: "Privacy & Storage",
+          shortLabel: "Privacy & Guard",
+          icon: Shield,
+          description: "Data boundaries, local SQLite vaults & cloud consent",
+        },
+      ],
+    },
+  ];
+
+  const currentNavTab = NAV_GROUPS.flatMap((g) => g.items).find((item) => item.id === activeTab) || {
+    id: activeTab,
+    label: "Workspace",
+    icon: Bot,
+    description: "",
+  };
+  const CurrentTabIcon = currentNavTab.icon;
+
+  const chatRoute = taskRoutes.find((r) => r.task_type === "chat_grounded") || taskRoutes[0];
+  const activeProvider =
+    providers.find((p) => p.id === chatRoute?.provider_id) ||
+    providers.find((p) => p.is_enabled) ||
+    providers[0];
+  const activeProviderName = activeProvider?.display_name || "AI Engine";
+  const activeModelName = activeProvider?.default_model || "Configured Model";
+
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden">
       {/* Top Header */}
-      <header className="px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 shrink-0 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-            <Sparkles className="w-5 h-5" />
+      <header className="px-5 py-3.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 shrink-0 shadow-2xs">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={toggleSideNav}
+            className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors shadow-2xs"
+            title={isSideNavCollapsed ? "Expand Navigation Rail" : "Collapse Navigation Rail"}
+            aria-label={isSideNavCollapsed ? "Expand Navigation Rail" : "Collapse Navigation Rail"}
+          >
+            {isSideNavCollapsed ? (
+              <PanelLeft className="w-4 h-4" />
+            ) : (
+              <PanelLeftClose className="w-4 h-4" />
+            )}
+          </button>
+
+          <div className="w-9 h-9 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 flex items-center justify-center shrink-0 shadow-2xs">
+            <Cpu className="w-4 h-4" />
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-              AI Workspace & Research Knowledge
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Multi-Provider Local/Cloud AI · Shared RAG Library Pipeline · Transparent Recommendations
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+                AI Workspace & Research Knowledge
+              </h1>
+              <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                <CurrentTabIcon className="w-3.5 h-3.5 text-slate-500" />
+                {currentNavTab.label}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+              Multi-provider local/cloud AI · Shared RAG library pipeline · Transparent recommendations
             </p>
           </div>
         </div>
 
-        {/* Global Privacy Status Badges */}
-        <div className="flex items-center gap-2">
+        {/* Global Privacy Status Badges & Active Model Pill */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Active Model Pill */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("providers")}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-colors"
+            title="Active Model (Click to configure in Providers)"
+          >
+            <Zap className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <span className="font-mono text-[11px] tabular-nums truncate max-w-[140px] sm:max-w-[200px]">
+              {activeModelName}
+            </span>
+          </button>
+
           {settings?.local_only_mode ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-sm">
-              <Lock className="w-3.5 h-3.5" /> Local-Only Mode Active
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <Lock className="w-3 h-3 text-slate-500" /> Local-only mode
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
-              <Unlock className="w-3.5 h-3.5" /> Cloud Allowed (With Consent)
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+              <Unlock className="w-3 h-3 text-slate-500" /> Cloud allowed
             </span>
           )}
 
           {settings?.never_use_paid_apis && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-              Paid APIs Blocked
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+              Paid APIs blocked
             </span>
           )}
         </div>
       </header>
 
-      {/* Workspace Tabs Navigation */}
-      <nav className="flex items-center px-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur border-b border-slate-200 dark:border-slate-800 overflow-x-auto scrollbar-none gap-1 shrink-0">
-        {[
-          { id: "providers", label: "Providers & Models", icon: Bot },
-          { id: "chat", label: "Reading Assistant & Chat", icon: BookOpen },
-          { id: "recommendations", label: "Recommendations", icon: Compass },
-          { id: "indexing", label: "Library Indexing (RAG)", icon: Database },
-          { id: "finetuning", label: "Fine-Tuning Lab", icon: Cpu },
-          { id: "evaluations", label: "Evaluations & Quality", icon: Activity },
-          { id: "privacy", label: "Privacy & Storage", icon: Shield },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as AiHubTab)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
-                isActive
-                  ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20"
-                  : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </nav>
+      {/* Workspace Body: Side Nav Rail + Main View Area */}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        {/* Left Side Navigation Rail */}
+        <aside
+          className={`transition-[width] duration-200 ease-in-out border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 flex flex-col justify-between overflow-y-auto overflow-x-hidden scrollbar-none ${
+            isSideNavCollapsed ? "w-16" : "w-64"
+          }`}
+        >
+          <div className="p-3 space-y-4">
+            {NAV_GROUPS.map((group, groupIdx) => (
+              <div key={groupIdx} className="space-y-1">
+                {!isSideNavCollapsed ? (
+                  <div className="px-2.5 py-1 text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                    {group.name}
+                  </div>
+                ) : (
+                  <div className="h-px bg-slate-200 dark:bg-slate-800 my-2 mx-1" />
+                )}
 
-      {/* Main Tab Content Area */}
-      <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
+                <div className="space-y-0.5">
+                  {group.items.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActiveTab(tab.id as AiHubTab)}
+                        title={tab.label}
+                        aria-label={tab.label}
+                        className={`w-full flex items-center transition-colors ${
+                          isSideNavCollapsed
+                            ? "justify-center p-2 rounded-lg relative"
+                            : "justify-between px-3 py-2 rounded-lg text-left"
+                        } ${
+                          isActive
+                            ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium border border-slate-300 dark:border-slate-700 shadow-xs"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 border border-transparent"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Icon
+                            className={`w-4 h-4 shrink-0 transition-colors ${
+                              isActive
+                                ? "text-slate-900 dark:text-slate-100"
+                                : "text-slate-400 dark:text-slate-500"
+                            }`}
+                          />
+                          {!isSideNavCollapsed && (
+                            <span className="text-xs truncate">{tab.label}</span>
+                          )}
+                        </div>
+
+                        {!isSideNavCollapsed && tab.badge != null && (
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded font-mono tabular-nums shrink-0 ${
+                              isActive
+                                ? "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                            }`}
+                          >
+                            {tab.badge}
+                          </span>
+                        )}
+
+                        {isSideNavCollapsed && tab.badge != null && (
+                          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-slate-900 dark:bg-slate-100 ring-2 ring-white dark:ring-slate-900" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Engine Status Pin */}
+          <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
+            {!isSideNavCollapsed ? (
+              <button
+                type="button"
+                onClick={() => setActiveTab("providers")}
+                className="w-full text-left p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-xs transition-all group"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 min-w-0">
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    </span>
+                    <span className="truncate">{activeProviderName}</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 transition-colors shrink-0" />
+                </div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate">
+                  {activeModelName}
+                </div>
+              </button>
+            ) : (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("providers")}
+                  title={`Active Engine: ${activeProviderName} (${activeModelName})`}
+                  aria-label="Active AI Engine"
+                  className="relative p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <Zap className="w-4 h-4 text-amber-500" />
+                  <span className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+                </button>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Main Tab Content Area */}
+        <main className="flex-1 overflow-y-auto p-6 scrollbar-thin min-w-0 bg-slate-50/50 dark:bg-slate-950/50">
         {/* ========================================================================= */}
         {/* TAB 1: PROVIDERS & MODELS */}
         {/* ========================================================================= */}
         {activeTab === "providers" && (
           <div className="space-y-6 max-w-6xl mx-auto">
-            <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-transparent p-4 rounded-xl border border-indigo-200 dark:border-indigo-900 flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   AI Provider Catalog & Routing
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -628,12 +1075,74 @@ export const AiHubView: React.FC = () => {
                       </div>
 
                       {/* Model & Endpoint Details */}
-                      <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 mb-4 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Default Model:</span>
-                          <span className="font-mono text-slate-900 dark:text-slate-200 font-medium">
-                            {p.default_model}
-                          </span>
+                      <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400 mb-4 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-500 font-medium">Model:</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono text-slate-900 dark:text-slate-200 font-semibold text-[11px] truncate max-w-[190px]" title={p.default_model}>
+                                {p.default_model}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (editingModelProviderId === p.id) {
+                                    setEditingModelProviderId(null);
+                                  } else {
+                                    setEditingModelProviderId(p.id);
+                                    setModelInputs((prev) => ({ ...prev, [p.id]: p.default_model }));
+                                  }
+                                }}
+                                className="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 p-0.5 rounded transition-colors"
+                                title="Change or customize model"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                          {editingModelProviderId === p.id && (
+                            <div className="mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
+                              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">
+                                Configure Model ID:
+                              </label>
+                              <div className="flex gap-1.5">
+                                <input
+                                  type="text"
+                                  value={modelInputs[p.id] ?? p.default_model}
+                                  onChange={(e) =>
+                                    setModelInputs((prev) => ({ ...prev, [p.id]: e.target.value }))
+                                  }
+                                  placeholder="e.g. mistralai/mistral-large-4-1t-a52b"
+                                  className="flex-1 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveModel(p.id)}
+                                  className="px-2.5 py-1 text-xs font-medium rounded bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                                >
+                                  Save
+                                </button>
+                              </div>
+                              {((POPULAR_PROVIDER_MODELS[p.id] || []).length > 0 || (testRes?.detected_models || []).length > 0) && (
+                                <div className="space-y-1">
+                                  <span className="text-[10px] text-slate-400">Quick Select:</span>
+                                  <div className="flex flex-wrap gap-1">
+                                    {Array.from(new Set([...(testRes?.detected_models || []), ...(POPULAR_PROVIDER_MODELS[p.id] || [])])).map((m) => (
+                                      <button
+                                        key={m}
+                                        type="button"
+                                        onClick={() => setModelInputs((prev) => ({ ...prev, [p.id]: m }))}
+                                        className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-700/80 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900/60 dark:hover:text-indigo-200 font-mono transition-colors truncate max-w-[200px]"
+                                        title={m}
+                                      >
+                                        {m.split("/").pop()}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div className="flex justify-between truncate">
                           <span className="text-slate-500">Endpoint:</span>
@@ -706,6 +1215,20 @@ export const AiHubView: React.FC = () => {
                               {testRes.detected_models.length > 3 ? ` +${testRes.detected_models.length - 3} more` : ""}
                             </div>
                           )}
+                        </div>
+                      )}
+
+                      {/* In-App Model Manager Panel Button */}
+                      {p.id === "in_app_local" && (
+                        <div className="mb-3">
+                          <button
+                            type="button"
+                            onClick={() => setIsModelPanelOpen(true)}
+                            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors shadow-2xs cursor-pointer"
+                          >
+                            <Brain className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>Manage Local Models (DeepSeek, Qwen, Llama)</span>
+                          </button>
                         </div>
                       )}
                     </div>
@@ -882,6 +1405,118 @@ export const AiHubView: React.FC = () => {
                 )}
               </div>
 
+              {/* AI Engine & Model Switcher Card */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    AI Engine & Provider:
+                  </label>
+                  {(() => {
+                    const currentProv = providers.find((p) => p.id === selectedChatProviderId);
+                    const isLocal = currentProv ? currentProv.is_local : false;
+                    return (
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 ${
+                          isLocal
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60"
+                            : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60"
+                        }`}
+                      >
+                        {isLocal ? (
+                          <>
+                            <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                            <span>Local Offline</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                            <span>Cloud API</span>
+                          </>
+                        )}
+                      </span>
+                    );
+                  })()}
+                </div>
+
+                <div className="relative">
+                  <select
+                    value={selectedChatProviderId}
+                    onChange={(e) => {
+                      const newPid = e.target.value;
+                      setSelectedChatProviderId(newPid);
+                      const prov = providers.find((p) => p.id === newPid);
+                      if (prov) {
+                        setSelectedChatModelId(prov.default_model);
+                      }
+                    }}
+                    className="w-full text-xs font-semibold pl-3 pr-8 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer"
+                  >
+                    {providers.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.is_local ? "🔒 " : "⚡ "} {p.display_name} ({p.is_local ? "Local LLM" : "Cloud API"})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
+                </div>
+
+                {/* Model Identifier Selector / Preset */}
+                <div>
+                  <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    <span>Model Identifier:</span>
+                    {selectedChatProviderId === "nvidia_nim" && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Active: Nemotron-3-Ultra</span>
+                    )}
+                  </div>
+                  {POPULAR_PROVIDER_MODELS[selectedChatProviderId] ? (
+                    <div className="relative">
+                      <select
+                        value={
+                          selectedChatModelId ||
+                          providers.find((p) => p.id === selectedChatProviderId)?.default_model ||
+                          ""
+                        }
+                        onChange={(e) => setSelectedChatModelId(e.target.value)}
+                        className="w-full text-xs font-mono pl-3 pr-8 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none shadow-xs cursor-pointer truncate"
+                      >
+                        {POPULAR_PROVIDER_MODELS[selectedChatProviderId].map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                        {(() => {
+                          const configuredModel = providers.find((p) => p.id === selectedChatProviderId)?.default_model;
+                          if (
+                            configuredModel &&
+                            !POPULAR_PROVIDER_MODELS[selectedChatProviderId].includes(configuredModel)
+                          ) {
+                            return <option value={configuredModel}>{configuredModel} (Configured)</option>;
+                          }
+                          return null;
+                        })()}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 dark:text-slate-500">
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      value={
+                        selectedChatModelId ||
+                        providers.find((p) => p.id === selectedChatProviderId)?.default_model ||
+                        ""
+                      }
+                      onChange={(e) => setSelectedChatModelId(e.target.value)}
+                      placeholder="e.g. nvidia/nemotron-3-ultra-550b-a55b, gpt-4o"
+                      className="w-full text-xs font-mono px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-xs"
+                    />
+                  )}
+                </div>
+              </div>
+
               {/* Scope & Grounding Switch */}
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
                 <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -993,12 +1628,50 @@ export const AiHubView: React.FC = () => {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => setChatMessages([])}
-                  className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-500 transition-colors"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" /> Clear History
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* Quick Engine Switcher in Header */}
+                  <div className="relative">
+                    <select
+                      value={selectedChatProviderId}
+                      onChange={(e) => {
+                        const newPid = e.target.value;
+                        setSelectedChatProviderId(newPid);
+                        const prov = providers.find((p) => p.id === newPid);
+                        if (prov) setSelectedChatModelId(prov.default_model);
+                      }}
+                      className="text-[11px] font-semibold pl-2.5 pr-7 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none cursor-pointer shadow-xs"
+                      title="Select active AI engine"
+                    >
+                      {providers.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.is_local ? "🔒 " : "⚡ "} {p.display_name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400">
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={async () => {
+                      const sessionId = targetPaperId ? `ai_hub_${targetPaperId}` : "ai_hub_default";
+                      setChatMessages([]);
+                      try {
+                        localStorage.removeItem("ai_hub_chat_messages");
+                        localStorage.removeItem(`ai_hub_chat_messages_${sessionId}`);
+                      } catch {}
+                      try {
+                        await clearAiChatSession(sessionId);
+                      } catch (e) {
+                        console.warn("Failed to clear AI Hub chat session in SQLite:", e);
+                      }
+                    }}
+                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-500 transition-colors"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" /> Clear History
+                  </button>
+                </div>
               </div>
 
               {/* Message List */}
@@ -1026,7 +1699,11 @@ export const AiHubView: React.FC = () => {
                             : "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-none border border-slate-200 dark:border-slate-700"
                         }`}
                       >
-                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                        {msg.role === "user" ? (
+                          <div className="whitespace-pre-wrap">{msg.content}</div>
+                        ) : (
+                          <MarkdownMessage content={msg.content} />
+                        )}
 
                         {/* Interactive Page Citations */}
                         {msg.citations && msg.citations.length > 0 && (
@@ -1060,22 +1737,52 @@ export const AiHubView: React.FC = () => {
                         )}
                       </div>
 
-                      <span className="text-[10px] text-slate-400 mt-1 px-1">
-                        {msg.role === "assistant" ? `Generated by ${msg.provider_id || "AI"} · ${new Date(msg.created_at).toLocaleTimeString()}` : "You"}
-                      </span>
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1 px-1">
+                        <span>
+                          {msg.role === "assistant"
+                            ? `Generated by ${msg.provider_id || selectedChatProviderId} (${msg.model_id || currentChatModel}) · ${new Date(msg.created_at).toLocaleTimeString()}`
+                            : "You"}
+                        </span>
+                        {msg.role === "assistant" && (
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(msg.content);
+                              addToast({ title: "Copied", message: "Response copied to clipboard", type: "info" });
+                            }}
+                            className="hover:text-slate-600 dark:hover:text-slate-200 transition-colors flex items-center gap-1"
+                          >
+                            <Copy className="w-3 h-3" /> Copy
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))
                 )}
-                {isGenerating && (
-                  <div className="flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400 p-2">
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Searching indexed passages and formulating answer with citations...
-                  </div>
-                )}
+                <AITypingIndicator
+                  visible={isGenerating}
+                  activityState="generating"
+                  context="research_assistant"
+                  statusMessage="Searching indexed passages and formulating answer with citations..."
+                  variant="chat"
+                />
               </div>
 
               {/* Chat Input Bar */}
               <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                {chatPrompt.trim() && (() => {
+                  const intentResult = classifyResearchQuery(chatPrompt, { activePaperCount: 1 });
+                  return (
+                    <div className="mb-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300">
+                      <div className="flex items-center gap-1.5">
+                        <Compass className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Query Intent: <strong className="capitalize">{intentResult.intent.replace(/_/g, " ")}</strong></span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-medium">
+                        {Math.round(intentResult.confidence * 100)}% match
+                      </span>
+                    </div>
+                  );
+                })()}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -1102,6 +1809,31 @@ export const AiHubView: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB: PAPER UNDERSTANDING */}
+        {/* ========================================================================= */}
+        {activeTab === "understanding" && (
+          <PaperUnderstandingPanel
+            activePaper={activePaper}
+            paperChunks={paperChunks.map((c) => ({
+              id: c.id,
+              paper_id: c.paper_id,
+              content_text: c.content_text,
+              page_number: c.page_number,
+              section_heading: c.section_heading,
+            }))}
+          />
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB: MULTI-PAPER COMPARISON & GAPS */}
+        {/* ========================================================================= */}
+        {activeTab === "comparison" && (
+          <MultiPaperComparisonPanel
+            papers={papers}
+          />
         )}
 
         {/* ========================================================================= */}
@@ -1671,7 +2403,17 @@ export const AiHubView: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
-  );
+
+    {/* In-App Model & Sidecar Manager Panel */}
+    <InAppModelManagerModal
+      isOpen={isModelPanelOpen}
+      onClose={() => setIsModelPanelOpen(false)}
+      onStatusChange={() => {
+        loadProviders();
+      }}
+    />
+  </div>
+);
 };

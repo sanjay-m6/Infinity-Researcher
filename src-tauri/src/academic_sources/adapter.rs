@@ -1,6 +1,6 @@
 use crate::academic_sources::errors::AcademicError;
 use crate::academic_sources::types::{
-    AcademicSearchQuery, NormalizedWork, ProviderCapabilities, ProviderId,
+    AcademicSearchQuery, NormalizedWork, ProviderCapabilities, ProviderHealthCheck, ProviderId,
 };
 use async_trait::async_trait;
 
@@ -28,4 +28,7 @@ pub trait AcademicSourceAdapter: Send + Sync {
         query: &AcademicSearchQuery,
         api_key: Option<&str>,
     ) -> Result<AdapterSearchResult, AcademicError>;
+
+    /// Executes a lightweight, non-destructive probe to assess provider operational status.
+    async fn health_check(&self, client: &reqwest::Client) -> ProviderHealthCheck;
 }

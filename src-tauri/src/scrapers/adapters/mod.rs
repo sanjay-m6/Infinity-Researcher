@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 pub mod arxiv;
 pub mod biorxiv;
+pub mod ieee;
 pub mod medrxiv;
 pub mod nature;
 pub mod plos;
@@ -12,6 +13,7 @@ pub mod pmc;
 
 pub use arxiv::ArxivAdapter;
 pub use biorxiv::BiorxivAdapter;
+pub use ieee::IeeeAdapter;
 pub use medrxiv::MedrxivAdapter;
 pub use nature::NatureAdapter;
 pub use plos::PlosAdapter;
@@ -112,15 +114,16 @@ impl SourceRegistry {
         registry.register(Arc::new(PlosAdapter::new()));
         registry.register(Arc::new(NatureAdapter::new()));
         registry.register(Arc::new(PmcAdapter::new()));
+        registry.register(Arc::new(IeeeAdapter::new()));
 
-        // Add compliance & manual-only descriptors (IEEE Xplore, Google Scholar)
+        // Add compliance & manual-only descriptors (ACM Digital Library, Google Scholar)
         registry.descriptors.push(WebsiteSourceDescriptor {
-            id: "ieee_xplore".to_string(),
-            name: "IEEE Xplore".to_string(),
-            domain: "ieeexplore.ieee.org".to_string(),
+            id: "acm_dl".to_string(),
+            name: "ACM Digital Library".to_string(),
+            domain: "dl.acm.org".to_string(),
             status: "manual_only".to_string(),
-            policy_url: "https://www.ieee.org/about/help/terms-conditions.html".to_string(),
-            policy_notes: "IEEE Terms of Use Section 4 strictly prohibits automated robots/crawlers from querying or systematically harvesting papers. Dedicated IEEE Mode A manual browser workflow is required.".to_string(),
+            policy_url: "https://www.acm.org/about-acm/terms-of-use".to_string(),
+            policy_notes: "ACM Digital Library terms restrict automated querying. Manual import workflow available.".to_string(),
             supports_native_years: false,
             request_delay_ms: 0,
             content_types: vec!["conference_paper".to_string(), "journal_article".to_string()],
@@ -149,9 +152,10 @@ impl SourceRegistry {
     }
 
     pub fn get_adapter(&self, source_id: &str) -> Option<Arc<dyn SourceAdapter>> {
-        // Resolve aliases: nature_srep <-> nature
+        // Resolve aliases: nature_srep <-> nature, ieee <-> ieee_xplore
         let normalized = match source_id {
             "nature_srep" => "nature",
+            "ieee" => "ieee_xplore",
             other => other,
         };
         self.adapters.get(normalized).cloned()

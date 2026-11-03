@@ -5,6 +5,19 @@ All notable changes to the Research Paper Scraper desktop application will be do
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Signed In-App Automatic Updates:** Integrated official Tauri v2 updater (`@tauri-apps/plugin-updater`, `tauri-plugin-updater`) with Minisign Ed25519 cryptographic signature verification and passive Windows installer execution.
+- **Dedicated Updates UI:** Added Settings Updates panel and About dialog displaying current version, update check state, release notes preview, download progress bars, channel selection, and safe user-approved restart.
+- **Unified Version Source of Truth:** Added scripts for SemVer synchronization across `package.json`, `tauri.conf.json`, and `Cargo.toml` (`version:check`, `version:bump`, `release:check`, `release:notes`).
+- **Production CI/CD Release Pipeline:** Added GitHub Actions workflows with full SHA-pinned actions, secret scanning audit, non-publishing PR verification, and automated Windows release bundling.
+- **Automated Secret Auditing:** Added `scripts/audit-secrets.mjs` checking for leaked private keys, API credentials, unredacted tokens, and stray sensitive files.
+
+### Changed
+- Configured Tauri bundle targets to generate both standalone NSIS installer (`.exe`) and WiX MSI packages (`.msi`).
+- Replaced manual version editing with single command `npm run version:bump`.
+
 ## [0.1.0] - 2026-10-24
 
 ### Added

@@ -38,6 +38,97 @@ class PlosSpider(BasePaperSpider):
         yield Request(url, callback=self.parse, errback=self.handle_error)
 
     def parse(self, response: Response) -> Generator[Any, None, None]:
+        is_blocked, reason = self.is_challenge_or_blocked_response(response)
+        if is_blocked:
+            self.record_status("blocked", reason)
+            return
+
+        import json
+        is_json = False
+        data = None
+        try:
+            stripped = response.text.strip()
+            if stripped.startswith("{"):
+                data = json.loads(stripped)
+                is_json = True
+        except Exception:
+            pass
+
+        if is_json and data:
+            docs = data.get("searchResults", {}).get("docs", [])
+            for doc in docs:
+                if self.results_count >= self.limit:
+                    break
+                try:
+                    raw_title = doc.get("title_display") or doc.get("title") or ""
+                    raw_title = re.sub(r"<[^>]+>", "", raw_title).strip()
+                    if not raw_title:
+                        continue
+                    doi = doc.get("id")
+                    landing_url = f"https://journals.plos.org/plosone/article?id={doi}" if doi else response.url
+                    authors = doc.get("author_display") or []
+                    abstract = None
+                    if "abstract" in doc and doc["abstract"]:
+                        abs_list = doc["abstract"]
+                        abstract = abs_list[0] if isinstance(abs_list, list) else str(abs_list)
+                        abstract = re.sub(r"<[^>]+>", "", abstract).strip()
+                    elif doc.get("striking_image"):
+                        abstract = str(doc.get("striking_image"))
+
+                    pub_date = doc.get("publication_date")
+                    pub_year = None
+                    if pub_date:
+                        m = re.search(r"\b(20\d\d|19\d\d)\b", str(pub_date))
+                        if m:
+                            pub_year = int(m.group(1))
+
+                    if self.year_start and pub_year and pub_year < self.year_start:
+                        continue
+                    if self.year_end and pub_year and pub_year > self.year_end:
+                        continue
+
+                    pdf_url = (
+                        f"https://journals.plos.org/plosone/article/file?id={doi}&type=printable"
+                        if doi
+                        else None
+                    )
+
+                    paper_id = PaperResult.generate_id(self.source_id, raw_title, doi)
+                    conf_breakdown = ConfidenceBreakdown(
+                        title=1.0,
+                        authors=0.9 if authors else 0.4,
+                        abstract=0.8 if abstract else 0.0,
+                        doi=1.0 if doi else 0.0,
+                        pdf=1.0 if pdf_url else 0.0,
+                    )
+
+                    paper = PaperResult(
+                        paper_id=paper_id,
+                        title=raw_title,
+                        authors=authors,
+                        abstract=abstract,
+                        publication_year=pub_year,
+                        published_date=str(pub_date) if pub_date else None,
+                        venue="PLOS ONE",
+                        publisher="Public Library of Science",
+                        doi=doi,
+                        source_id=self.source_id,
+                        source_name=self.source_name,
+                        source_url=landing_url,
+                        landing_page_url=landing_url,
+                        pdf_url=pdf_url,
+                        is_open_access=True,
+                        license="CC-BY 4.0",
+                        peer_reviewed=True,
+                        metadata_confidence=conf_breakdown.score,
+                        confidence_breakdown=conf_breakdown,
+                    )
+                    self.results_count += 1
+                    yield paper
+                except Exception as ex:
+                    logger.debug("Failed parsing PLOS json item: %s", ex)
+            return
+
         soup = BeautifulSoup(response.text, "html.parser")
         items = soup.select(".search-results-item, .search-result, dl")
 

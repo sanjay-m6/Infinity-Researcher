@@ -1,0 +1,122 @@
+/**
+ * Infinity Researcher — Motion & Animation Tokens
+ * Phase 4 Motion Infrastructure
+ *
+ * Defines centralized CSS custom properties for durations, easings,
+ * and reduced-motion standards matching the Phase 2 design system.
+ */
+
+:root {
+  /* =========================================================================
+   * Duration Tokens (in milliseconds for CSS / seconds for Motion)
+   * ========================================================================= */
+  --motion-duration-instant: 0ms;
+  --motion-duration-fast: 120ms;
+  --motion-duration-normal: 180ms;
+  --motion-duration-moderate: 240ms;
+  --motion-duration-slow: 300ms;
+
+  /* =========================================================================
+   * Easing Curves (Cubic Beziers)
+   * ========================================================================= */
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --motion-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+
+  /* =========================================================================
+   * Spatial Distance Tokens
+   * ========================================================================= */
+  --motion-distance-xs: 2px;
+  --motion-distance-sm: 4px;
+  --motion-distance-md: 6px;
+  --motion-distance-lg: 12px;
+  --motion-distance-xl: 20px;
+}
+
+/* ===========================================================================
+ * Global Hardware Acceleration & Motion Ergonomics
+ * =========================================================================== */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* ===========================================================================
+ * Strict Reduced Motion Overrides (Accessibility Compliance)
+ * =========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-fast: 0ms;
+    --motion-duration-normal: 0ms;
+    --motion-duration-moderate: 0ms;
+    --motion-duration-slow: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* ===========================================================================
+ * Circular Splash View Transition (Theme Switching)
+ * =========================================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+::view-transition-image-pair(root) {
+  isolation: isolate;
+}
+
+html.theme-transitioning::view-transition-old(root) {
+  animation: none;
+}
+
+html.theme-transitioning::view-transition-new(root) {
+  animation: none;
+}
+
+/* ===========================================================================
+ * Orbit Rotation Keyframes
+ * =========================================================================== */
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+

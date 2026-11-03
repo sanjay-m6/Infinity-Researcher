@@ -29,6 +29,10 @@ class ConfidenceBreakdown(BaseModel):
     doi: float = 0.0
     pdf: float = 0.0
 
+    @property
+    def score(self) -> float:
+        return self.compute_composite()
+
     def compute_composite(self) -> float:
         # Title (0.35) + Authors (0.25) + DOI (0.15) + PDF (0.15) + Abstract (0.10)
         score = (
@@ -54,9 +58,9 @@ class PaperResult(BaseModel):
     arxiv_id: Optional[str] = None
     source_id: str
     source_name: str
-    source_page_url: str
+    source_page_url: str = ""
     canonical_url: Optional[str] = None
-    landing_page_url: str
+    landing_page_url: str = ""
     pdf_url: Optional[str] = None
     pdf_access_status: str = Field(
         default="unknown",

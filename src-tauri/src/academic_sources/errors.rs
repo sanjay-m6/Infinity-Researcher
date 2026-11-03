@@ -38,6 +38,9 @@ pub enum AcademicError {
 
     #[error("Database error during import: {0}")]
     Database(String),
+
+    #[error("Internal academic search error: {0}")]
+    Internal(String),
 }
 
 impl From<AcademicError> for AppError {
@@ -62,6 +65,7 @@ impl From<AcademicError> for AppError {
                 AppError::Validation(format!("Unknown provider '{}'", p))
             }
             AcademicError::Database(msg) => AppError::Internal(msg),
+            AcademicError::Internal(msg) => AppError::Internal(msg),
         }
     }
 }

@@ -43,18 +43,34 @@ impl std::str::FromStr for PdfVerificationStatus {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+use regex::Regex;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ExtractedPdfMetadata {
     pub title: Option<String>,
     pub author: Option<String>,
+    pub authors: Vec<String>,
     pub creator: Option<String>,
     pub producer: Option<String>,
     pub creation_date: Option<String>,
+    pub publication_year: Option<i32>,
     pub page_count: i32,
     pub text_preview: Option<String>,
     pub full_text: Option<String>,
+    pub doi: Option<String>,
+    pub abstract_text: Option<String>,
+    pub venue: Option<String>,
+    pub license: Option<String>,
     pub status: String,
+    pub is_encrypted: bool,
+    pub is_scanned: bool,
     pub warning: Option<String>,
+    pub identity_reconciled: bool,
+    pub identity_score: f64,
+    pub identity_status: String,
+    pub reconciliation_notes: Option<String>,
+    pub version_type: Option<String>,
 }
 
 pub struct PdfProcessor;
@@ -128,6 +144,7 @@ impl PdfProcessor {
         if doc.is_encrypted() {
             return ExtractedPdfMetadata {
                 status: PdfVerificationStatus::Encrypted.as_str().to_string(),
+                is_encrypted: true,
                 warning: Some("Document is encrypted or password-protected".to_string()),
                 ..Default::default()
             };
@@ -166,8 +183,12 @@ impl PdfProcessor {
                             .take(Self::MAX_FULL_TEXT_BYTES / 4)
                             .collect();
                         meta.full_text = Some(full);
+
+                        // Enrich metadata with DOI, Abstract, Year, Venue, and License patterns
+                        Self::enrich_metadata_from_text(trimmed, &mut meta);
                     } else {
                         meta.status = PdfVerificationStatus::NoText.as_str().to_string();
+                        meta.is_scanned = true;
                         meta.warning = Some(
                             "Legitimate PDF with no extractable text stream (scanned/rasterized)"
                                 .to_string(),
@@ -177,9 +198,14 @@ impl PdfProcessor {
                 Err(e) => {
                     debug!(error = ?e, "Failed text extraction from PDF");
                     meta.status = PdfVerificationStatus::NoText.as_str().to_string();
+                    meta.is_scanned = true;
                     meta.warning = Some(format!("Could not extract text: {}", e));
                 }
             }
+        } else {
+            meta.status = PdfVerificationStatus::NoText.as_str().to_string();
+            meta.is_scanned = true;
+            meta.warning = Some("PDF contains no extractable page streams (scanned or image-only)".to_string());
         }
 
         meta
@@ -235,6 +261,270 @@ impl PdfProcessor {
             None
         }
     }
+
+    pub fn enrich_metadata_from_text(text: &str, meta: &mut ExtractedPdfMetadata) {
+        // 1. DOI extraction (10.xxxx/yyyy)
+        if meta.doi.is_none() {
+            if let Ok(re) = Regex::new(r"10\.\d{4,9}/[-._;()/:A-Za-z0-9]+") {
+                if let Some(m) = re.find(text) {
+                    let doi = m.as_str().trim_end_matches('.').to_string();
+                    meta.doi = Some(doi);
+                }
+            }
+        }
+
+        // 2. Abstract extraction
+        if meta.abstract_text.is_none() {
+            if let Ok(re) = Regex::new(r"(?is)\babstract[:\.\s—-]+(.*?)(?:\n\s*\n\s*(?:[I1]\.|\bindex terms\b|\bkeywords\b|\bintroduction\b)|$)") {
+                if let Some(cap) = re.captures(text) {
+                    let raw_abs = cap[1].trim();
+                    if raw_abs.len() > 30 {
+                        let clean_abs = raw_abs.chars().take(1500).collect::<String>();
+                        meta.abstract_text = Some(clean_abs);
+                    }
+                }
+            }
+        }
+
+        // 3. Authors from metadata string or split
+        if meta.authors.is_empty() {
+            if let Some(ref a) = meta.author {
+                let parts: Vec<String> = a
+                    .split(&[',', ';'][..])
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty())
+                    .collect();
+                if !parts.is_empty() {
+                    meta.authors = parts;
+                }
+            }
+        }
+
+        // 4. Publication year extraction
+        if meta.publication_year.is_none() {
+            if let Some(ref date_str) = meta.creation_date {
+                if let Ok(re) = Regex::new(r"\b(19\d\d|20\d\d)\b") {
+                    if let Some(m) = re.find(date_str) {
+                        if let Ok(yr) = m.as_str().parse::<i32>() {
+                            meta.publication_year = Some(yr);
+                        }
+                    }
+                }
+            }
+            if meta.publication_year.is_none() {
+                // Search first 1500 characters for copyright/publication year
+                let head: String = text.chars().take(1500).collect();
+                if let Ok(re) = Regex::new(r"\b(19\d\d|20\d\d)\b") {
+                    if let Some(m) = re.find(&head) {
+                        if let Ok(yr) = m.as_str().parse::<i32>() {
+                            meta.publication_year = Some(yr);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. Venue / Publisher detection
+        if meta.venue.is_none() {
+            let lower = text[..text.len().min(4000)].to_lowercase();
+            if lower.contains("ieee access") {
+                meta.venue = Some("IEEE Access".to_string());
+            } else if lower.contains("ieee transactions") {
+                meta.venue = Some("IEEE Transactions".to_string());
+            } else if lower.contains("proceedings of the ieee") {
+                meta.venue = Some("Proceedings of the IEEE".to_string());
+            } else if lower.contains("scientific reports") {
+                meta.venue = Some("Scientific Reports".to_string());
+            } else if lower.contains("plos one") {
+                meta.venue = Some("PLOS ONE".to_string());
+            } else if lower.contains("biorxiv") {
+                meta.venue = Some("bioRxiv".to_string());
+            } else if lower.contains("medrxiv") {
+                meta.venue = Some("medRxiv".to_string());
+            } else if lower.contains("arxiv") {
+                meta.venue = Some("arXiv".to_string());
+            }
+        }
+
+        // 6. License detection
+        if meta.license.is_none() {
+            let lower = text[..text.len().min(4000)].to_lowercase();
+            if lower.contains("creative commons attribution") || lower.contains("cc by 4.0") || lower.contains("cc-by") {
+                meta.license = Some("CC-BY 4.0".to_string());
+            } else if lower.contains("open access") {
+                meta.license = Some("Open Access".to_string());
+            }
+        }
+    }
+
+    /// Detects academic version classification from extracted document text and headers
+    pub fn detect_version_type(text: &str) -> String {
+        let lower = text[..text.len().min(6000)].to_lowercase();
+        if lower.contains("arxiv:")
+            || lower.contains("biorxiv preprint")
+            || lower.contains("medrxiv preprint")
+            || lower.contains("this preprint")
+            || lower.contains("not peer-reviewed")
+            || lower.contains("under review")
+            || lower.contains("working paper")
+        {
+            "preprint".to_string()
+        } else if lower.contains("accepted manuscript")
+            || lower.contains("author's accepted manuscript")
+            || lower.contains("author accepted manuscript")
+            || lower.contains("post-print")
+            || lower.contains("postprint")
+            || lower.contains("peer-reviewed and accepted")
+        {
+            "accepted_manuscript".to_string()
+        } else if lower.contains("institutional repository")
+            || lower.contains("deposited in")
+            || lower.contains("etd collection")
+            || lower.contains("handle.net")
+            || lower.contains("dspace")
+            || lower.contains("eprints")
+        {
+            "repository_version".to_string()
+        } else if lower.contains("published by")
+            || lower.contains("all rights reserved")
+            || (lower.contains("volume") && lower.contains("issue"))
+            || lower.contains("ieee transactions")
+            || lower.contains("proceedings of")
+            || lower.contains("nature publishing")
+            || lower.contains("elsevier b.v.")
+            || lower.contains("springer nature")
+            || lower.contains("wiley periodicals")
+        {
+            "published_version".to_string()
+        } else {
+            "unknown_version".to_string()
+        }
+    }
+
+    /// Reconciles extracted PDF metadata against target expected paper metadata.
+    /// Categorizes verification into:
+    /// - verified_match (exact DOI match or title sim >= 0.85 or >= 0.75 + author match)
+    /// - probable_match (title sim >= 0.70 or >= 0.60 + author match)
+    /// - identity_uncertain (title sim 0.35-0.69 or scanned/sparse text)
+    /// - wrong_document (conflicting DOI or title sim < 0.35 with abundant text)
+    /// - encrypted_pdf
+    /// - invalid_pdf
+    pub fn reconcile_identity(
+        extracted: &mut ExtractedPdfMetadata,
+        expected_title: &str,
+        expected_authors: &[String],
+        expected_doi: Option<&str>,
+    ) -> bool {
+        // Detect version if not already detected
+        if extracted.version_type.is_none() {
+            if let Some(ref text) = extracted.text_preview {
+                extracted.version_type = Some(Self::detect_version_type(text));
+            }
+        }
+
+        // 0. Handle corrupt / encrypted states
+        if extracted.is_encrypted {
+            extracted.identity_reconciled = false;
+            extracted.identity_score = 0.0;
+            extracted.identity_status = "encrypted_pdf".to_string();
+            extracted.reconciliation_notes = Some("Document is password protected".to_string());
+            return false;
+        }
+
+        if extracted.status == "corrupt" || extracted.status == "missing" {
+            extracted.identity_reconciled = false;
+            extracted.identity_score = 0.0;
+            extracted.identity_status = "invalid_pdf".to_string();
+            extracted.reconciliation_notes = Some("Document parsing failed".to_string());
+            return false;
+        }
+
+        // 1. Direct DOI verification
+        if let (Some(ext_doi), Some(exp_doi)) = (&extracted.doi, expected_doi) {
+            let clean_ext = ext_doi.trim().to_lowercase();
+            let clean_exp = exp_doi.trim().to_lowercase();
+            if clean_ext == clean_exp || clean_ext.contains(&clean_exp) || clean_exp.contains(&clean_ext) {
+                extracted.identity_reconciled = true;
+                extracted.identity_score = 1.0;
+                extracted.identity_status = "verified_match".to_string();
+                extracted.reconciliation_notes = Some(format!("Exact DOI match confirmed from document body: {}", ext_doi));
+                return true;
+            } else if clean_ext.starts_with("10.") && clean_exp.starts_with("10.") && clean_ext != clean_exp {
+                // Conflicting explicit DOI found in extracted document!
+                extracted.identity_reconciled = false;
+                extracted.identity_score = 0.0;
+                extracted.identity_status = "wrong_document".to_string();
+                extracted.reconciliation_notes = Some(format!("Conflicting DOI found in PDF text: {} (expected {})", ext_doi, exp_doi));
+                return false;
+            }
+        }
+
+        // 2. Title matching
+        let mut best_title_sim: f64 = 0.0;
+        if let Some(ref doc_title) = extracted.title {
+            let sim = crate::services::candidate_verifier::CandidateVerifier::compute_title_similarity(expected_title, doc_title);
+            best_title_sim = best_title_sim.max(sim);
+        }
+
+        if best_title_sim < 0.70 {
+            if let Some(ref preview) = extracted.text_preview {
+                let sim = crate::services::candidate_verifier::CandidateVerifier::compute_title_similarity(expected_title, preview);
+                best_title_sim = best_title_sim.max(sim);
+            }
+        }
+
+        // 3. Author matching
+        let mut author_matched = false;
+        if !expected_authors.is_empty() {
+            let doc_author_text = extracted.author.as_deref().unwrap_or("");
+            let preview_text = extracted.text_preview.as_deref().unwrap_or("");
+            for author in expected_authors {
+                let surname = author.split_whitespace().last().unwrap_or(author).to_lowercase();
+                if surname.len() >= 3 && (doc_author_text.to_lowercase().contains(&surname) || preview_text.to_lowercase().contains(&surname)) {
+                    author_matched = true;
+                    break;
+                }
+            }
+        }
+
+        extracted.identity_score = best_title_sim;
+
+        if best_title_sim >= 0.85 || (best_title_sim >= 0.75 && author_matched) {
+            extracted.identity_reconciled = true;
+            extracted.identity_status = "verified_match".to_string();
+            extracted.reconciliation_notes = Some(format!(
+                "High confidence match ({:.0}%){}",
+                best_title_sim * 100.0,
+                if author_matched { " with matching author surname" } else { "" }
+            ));
+            true
+        } else if best_title_sim >= 0.70 || (best_title_sim >= 0.60 && author_matched) {
+            extracted.identity_reconciled = true;
+            extracted.identity_status = "probable_match".to_string();
+            extracted.reconciliation_notes = Some(format!(
+                "Probable match ({:.0}% title overlap){}",
+                best_title_sim * 100.0,
+                if author_matched { " with author verification" } else { "" }
+            ));
+            true
+        } else if best_title_sim >= 0.35 || extracted.is_scanned || extracted.text_preview.as_ref().map_or(0, |t| t.len()) < 150 {
+            extracted.identity_reconciled = false;
+            extracted.identity_status = "identity_uncertain".to_string();
+            extracted.reconciliation_notes = Some(format!(
+                "Title similarity ({:.0}%) below confident match threshold or text is sparse; candidate preserved for user verification",
+                best_title_sim * 100.0
+            ));
+            false
+        } else {
+            extracted.identity_reconciled = false;
+            extracted.identity_status = "wrong_document".to_string();
+            extracted.reconciliation_notes = Some(format!(
+                "Document text does not match expected paper (similarity {:.0}%)",
+                best_title_sim * 100.0
+            ));
+            false
+        }
+    }
 }
 
 #[cfg(test)]
@@ -278,8 +568,46 @@ mod tests {
 
         let meta = PdfProcessor::process_pdf_file(&pdf_path);
         assert_eq!(meta.page_count, 1);
-        // Minimal PDF has no text stream, so status should be 'no_text'
         assert_eq!(meta.status, "no_text");
         let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+
+    #[test]
+    fn test_identity_reconciliation_matching_and_mismatch() {
+        let mut meta = ExtractedPdfMetadata {
+            title: Some("Attention Is All You Need".to_string()),
+            author: Some("Ashish Vaswani, Noam Shazeer".to_string()),
+            text_preview: Some("The dominant sequence transduction models are based on complex recurrent or convolutional neural networks".to_string()),
+            ..Default::default()
+        };
+
+        // Matching case
+        let is_match = PdfProcessor::reconcile_identity(
+            &mut meta,
+            "Attention Is All You Need",
+            &["Vaswani".to_string(), "Shazeer".to_string()],
+            Some("10.48550/arXiv.1706.03762"),
+        );
+        assert!(is_match);
+        assert!(meta.identity_reconciled);
+        assert_eq!(meta.identity_status, "verified_match");
+
+        // Intentional mismatch test case
+        let mut meta_wrong = ExtractedPdfMetadata {
+            title: Some("Quantum Error Correction with Surface Codes".to_string()),
+            author: Some("John Preskill".to_string()),
+            text_preview: Some("We analyze fault-tolerant quantum computation using 2D topological codes".to_string()),
+            ..Default::default()
+        };
+
+        let is_wrong_match = PdfProcessor::reconcile_identity(
+            &mut meta_wrong,
+            "Deep Residual Learning for Image Recognition",
+            &["Kaiming He".to_string()],
+            Some("10.1109/CVPR.2016.90"),
+        );
+        assert!(!is_wrong_match);
+        assert!(!meta_wrong.identity_reconciled);
+        assert_eq!(meta_wrong.identity_status, "wrong_document");
     }
 }

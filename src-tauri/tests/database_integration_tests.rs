@@ -379,6 +379,8 @@ fn test_notes_and_tags_and_settings() {
             paper_id: paper.id.clone(),
             title: Some("Key Insights".to_string()),
             content_markdown: "Crucial methodological distinction on page 4.".to_string(),
+            page_number: None,
+            highlighted_text: None,
         },
     )
     .expect("save note failed");

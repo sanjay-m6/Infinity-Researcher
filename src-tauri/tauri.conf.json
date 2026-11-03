@@ -20,16 +20,20 @@
         "minHeight": 600,
         "resizable": true,
         "fullscreen": false,
-        "decorations": false
+        "decorations": false,
+        "theme": "Dark"
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none';"
+      "csp": "default-src 'self' ipc: http://ipc.localhost http://localhost:* http://127.0.0.1:*; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: http://localhost:* http://127.0.0.1:*; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:*; img-src 'self' asset: http://asset.localhost data: https: blob:; font-src 'self' asset: http://asset.localhost data: https:; connect-src 'self' ipc: http://ipc.localhost ws: wss: http://localhost:* http://127.0.0.1:* https:; frame-src 'none'; object-src 'none';"
     }
   },
   "bundle": {
     "active": true,
-    "targets": ["msi"],
+    "targets": ["nsis", "msi"],
+    "externalBin": [
+      "binaries/paper-scraper"
+    ],
     "copyright": "© 2026 Sanjay. All rights reserved.",
     "publisher": "Infinity Web Technology",
     "shortDescription": "Infinity Researcher — An AI-powered research workspace, created by Sanjay.",
@@ -40,6 +44,30 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["en-US"],
+        "displayLanguageSelector": false
+      },
+      "wix": {
+        "language": ["en-US"]
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgxMDEzMTc3RjEzQzg1QzEKUldUQmhUenhkekVCZ2NUSWZvUVhaWDl5R3VkaHQ3VjFrM2tHaDd5Wm5nVWRoMDVxcVQ0blJPMmYK",
+      "endpoints": [
+        "https://github.com/sanjay-m6/Infinity-Researcher/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

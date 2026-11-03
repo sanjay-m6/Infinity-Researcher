@@ -43,8 +43,8 @@ export interface DbPaper {
   metadata_confidence: string;
   is_saved: boolean;
   reading_status?: string;
-
   reading_progress?: number;
+  last_opened_at?: string | null;
   open_access_status?: string;
   access_evidence_type?: string;
   access_evidence_note?: string | null;
@@ -61,6 +61,23 @@ export interface DbPaper {
   source_names: string[];
 }
 
+export interface ExtractedPdfMetadata {
+  title?: string | null;
+  author?: string | null;
+  authors: string[];
+  doi?: string | null;
+  abstract_text?: string | null;
+  publication_year?: number | null;
+  venue?: string | null;
+  license?: string | null;
+  page_count: number;
+  word_count: number;
+  status: string;
+  is_encrypted: boolean;
+  is_scanned: boolean;
+  error?: string | null;
+}
+
 export interface IeeeManualImportInput {
   file_path: string;
   title: string;
@@ -68,12 +85,14 @@ export interface IeeeManualImportInput {
   publication_year?: number | null;
   venue?: string | null;
   canonical_doi?: string | null;
+  abstract_text?: string | null;
   source_page_url?: string | null;
   license_name?: string | null;
   license_url?: string | null;
   user_confirmed_oa: boolean;
   user_notes?: string | null;
   target_collection_id?: string | null;
+  copy_to_library?: boolean;
 }
 
 export interface LocalOaPdfImportInput {
@@ -83,6 +102,7 @@ export interface LocalOaPdfImportInput {
   publication_year?: number | null;
   venue?: string | null;
   canonical_doi?: string | null;
+  abstract_text?: string | null;
   source_name?: string | null;
   source_page_url?: string | null;
   license_name?: string | null;
@@ -90,6 +110,7 @@ export interface LocalOaPdfImportInput {
   user_confirmed_oa: boolean;
   user_notes?: string | null;
   target_collection_id?: string | null;
+  copy_to_library?: boolean;
 }
 
 export interface OpenAccessStats {
@@ -122,6 +143,9 @@ export interface PaperCreateInput {
   primary_landing_url?: string | null;
   pdf_url?: string | null;
   is_saved?: boolean | null;
+  reading_status?: string | null;
+  reading_progress?: number | null;
+  last_opened_at?: string | null;
   open_access_status?: string | null;
   access_evidence_type?: string | null;
   access_evidence_note?: string | null;
@@ -148,6 +172,9 @@ export interface PaperUpdateInput {
   primary_landing_url?: string | null;
   pdf_url?: string | null;
   is_saved?: boolean | null;
+  reading_status?: string | null;
+  reading_progress?: number | null;
+  last_opened_at?: string | null;
   open_access_status?: string | null;
   access_evidence_type?: string | null;
   access_evidence_note?: string | null;
@@ -173,7 +200,7 @@ export interface PaperListQuery {
   open_access_status?: string | null;
   retrieval_method?: string | null;
   is_saved_only?: boolean | null;
-  sort_by?: "newest" | "oldest" | "citations" | "title" | null;
+  sort_by?: "newest" | "oldest" | "citations" | "title" | "recently_opened" | null;
   page?: number | null;
   page_size?: number | null;
 }
@@ -225,6 +252,8 @@ export interface DbNote {
   paper_id: string;
   title: string;
   content_markdown: string;
+  page_number?: number | null;
+  highlighted_text?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -234,6 +263,44 @@ export interface NoteSaveInput {
   paper_id: string;
   title?: string | null;
   content_markdown: string;
+  page_number?: number | null;
+  highlighted_text?: string | null;
+}
+
+export interface SavedSearch {
+  id: string;
+  name: string;
+  description: string | null;
+  query_text: string | null;
+  structured_query_json: string | null;
+  selected_sources_json: string | null;
+  filters_json: string | null;
+  sort_by: string | null;
+  result_count_estimate: number;
+  last_executed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedSearchCreateInput {
+  name: string;
+  description?: string | null;
+  query_text?: string | null;
+  structured_query_json?: string | null;
+  selected_sources_json?: string | null;
+  filters_json?: string | null;
+  sort_by?: string | null;
+}
+
+export interface SavedSearchUpdateInput {
+  id: string;
+  name: string;
+  description?: string | null;
+  query_text?: string | null;
+  structured_query_json?: string | null;
+  selected_sources_json?: string | null;
+  filters_json?: string | null;
+  sort_by?: string | null;
 }
 
 export interface DbSource {
@@ -269,7 +336,7 @@ export type ProviderId =
   | string;
 
 export interface ProviderCapabilities {
-  id: string;
+  id?: string;
   provider_id: string;
   display_name: string;
   base_url?: string;
@@ -280,9 +347,40 @@ export interface ProviderCapabilities {
   supports_doi_lookup: boolean;
   supports_year_filter: boolean;
   supports_open_access_filter: boolean;
+  supports_author_search?: boolean;
+  supports_abstracts?: boolean;
+  supports_pdf_discovery?: boolean;
   supports_pagination?: boolean;
   supports_cursor_pagination?: boolean;
   requires_api_key: boolean;
+  category?: string;
+  auth_type?: string;
+  preferred_identifier?: string;
+}
+
+export type ProviderHealthStatus =
+  | "healthy"
+  | "degraded"
+  | "unavailable"
+  | "rate_limited"
+  | "auth_required";
+
+export interface ProviderHealthCheck {
+  provider_id: string;
+  status: ProviderHealthStatus;
+  latency_ms: number;
+  message?: string | null;
+  checked_at: string;
+}
+
+export interface MetadataCompleteness {
+  score: number;
+  has_doi: boolean;
+  has_abstract: boolean;
+  has_pdf: boolean;
+  has_authors: boolean;
+  has_venue: boolean;
+  has_date: boolean;
 }
 
 export type ProviderStatusCategory =
@@ -340,6 +438,27 @@ export interface NormalizedWork {
   provider_id: string;
   provider_record_id: string;
   provenance: ProviderProvenance[];
+  metadata_score?: number;
+  completeness?: MetadataCompleteness;
+  version_type?: string | null;
+  pdf_status?: string | null;
+}
+
+export interface ProviderQueryPlan {
+  provider_id: string;
+  native_query: string;
+  pushes_year_filter: boolean;
+  pushes_oa_filter: boolean;
+  requires_client_filtering: boolean;
+  warnings: string[];
+}
+
+export interface AcademicSearchPlan {
+  raw_query: string;
+  detected_identifier_type?: string | null;
+  cleaned_identifier?: string | null;
+  provider_plans: ProviderQueryPlan[];
+  global_warnings: string[];
 }
 
 export interface AcademicSearchQuery {
@@ -358,6 +477,8 @@ export interface UnifiedSearchResponse {
   provider_statuses: ProviderStatus[];
   total_found: number;
   completed_at: string;
+  query_plan?: AcademicSearchPlan | null;
+  warnings?: string[];
 }
 
 export interface ImportSummary {
@@ -658,17 +779,23 @@ export type PdfAvailabilityStatus =
   | "unknown"
   | "checking"
   | "open_access_available"
+  | "verified_open_access"
+  | "verified_authorized_access"
   | "download_queued"
   | "downloading"
   | "downloaded"
   | "metadata_only"
+  | "public_metadata_only"
   | "landing_page_only"
   | "restricted_or_subscription"
+  | "access_restricted"
   | "authentication_required"
+  | "source_unverified"
   | "not_found"
   | "blocked_by_policy"
   | "failed_retryable"
   | "failed_permanent"
+  | "retrieval_failed"
   | "local_file_missing"
   | "file_corrupt";
 
@@ -680,6 +807,10 @@ export interface PdfCandidate {
   source_type: string;
   access_status: PdfAvailabilityStatus;
   evidence_notes?: string | null;
+  version_type?: string | null;
+  identity_status?: string | null;
+  identity_score?: number | null;
+  provenance_json?: string | null;
   last_checked_at: string;
   created_at: string;
 }
@@ -700,7 +831,7 @@ export interface DownloadJob {
   paper_title: string;
   url: string;
   source_id: string;
-  status: "queued" | "downloading" | "completed" | "failed" | "cancelled";
+  status: "queued" | "resolving" | "downloading" | "validating" | "verifying_identity" | "completed" | "failed" | "cancelling" | "cancelled";
   bytes_downloaded: number;
   total_bytes: number;
   progress_percent: number;
@@ -709,8 +840,29 @@ export interface DownloadJob {
   destination_path?: string | null;
   sha256_hash?: string | null;
   retry_count: number;
+  speed_bps?: number | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  error_category?: string | null;
+  version_type?: string | null;
+  identity_status?: string | null;
+  identity_score?: number | null;
+  identity_notes?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface DownloadStorageMetrics {
+  storage_path: string;
+  total_bytes: number;
+  pdf_count: number;
+  temp_files_count: number;
+  temp_files_bytes: number;
+}
+
+export interface CleanOrphanedResult {
+  files_deleted: number;
+  bytes_freed: number;
 }
 
 export interface PaperPdfInfo {
@@ -728,6 +880,9 @@ export interface PaperPdfInfo {
   rotation: number;
   access_status: PdfAvailabilityStatus;
   download_url?: string | null;
+  version_type?: string | null;
+  identity_status?: string | null;
+  identity_score?: number | null;
 }
 
 export interface ReaderState {
@@ -805,24 +960,26 @@ export interface DiscoveredSearchResult {
   language?: string | null;
   relevance_score: number;
   metadata_confidence?: number | null;
+  provenance_urls?: string[];
+  citation_count?: number | null;
 }
 
 export interface SourceSearchStatus {
   source_id: string;
   source_name: string;
   status:
-    | "queued"
-    | "searching"
-    | "completed"
-    | "no_results"
-    | "blocked"
-    | "rate_limited"
-    | "unsupported"
-    | "failed"
-    | "timeout"
-    | "manual_only"
-    | "disabled"
-    | "cancelled";
+  | "queued"
+  | "searching"
+  | "completed"
+  | "no_results"
+  | "blocked"
+  | "rate_limited"
+  | "unsupported"
+  | "failed"
+  | "timeout"
+  | "manual_only"
+  | "disabled"
+  | "cancelled";
   message?: string | null;
   results_count: number;
   elapsed_ms: number;
@@ -830,111 +987,111 @@ export interface SourceSearchStatus {
 
 export type SearchStreamEvent =
   | {
-      type: "search_started";
-      session_id: string;
-      query: string;
-      sources: string[];
-    }
+    type: "search_started";
+    session_id: string;
+    query: string;
+    sources: string[];
+  }
   | {
-      type: "source_started";
-      session_id: string;
-      source_id: string;
-      source_name: string;
-    }
+    type: "source_started";
+    session_id: string;
+    source_id: string;
+    source_name: string;
+  }
   | {
-      type: "source_progress";
-      session_id: string;
-      source_id: string;
-      pages_crawled: number;
-      papers_found: number;
-    }
+    type: "source_progress";
+    session_id: string;
+    source_id: string;
+    pages_crawled: number;
+    papers_found: number;
+  }
   | {
-      type: "source_status";
-      session_id: string;
-      source_id: string;
-      source_name: string;
-      status: SourceSearchStatus["status"];
-      message?: string | null;
-      results_count: number;
-      elapsed_ms: number;
-    }
+    type: "source_status";
+    session_id: string;
+    source_id: string;
+    source_name: string;
+    status: SourceSearchStatus["status"];
+    message?: string | null;
+    results_count: number;
+    elapsed_ms: number;
+  }
   | {
-      type: "paper_found";
-      session_id: string;
-      source_id: string;
-      paper: DiscoveredSearchResult;
-    }
+    type: "paper_found";
+    session_id: string;
+    source_id: string;
+    paper: DiscoveredSearchResult;
+  }
   | {
-      type: "paper_updated";
-      session_id: string;
-      source_id: string;
-      paper: DiscoveredSearchResult;
-    }
+    type: "paper_updated";
+    session_id: string;
+    source_id: string;
+    paper: DiscoveredSearchResult;
+  }
   | {
-      type: "source_completed";
-      session_id: string;
-      source_id: string;
-      count: number;
-      elapsed_ms: number;
-    }
+    type: "source_completed";
+    session_id: string;
+    source_id: string;
+    count: number;
+    elapsed_ms: number;
+  }
   | {
-      type: "source_failed";
-      session_id: string;
-      source_id: string;
-      error?: string;
-      message?: string;
-      error_category?: string;
-      elapsed_ms: number;
-    }
+    type: "source_failed";
+    session_id: string;
+    source_id: string;
+    error?: string;
+    message?: string;
+    error_category?: string;
+    elapsed_ms: number;
+  }
   | {
-      type: "search_progress";
-      session_id: string;
-      sources_total: number;
-      sources_finished: number;
-      papers_found: number;
-    }
+    type: "search_progress";
+    session_id: string;
+    sources_total: number;
+    sources_finished: number;
+    papers_found: number;
+  }
   | {
-      type: "search_completed";
-      session_id: string;
-      total_unique: number;
-      duration_ms: number;
-    }
+    type: "search_completed";
+    session_id: string;
+    total_unique: number;
+    duration_ms: number;
+  }
   | {
-      type: "search_completed_with_errors";
-      session_id: string;
-      total_unique: number;
-      duration_ms: number;
-      failed_sources: string[];
-    }
+    type: "search_completed_with_errors";
+    session_id: string;
+    total_unique: number;
+    duration_ms: number;
+    failed_sources: string[];
+  }
   | {
-      type: "search_no_results";
-      session_id: string;
-      duration_ms: number;
-    }
+    type: "search_no_results";
+    session_id: string;
+    duration_ms: number;
+  }
   | {
-      type: "search_failed";
-      session_id: string;
-      error: string;
-      duration_ms: number;
-    }
+    type: "search_failed";
+    session_id: string;
+    error: string;
+    duration_ms: number;
+  }
   | {
-      type: "search_cancelled";
-      session_id: string;
-      total_unique: number;
-      duration_ms: number;
-    }
+    type: "search_cancelled";
+    session_id: string;
+    total_unique: number;
+    duration_ms: number;
+  }
   | {
-      type: "search_timed_out";
-      session_id: string;
-      total_unique: number;
-      duration_ms: number;
-    }
+    type: "search_timed_out";
+    session_id: string;
+    total_unique: number;
+    duration_ms: number;
+  }
   | {
-      type: "search_error";
-      session_id: string;
-      source_id?: string | null;
-      message: string;
-    };
+    type: "search_error";
+    session_id: string;
+    source_id?: string | null;
+    message: string;
+  };
 
 export interface WebsiteSearchResponse {
   results: DiscoveredSearchResult[];
@@ -1040,6 +1197,12 @@ export interface AiProviderTaskRoute {
   updated_at: string;
 }
 
+export interface PageTextItem {
+  page_number: number;
+  text: string;
+  section_heading?: string | null;
+}
+
 export interface AiPaperChunk {
   id: string;
   paper_id: string;
@@ -1062,6 +1225,17 @@ export interface AiChunkCitation {
   score: number;
 }
 
+export interface VerifiedEvidenceItem {
+  chunk_id: string;
+  paper_id: string;
+  page_number: number;
+  section_heading?: string | null;
+  snippet: string;
+  is_verified: boolean;
+  verification_method: string;
+  confidence: number;
+}
+
 export interface AiRagContext {
   query: string;
   scope: string; // 'paper' | 'library' | 'none'
@@ -1069,6 +1243,14 @@ export interface AiRagContext {
   passages: AiChunkCitation[];
   warnings: string[];
   is_grounded: boolean;
+}
+
+export interface AiChatSession {
+  id: string;
+  paper_id: string | null;
+  title: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AiChatMessage {
@@ -1173,6 +1355,7 @@ export interface GenerateRequestInput {
   rag_scope?: string | null;
   provider_override?: string | null;
   model_override?: string | null;
+  ui_context?: string | null;
 }
 
 export interface GenerateResponseOutput {
@@ -1183,246 +1366,6 @@ export interface GenerateResponseOutput {
   latency_ms: number;
   is_grounded: boolean;
   warning?: string | null;
-}
-
-// ---------------------------------------------------------------------------
-// Research Integrity & Academic Writing Assistant Types
-// ---------------------------------------------------------------------------
-
-export interface IntegrityDocument {
-  id: string;
-  source_type: "file" | "library_paper" | "pasted_text";
-  source_reference: string | null;
-  file_hash: string;
-  file_name: string;
-  file_format: string;
-  file_size_bytes: number;
-  raw_content: string;
-  normalized_content: string;
-  word_count: number;
-  page_count: number;
-  extraction_metadata: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DocumentSegment {
-  id: string;
-  document_id: string;
-  segment_index: number;
-  segment_type:
-    | "paragraph"
-    | "section_heading"
-    | "abstract"
-    | "methodology"
-    | "results"
-    | "discussion"
-    | "references"
-    | "boilerplate";
-  raw_text: string;
-  normalized_text: string;
-  char_start: number;
-  char_end: number;
-  page_number: number;
-  embedding_id: string | null;
-  created_at: string;
-}
-
-export interface CorpusSource {
-  id: string;
-  source_type: "library_paper" | "local_folder" | "imported_file" | "external_open_access";
-  source_ref: string | null;
-  title: string;
-  authors: string | null;
-  venue: string | null;
-  year: number | null;
-  doi: string | null;
-  canonical_url: string | null;
-  file_path: string | null;
-  content_hash: string;
-  raw_content: string;
-  word_count: number;
-  fingerprint_count: number;
-  is_active: boolean;
-  indexed_at: string;
-  last_error: string | null;
-}
-
-export interface SimilarityRun {
-  id: string;
-  document_id: string;
-  status: "queued" | "running" | "completed" | "completed_with_warnings" | "failed" | "cancelled";
-  total_body_words: number;
-  matched_body_words: number;
-  overall_similarity_ratio: number;
-  corpus_sources_searched: number;
-  matched_sources_count: number;
-  matches_count: number;
-  execution_duration_ms: number;
-  error_message: string | null;
-  created_at: string;
-  completed_at: string | null;
-}
-
-export interface SimilarityMatch {
-  id: string;
-  similarity_run_id: string;
-  corpus_source_id: string;
-  match_type: "exact" | "fingerprint" | "fuzzy" | "semantic_candidate";
-  target_char_start: number;
-  target_char_end: number;
-  target_page_number: number;
-  target_passage: string;
-  source_char_start: number;
-  source_char_end: number;
-  source_page_number: number;
-  source_passage: string;
-  overlap_chars: number;
-  confidence_score: number;
-  review_status:
-    | "unreviewed"
-    | "marked_quote"
-    | "citation_present"
-    | "excluded_boilerplate"
-    | "not_a_match";
-  review_notes: string | null;
-  created_at: string;
-}
-
-export interface SimilarityMatchWithSource {
-  id: string;
-  similarity_run_id: string;
-  corpus_source_id: string;
-  match_type: "exact" | "fingerprint" | "fuzzy" | "semantic_candidate";
-  target_char_start: number;
-  target_char_end: number;
-  target_page_number: number;
-  target_passage: string;
-  source_char_start: number;
-  source_char_end: number;
-  source_page_number: number;
-  source_passage: string;
-  overlap_chars: number;
-  confidence_score: number;
-  review_status:
-    | "unreviewed"
-    | "marked_quote"
-    | "citation_present"
-    | "excluded_boilerplate"
-    | "not_a_match";
-  review_notes: string | null;
-  created_at: string;
-  source_title: string;
-  source_authors: string | null;
-  source_doi: string | null;
-  source_canonical_url: string | null;
-}
-
-export interface SimilarityReport {
-  run: SimilarityRun;
-  document: IntegrityDocument;
-  segments: DocumentSegment[];
-  matches: SimilarityMatchWithSource[];
-  corpus_coverage_note: string;
-  formula_explanation: string;
-}
-
-export interface AiSignalRun {
-  id: string;
-  document_id: string;
-  model_id: string;
-  model_version: string;
-  inference_mode: "local" | "remote";
-  status:
-    | "not_run"
-    | "insufficient_text"
-    | "running"
-    | "completed"
-    | "experimental"
-    | "model_unavailable"
-    | "failed";
-  overall_signal_score: number | null;
-  signal_classification:
-    | "unsupported"
-    | "insufficient_text"
-    | "low_ai_signal"
-    | "mixed_signals"
-    | "elevated_ai_signal";
-  analyzed_characters: number;
-  analyzed_paragraphs: number;
-  uncertainty_caveat: string;
-  created_at: string;
-  completed_at: string | null;
-}
-
-export interface AiSignalSegment {
-  id: string;
-  ai_signal_run_id: string;
-  segment_id: string;
-  paragraph_index: number;
-  score: number;
-  classification: string;
-  notes: string | null;
-}
-
-export interface WritingSession {
-  id: string;
-  document_id: string;
-  title: string;
-  active_mode: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface WritingRevision {
-  id: string;
-  session_id: string;
-  revision_number: number;
-  action_type:
-    | "clarity"
-    | "academic_tone"
-    | "concise"
-    | "grammar"
-    | "transitions"
-    | "structure"
-    | "abstract"
-    | "methodology"
-    | "results_discussion"
-    | "conclusion"
-    | "simplify";
-  original_text: string;
-  revised_text: string;
-  diff_summary: string;
-  preserved_numbers_ok: boolean;
-  preserved_citations_ok: boolean;
-  preserved_equations_ok: boolean;
-  preserved_dois_ok: boolean;
-  meaning_risk_flags: string | null;
-  is_accepted: boolean;
-  created_at: string;
-}
-
-export interface IntegrityModelDescriptor {
-  id: string;
-  model_name: string;
-  task_type: string;
-  hf_repo_id: string | null;
-  revision: string | null;
-  license: string;
-  is_local: boolean;
-  is_available: boolean;
-  size_mb: number;
-  evaluation_summary: string | null;
-  created_at: string;
-}
-
-export interface IntegrityDashboardSummary {
-  total_documents_analyzed: number;
-  total_corpus_sources: number;
-  total_fingerprints_indexed: number;
-  recent_similarity_runs: SimilarityRun[];
-  available_models: IntegrityModelDescriptor[];
-  active_writing_sessions: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -1511,9 +1454,461 @@ export interface MatrixWorkspaceDetail {
   total_extractions: number;
 }
 
+// ---------------------------------------------------------------------------
+// Phase 9: AI Tools, Citation Audits, and Integrity Persistence
+// ---------------------------------------------------------------------------
+
+export interface IngestedDocumentMeta {
+  document_hash: string;
+  file_name: string;
+  file_format: string;
+  word_count: number;
+  char_count: number;
+  is_clean_encoding: boolean;
+  existing_report_id?: string | null;
+}
+
+export interface AnalysisJob {
+  id: string;
+  job_type: string;
+  document_hash: string;
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  progress_pct: number;
+  current_step?: string | null;
+  result_json?: string | null;
+  error_code?: string | null;
+  error_message?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IntegrityReportFindingDb {
+  id: string;
+  report_id: string;
+  dimension: string;
+  title: string;
+  description: string;
+  status: string;
+  severity: string;
+  confidence: string;
+  evidence: string;
+  location: string;
+  suggested_action: string;
+  is_reviewed: boolean;
+  reviewed_at?: string | null;
+  reviewer_notes?: string | null;
+  created_at: string;
+}
+
+export interface SavedIntegrityReportDb {
+  id: string;
+  document_hash: string;
+  file_name: string;
+  title: string;
+  word_count: number;
+  dimensions_json: string;
+  ethical_disclaimer: string;
+  findings_count: number;
+  unreviewed_count: number;
+  created_at: string;
+  updated_at: string;
+  findings: IntegrityReportFindingDb[];
+}
+
+export interface SavedCitationAuditDb {
+  id: string;
+  document_hash: string;
+  document_title: string;
+  file_name: string;
+  total_in_text: number;
+  total_references: number;
+  matched_citations: number;
+  health_score: number;
+  summary_json: string;
+  issues_json: string;
+  references_json: string;
+  created_at: string;
+}
+
+export interface SavedReadabilityReportDb {
+  id: string;
+  document_hash: string;
+  document_title: string;
+  language_code: string;
+  word_count: number;
+  sentence_count: number;
+  flesch_reading_ease: number;
+  flesch_kincaid_grade: number;
+  gunning_fog_index: number;
+  metrics_json: string;
+  vocabulary_json: string;
+  paragraphs_json: string;
+  recommendations_json: string;
+  created_at: string;
+}
+
+export interface WritingRevisionDb {
+  id: string;
+  session_id: string;
+  revision_number: number;
+  action_type: string;
+  original_text: string;
+  revised_text: string;
+  diff_summary: string;
+  preserved_numbers_ok: boolean;
+  preserved_citations_ok: boolean;
+  preserved_equations_ok: boolean;
+  preserved_dois_ok: boolean;
+  is_accepted: boolean;
+  created_at: string;
+}
+
+export interface ExtractedDocumentResult {
+  file_name: string;
+  file_type: string;
+  text: string;
+  char_count: number;
+  word_count: number;
+  warning?: string | null;
+}
+
+export interface AiSignalDetectionResult {
+  status: string;
+  overall_signal_score: number;
+  classification: string;
+  sentence_count: number;
+  mean_sentence_length: number;
+  std_dev?: number;
+  variance?: number;
+  burstiness: number;
+  lexical_diversity_ttr?: number;
+  uncertainty_caveat: string;
+}
 
 
 
 
 
 
+
+
+
+
+// =============================================================================
+// Research Project Management, To-Dos, Domains & AI Diagnostics (Phase 18)
+// =============================================================================
+
+export interface ResearchDomain {
+  id: string;
+  parent_id?: string | null;
+  name: string;
+  slug: string;
+  description?: string | null;
+  icon?: string | null;
+  color?: string | null;
+  is_custom: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateDomainInput {
+  name: string;
+  parent_id?: string | null;
+  description?: string | null;
+  icon?: string | null;
+  color?: string | null;
+}
+
+export interface ResearchProject {
+  id: string;
+  title: string;
+  description?: string | null;
+  objective?: string | null;
+  research_questions?: string | null;
+  hypotheses?: string | null;
+  expected_outcomes?: string | null;
+  primary_domain_id?: string | null;
+  subdomain_id?: string | null;
+  custom_domain_text?: string | null;
+  status: "active" | "completed" | "archived" | "on_hold";
+  priority: "low" | "medium" | "high" | "critical";
+  progress_percent: number;
+  start_date?: string | null;
+  target_deadline?: string | null;
+  completed_at?: string | null;
+  tags_json: string;
+  template_type?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateProjectInput {
+  title: string;
+  description?: string | null;
+  objective?: string | null;
+  research_questions?: string | null;
+  hypotheses?: string | null;
+  expected_outcomes?: string | null;
+  primary_domain_id?: string | null;
+  subdomain_id?: string | null;
+  custom_domain_text?: string | null;
+  priority?: string | null;
+  start_date?: string | null;
+  target_deadline?: string | null;
+  template_type?: string | null;
+  tags?: string[] | null;
+  notes?: string | null;
+}
+
+export interface UpdateProjectInput {
+  id: string;
+  title: string;
+  description?: string | null;
+  objective?: string | null;
+  research_questions?: string | null;
+  hypotheses?: string | null;
+  expected_outcomes?: string | null;
+  primary_domain_id?: string | null;
+  subdomain_id?: string | null;
+  custom_domain_text?: string | null;
+  status: string;
+  priority: string;
+  start_date?: string | null;
+  target_deadline?: string | null;
+  tags?: string[] | null;
+  notes?: string | null;
+}
+
+export interface ProjectMilestone {
+  id: string;
+  project_id: string;
+  title: string;
+  description?: string | null;
+  due_date?: string | null;
+  is_completed: boolean;
+  completed_at?: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateMilestoneInput {
+  project_id: string;
+  title: string;
+  description?: string | null;
+  due_date?: string | null;
+  sort_order?: number | null;
+}
+
+export interface UpdateMilestoneInput {
+  id: string;
+  title: string;
+  description?: string | null;
+  due_date?: string | null;
+  is_completed: boolean;
+  sort_order?: number | null;
+}
+
+export interface ProjectTask {
+  id: string;
+  project_id?: string | null;
+  parent_task_id?: string | null;
+  milestone_id?: string | null;
+  title: string;
+  description?: string | null;
+  phase: "planning" | "literature_review" | "methodology" | "experimentation" | "writing" | "review";
+  status: "backlog" | "todo" | "in_progress" | "blocked" | "completed" | "cancelled";
+  priority: "low" | "medium" | "high" | "critical";
+  start_date?: string | null;
+  due_date?: string | null;
+  completed_at?: string | null;
+  estimated_hours?: number | null;
+  actual_hours?: number | null;
+  tags_json: string;
+  completion_notes?: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTaskInput {
+  project_id?: string | null;
+  parent_task_id?: string | null;
+  milestone_id?: string | null;
+  title: string;
+  description?: string | null;
+  phase?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  start_date?: string | null;
+  due_date?: string | null;
+  estimated_hours?: number | null;
+  tags?: string[] | null;
+  dependency_task_ids?: string[] | null;
+  linked_paper_ids?: string[] | null;
+}
+
+export interface UpdateTaskInput {
+  id: string;
+  title: string;
+  description?: string | null;
+  phase: string;
+  status: string;
+  priority: string;
+  milestone_id?: string | null;
+  start_date?: string | null;
+  due_date?: string | null;
+  estimated_hours?: number | null;
+  actual_hours?: number | null;
+  tags?: string[] | null;
+  completion_notes?: string | null;
+}
+
+export interface ProjectPaper {
+  id: string;
+  project_id: string;
+  paper_id: string;
+  paper_title: string;
+  paper_authors: string[];
+  publication_year?: number | null;
+  venue?: string | null;
+  relationship_type: string;
+  notes?: string | null;
+  added_at: string;
+}
+
+export interface TaskPaper {
+  id: string;
+  task_id: string;
+  paper_id: string;
+  paper_title: string;
+  notes?: string | null;
+  added_at: string;
+}
+
+export interface TaskWithDetails {
+  task: ProjectTask;
+  project_title?: string | null;
+  milestone_title?: string | null;
+  dependencies: string[];
+  dependency_titles: string[];
+  is_blocked: boolean;
+  linked_papers: TaskPaper[];
+  subtask_count: number;
+  completed_subtask_count: number;
+}
+
+export interface ProjectWithDetails {
+  project: ResearchProject;
+  primary_domain_name?: string | null;
+  subdomain_name?: string | null;
+  total_tasks: number;
+  completed_tasks: number;
+  open_tasks: number;
+  overdue_tasks: number;
+  total_milestones: number;
+  completed_milestones: number;
+  linked_papers_count: number;
+}
+
+export interface ProjectActivityEvent {
+  id: string;
+  project_id: string;
+  activity_type: string;
+  title: string;
+  details?: string | null;
+  created_at: string;
+}
+
+export interface ProposedTask {
+  title: string;
+  description: string;
+  phase: string;
+  priority: string;
+  estimated_hours: number;
+  suggested_days_from_start: number;
+  prerequisite_indexes: number[];
+  deliverable?: string | null;
+}
+
+export interface ProposedMilestone {
+  title: string;
+  description: string;
+  suggested_days_from_start: number;
+  tasks: ProposedTask[];
+}
+
+export interface AiProjectPlanProposal {
+  project_title: string;
+  objective_summary: string;
+  methodology_strategy: string;
+  estimated_total_weeks: number;
+  milestones: ProposedMilestone[];
+  recommended_paper_search_queries: string[];
+}
+
+export interface ApplyPlanInput {
+  project_id: string;
+  milestones: ProposedMilestone[];
+}
+
+export interface AiDiagnosticReport {
+  provider_id: string;
+  display_name: string;
+  is_enabled: boolean;
+  is_local: boolean;
+  access_category: string;
+  endpoint_url: string;
+  selected_model: string;
+  has_credential: boolean;
+  is_ready: boolean;
+  connection_status: string;
+  last_health_message?: string | null;
+  last_error_category?: string | null;
+  latency_ms?: number | null;
+  streaming_supported: boolean;
+  embeddings_supported: boolean;
+  reranker_supported: boolean;
+}
+
+export interface DiagnosticTestGenResult {
+  provider_id: string;
+  model_id: string;
+  success: boolean;
+  response_text?: string | null;
+  latency_ms: number;
+  error_category?: string | null;
+  error_message?: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// In-App Local AI Engine & Sidecar Types
+// ---------------------------------------------------------------------------
+
+export interface HardwareProfile {
+  total_ram_mb: number;
+  available_ram_mb: number;
+  cpu_cores: number;
+  recommended_tier: "nano" | "balanced" | "pro";
+}
+
+export interface DownloadProgress {
+  downloaded_bytes: number;
+  total_bytes: number;
+  percentage: number;
+  status: string;
+}
+
+export interface LocalAiStatus {
+  is_running: boolean;
+  port: number;
+  active_model?: string | null;
+  endpoint: string;
+}
+
+export interface InstalledModelInfo {
+  filename: string;
+  size_mb: number;
+  full_path: string;
+}

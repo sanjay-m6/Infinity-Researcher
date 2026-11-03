@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { X, Search, Plus, BookOpen, Check, Loader2 } from "lucide-react";
 import { DbPaper } from "../../lib/desktop-api/types";
 import * as desktopApi from "../../lib/desktop-api";
 import { Button } from "../../components/ui/Button";
+import { PaperCardSkeleton } from "../../components/ui/Skeleton";
 
 interface AddPapersModalProps {
   isOpen: boolean;
@@ -22,13 +24,7 @@ export const AddPapersModal: React.FC<AddPapersModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadLibrary();
-    }
-  }, [isOpen]);
-
-  const loadLibrary = async () => {
+  const loadLibrary = useCallback(async () => {
     setIsLoading(true);
     try {
       const page = await desktopApi.listPapers({ page: 1, page_size: 100 });
@@ -38,7 +34,27 @@ export const AddPapersModal: React.FC<AddPapersModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      void loadLibrary();
+    }
+  }, [isOpen, loadLibrary]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -60,9 +76,17 @@ export const AddPapersModal: React.FC<AddPapersModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden max-h-[80vh]">
+  return createPortal(
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200 select-none"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden max-h-[82vh] my-auto select-text"
+      >
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -101,10 +125,7 @@ export const AddPapersModal: React.FC<AddPapersModalProps> = ({
         {/* Paper List */}
         <div className="p-4 overflow-y-auto flex-1 space-y-2.5">
           {isLoading ? (
-            <div className="p-8 text-center text-sm text-slate-500 flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-cyan-500" />
-              <span>Loading research library...</span>
-            </div>
+            <PaperCardSkeleton count={3} />
           ) : filteredPapers.length === 0 ? (
             <div className="p-8 text-center text-sm text-slate-500 space-y-1">
               <p className="font-medium text-slate-700 dark:text-slate-300">No matching papers found</p>
@@ -176,6 +197,7 @@ export const AddPapersModal: React.FC<AddPapersModalProps> = ({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

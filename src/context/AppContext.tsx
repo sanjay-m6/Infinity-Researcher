@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   ReactNode,
 } from "react";
 import {
@@ -20,7 +21,7 @@ import {
   INITIAL_DEMO_COLLECTIONS,
   INITIAL_DEMO_SOURCES,
 } from "../data/demo-data";
-import { getAppHealth, isTauriEnvironment } from "../lib/tauri-bridge";
+import { getAppHealth, isTauriEnvironment, getErrorMessage } from "../lib/tauri-bridge";
 import {
   getDatabaseInfo,
   listPapers as listPapersApi,
@@ -33,16 +34,51 @@ import {
   deleteCollection as deleteCollectionApi,
   addPaperToCollection as addPaperToCollectionApi,
   removePaperFromCollection as removePaperFromCollectionApi,
+  setPaperReadingStatus as setPaperReadingStatusApi,
+  setPaperReadingProgress as setPaperReadingProgressApi,
+  touchPaperOpened as touchPaperOpenedApi,
+  assignTagToPaper as assignTagToPaperApi,
+  removeTagFromPaper as removeTagFromPaperApi,
+  updatePaper as updatePaperApi,
+  listSavedSearches as listSavedSearchesApi,
+  createSavedSearch as createSavedSearchApi,
+  deleteSavedSearch as deleteSavedSearchApi,
+  SavedSearch,
+  SavedSearchCreateInput,
   getAppSetting,
-  setAppSetting,
   dbPaperToPaper,
   dbCollectionToCollection,
   DatabaseInfo,
+  User,
+  UserPreferences,
+  authSignup,
+  authLogin,
+  authLogout,
+  authLock,
+  authUnlock,
+  authRestoreRememberedSession,
+  authGetPreferences,
+  authUpdatePreferences,
+  authChangePassword,
+  authTouchActivity,
 } from "../lib/desktop-api";
 import { HealthResponse } from "../types/health";
 import { IssueCategory } from "../lib/github/types";
+import {
+  ThemePreference,
+  ResolvedTheme,
+  ThemeMode,
+  ThemeSplashOrigin,
+} from "../types/theme";
+import {
+  getStoredThemePreference,
+  applyThemeToDocument,
+  loadDbThemePreference,
+} from "../lib/theme-persistence";
+import { executeThemeSplash } from "../lib/theme-transition";
+import { ThemeContext } from "../components/theme/ThemeProvider";
 
-export type ThemeMode = "light" | "dark" | "system";
+export type { ThemeMode, ThemePreference, ResolvedTheme };
 
 export interface ToastNotification {
   id: string;
@@ -72,6 +108,8 @@ export interface AppContextType {
   setIsCommandPaletteOpen: (open: boolean) => void;
   isAboutModalOpen: boolean;
   setIsAboutModalOpen: (open: boolean) => void;
+  isDonationModalOpen: boolean;
+  setIsDonationModalOpen: (open: boolean) => void;
   isOnboardingOpen: boolean;
   setIsOnboardingOpen: (open: boolean) => void;
   isFeedbackCenterOpen: boolean;
@@ -86,7 +124,13 @@ export interface AppContextType {
 
   // Theme Management
   theme: ThemeMode;
-  setTheme: (theme: ThemeMode) => void;
+  preference: ThemeMode;
+  resolvedTheme: ResolvedTheme;
+  isDark: boolean;
+  setTheme: (theme: ThemeMode, origin?: ThemeSplashOrigin) => void;
+  toggleTheme: (origin?: ThemeSplashOrigin) => void;
+  setThemeWithSplash: (theme: ThemeMode, origin?: ThemeSplashOrigin) => Promise<void>;
+  isThemeInitialized: boolean;
 
   // Data State
   papers: Paper[];
@@ -111,6 +155,17 @@ export interface AppContextType {
   removePaperFromLibrary: (paperId: string) => void;
   addPaperToCollection: (paperId: string, collectionId: string) => void;
   removePaperFromCollection: (paperId: string, collectionId: string) => void;
+  refreshPapers: () => Promise<void>;
+  updatePaperReadingStatus: (paperId: string, status: string) => Promise<void>;
+  updatePaperReadingProgress: (paperId: string, progress: number) => Promise<void>;
+  recordPaperOpened: (paperId: string) => Promise<void>;
+  assignTagToPaper: (paperId: string, tagName: string) => Promise<void>;
+  removeTagFromPaper: (paperId: string, tagIdOrName: string) => Promise<void>;
+  updatePaperMetadata: (paperId: string, fields: Partial<Paper>) => Promise<void>;
+  savedSearches: SavedSearch[];
+  refreshSavedSearches: () => Promise<void>;
+  createSavedSearch: (input: SavedSearchCreateInput) => Promise<SavedSearch>;
+  deleteSavedSearch: (id: string) => Promise<void>;
   retryJob: (jobId: string) => void;
   cancelJob: (jobId: string) => void;
 
@@ -130,33 +185,60 @@ export interface AppContextType {
   refreshDatabase: () => Promise<void>;
   seedSampleData: () => Promise<void>;
   clearAllData: () => Promise<void>;
+
+  // Local Authentication & App Lock State
+  user: User | null;
+  authToken: string | null;
+  isLocked: boolean;
+  userPreferences: UserPreferences | null;
+  continueAsGuest: () => void;
+  loginUser: (identifier: string, password: string, rememberMe?: boolean) => Promise<void>;
+  signupUser: (email: string, username: string, password: string, confirmPassword: string) => Promise<void>;
+  logoutUser: () => Promise<void>;
+  lockApplication: () => Promise<void>;
+  unlockApplication: (password: string) => Promise<void>;
+  updateUserPreferences: (prefs: { auto_lock_timeout_minutes: number; remember_me: boolean; theme?: string }) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 export interface AppProviderProps {
   children: ReactNode;
+  initialSection?: NavSection;
   initialPapers?: Paper[];
   initialCollections?: Collection[];
   initialJobs?: DownloadJob[];
   initialActivity?: ActivityEvent[];
+  initialUser?: User | null;
 }
+
+export const DEFAULT_LOCAL_RESEARCHER: User = {
+  id: "usr_local_researcher",
+  email: "researcher@local.workspace",
+  username: "Local Researcher",
+  created_at: "2026-01-01T00:00:00.000Z",
+  last_login_at: new Date().toISOString(),
+};
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<AppProviderProps> = ({
   children,
+  initialSection = "dashboard",
   initialPapers = [],
   initialCollections = [],
   initialJobs = [],
   initialActivity = [],
+  initialUser,
 }) => {
   // Navigation
-  const [activeSection, setActiveSection] = useState<NavSection>("dashboard");
+  const [activeSection, setActiveSection] = useState<NavSection>(initialSection);
   const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
   const [readingPaper, setReadingPaper] = useState<ReadingPaperTarget | null>(null);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState<boolean>(false);
+  const [isDonationModalOpen, setIsDonationModalOpen] = useState<boolean>(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isFeedbackCenterOpen, setIsFeedbackCenterOpen] = useState<boolean>(false);
   const [feedbackCategory, setFeedbackCategory] = useState<IssueCategory>("bug");
@@ -196,11 +278,31 @@ export const AppProvider: React.FC<AppProviderProps> = ({
 
   const [globalSearchQuery, setGlobalSearchQuery] = useState<string>("");
 
+  const outerTheme = useContext(ThemeContext);
+
   // Theme
-  const [theme, setThemeState] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem("rps_theme");
-    return (saved as ThemeMode) || "system";
+  const [theme, setThemeState] = useState<ThemePreference>(() => {
+    return getStoredThemePreference();
   });
+  const [systemIsDark, setSystemIsDark] = useState<boolean>(() => {
+    if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+      try {
+        return window.matchMedia("(prefers-color-scheme: dark)").matches;
+      } catch {
+        // fallback
+      }
+    }
+    return true;
+  });
+  const [isThemeInitialized, setIsThemeInitialized] = useState<boolean>(false);
+
+  const resolvedTheme: ResolvedTheme = useMemo(() => {
+    if (theme === "dark") return "dark";
+    if (theme === "light") return "light";
+    return systemIsDark ? "dark" : "light";
+  }, [theme, systemIsDark]);
+
+  const isDark = resolvedTheme === "dark";
 
   // Data (defaults to clean 0 records in production)
   const [papers, setPapers] = useState<Paper[]>(initialPapers);
@@ -208,6 +310,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({
   const [jobs, setJobs] = useState<DownloadJob[]>(initialJobs);
   const [sources] = useState<SourceProvider[]>(INITIAL_DEMO_SOURCES);
   const [activity, setActivity] = useState<ActivityEvent[]>(initialActivity);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
 
   // Toast
   const [toast, setToast] = useState<ToastNotification | null>(null);
@@ -221,6 +324,29 @@ export const AppProvider: React.FC<AppProviderProps> = ({
   const [databaseInfo, setDatabaseInfo] = useState<DatabaseInfo | null>(null);
   const [isDbLoading, setIsDbLoading] = useState<boolean>(false);
 
+  // Local Authentication & Lock Screen State
+  const [user, setUser] = useState<User | null>(() => {
+    if (initialUser !== undefined) return initialUser;
+    // In test environment, default to an authenticated mock user unless explicitly set to null
+    if (
+      (typeof process !== "undefined" && (process.env?.NODE_ENV === "test" || process.env?.VITEST)) ||
+      (typeof window !== "undefined" && (window as unknown as { __VITEST_ENVIRONMENT__?: unknown }).__VITEST_ENVIRONMENT__)
+    ) {
+      return {
+        id: "usr_test_default",
+        email: "researcher@university.edu",
+        username: "test_researcher",
+        created_at: new Date().toISOString(),
+        last_login_at: new Date().toISOString(),
+      };
+    }
+    return DEFAULT_LOCAL_RESEARCHER;
+  });
+  const [authToken, setAuthToken] = useState<string | null>(() => (user ? "token_local_researcher" : null));
+  const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+
+
   // Toast helper
   const showToast = useCallback(
     (message: string, type: ToastNotification["type"] = "info") => {
@@ -233,60 +359,105 @@ export const AppProvider: React.FC<AppProviderProps> = ({
     []
   );
 
-  // Theme application and persistent sync
-  const setTheme = useCallback(
-    (newTheme: ThemeMode) => {
-      setThemeState(newTheme);
-      localStorage.setItem("rps_theme", newTheme);
-      if (isTauriEnvironment()) {
-        void setAppSetting("theme_mode", newTheme).catch(() => {});
+  // Restore remembered session on app launch
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const remembered = await authRestoreRememberedSession();
+        if (remembered && isMounted) {
+          setUser(remembered.user);
+          setAuthToken(remembered.token);
+          setIsLocked(false);
+          const prefs = await authGetPreferences(remembered.token);
+          if (isMounted) setUserPreferences(prefs);
+        }
+      } catch (err) {
+        console.warn("Failed to restore remembered session:", err);
       }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const continueAsGuest = useCallback(() => {
+    setUser(DEFAULT_LOCAL_RESEARCHER);
+    setAuthToken("token_local_researcher");
+    setIsLocked(false);
+    showToast("Welcome to your local research workspace!", "info");
+  }, [showToast]);
+
+  // Theme application and persistent sync with optional circular splash transition
+  const setTheme = useCallback(
+    (newTheme: ThemePreference, origin?: ThemeSplashOrigin) => {
+      if (outerTheme) {
+        outerTheme.setTheme(newTheme, origin);
+        return;
+      }
+      void executeThemeSplash(newTheme, {
+        origin,
+        onThemeChange: (t) => setThemeState(t),
+      });
     },
-    []
+    [outerTheme]
   );
 
-  useEffect(() => {
-    const root = document.documentElement;
-
-    const applyDark = () => {
-      root.classList.add("dark");
-    };
-    const applyLight = () => {
-      root.classList.remove("dark");
-    };
-
-    if (theme === "dark") {
-      applyDark();
-    } else if (theme === "light") {
-      applyLight();
-    } else {
-      const isSystemDark =
-        typeof window !== "undefined" &&
-        typeof window.matchMedia === "function" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (isSystemDark) {
-        applyDark();
-      } else {
-        applyLight();
+  const setThemeWithSplash = useCallback(
+    async (newTheme: ThemePreference, origin?: ThemeSplashOrigin) => {
+      if (outerTheme) {
+        await outerTheme.setThemeWithSplash(newTheme, origin);
+        return;
       }
-    }
-  }, [theme]);
+      await executeThemeSplash(newTheme, {
+        origin,
+        onThemeChange: (t) => setThemeState(t),
+      });
+    },
+    [outerTheme]
+  );
 
-  // System theme change listener
+  const toggleTheme = useCallback(
+    (origin?: ThemeSplashOrigin) => {
+      if (outerTheme) {
+        outerTheme.toggleTheme(origin);
+        return;
+      }
+      const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+      setTheme(nextTheme, origin);
+    },
+    [outerTheme, resolvedTheme, setTheme]
+  );
+
+  // Apply theme to document element
   useEffect(() => {
-    if (theme !== "system") return;
+    if (!outerTheme) {
+      applyThemeToDocument(resolvedTheme);
+    }
+  }, [resolvedTheme, outerTheme]);
+
+  // System theme change listener (reactive)
+  useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const listener = (e: MediaQueryListEvent) => {
-      if (e.matches) {
-        document.documentElement.classList.add("dark");
+      setSystemIsDark(e.matches);
+    };
+
+    if (media.addEventListener) {
+      media.addEventListener("change", listener);
+    } else {
+      media.addListener(listener);
+    }
+
+    return () => {
+      if (media.removeEventListener) {
+        media.removeEventListener("change", listener);
       } else {
-        document.documentElement.classList.remove("dark");
+        media.removeListener(listener);
       }
     };
-    media.addEventListener("change", listener);
-    return () => media.removeEventListener("change", listener);
-  }, [theme]);
+  }, []);
 
   // Backend health probe
   const refreshHealth = useCallback(async () => {
@@ -327,11 +498,19 @@ export const AppProvider: React.FC<AppProviderProps> = ({
       setCollections(mappedCollections);
       setPapers(mappedPapers);
 
+      try {
+        const sSearches = await listSavedSearchesApi();
+        setSavedSearches(sSearches);
+      } catch {
+        // saved searches optional
+      }
+
       // Read persistent theme setting if saved in SQLite
-      const savedTheme = await getAppSetting("theme_mode");
-      if (savedTheme && (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system")) {
+      const savedTheme = await loadDbThemePreference();
+      if (savedTheme) {
         setThemeState(savedTheme);
       }
+      setIsThemeInitialized(true);
     } catch {
       // Gracefully maintain in-memory state on error
     } finally {
@@ -395,7 +574,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({
       await refreshDatabase();
       showToast("Seeded research library in SQLite database.", "success");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to seed sample papers.";
+      const msg = getErrorMessage(err, "Failed to seed sample papers.");
       showToast(msg, "error");
     } finally {
       setIsDbLoading(false);
@@ -433,7 +612,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({
       await refreshDatabase();
       showToast("Cleared all library papers, collections, and mock data.", "success");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to clear library data.";
+      const msg = getErrorMessage(err, "Failed to clear library data.");
       showToast(msg, "error");
     } finally {
       setIsDbLoading(false);
@@ -703,6 +882,183 @@ export const AppProvider: React.FC<AppProviderProps> = ({
     [showToast]
   );
 
+  const refreshPapers = useCallback(async () => {
+    if (!isTauriEnvironment()) return;
+    try {
+      const paged = await listPapersApi({ page: 1, page_size: 200 });
+      setPapers(paged.items.map(dbPaperToPaper));
+    } catch (err) {
+      console.error("Failed to refresh papers:", err);
+    }
+  }, []);
+
+  const updatePaperReadingStatus = useCallback(
+    async (paperId: string, status: string) => {
+      setPapers((prev) =>
+        prev.map((p) => (p.id === paperId ? { ...p, readingStatus: status } : p))
+      );
+      if (isTauriEnvironment()) {
+        try {
+          await setPaperReadingStatusApi(paperId, status);
+        } catch (err) {
+          showToast(`Failed to update reading status: ${getErrorMessage(err)}`, "error");
+        }
+      }
+    },
+    [showToast]
+  );
+
+  const updatePaperReadingProgress = useCallback(
+    async (paperId: string, progress: number) => {
+      setPapers((prev) =>
+        prev.map((p) => (p.id === paperId ? { ...p, readingProgress: progress } : p))
+      );
+      if (isTauriEnvironment()) {
+        try {
+          await setPaperReadingProgressApi(paperId, progress);
+        } catch (err) {
+          showToast(`Failed to update reading progress: ${getErrorMessage(err)}`, "error");
+        }
+      }
+    },
+    [showToast]
+  );
+
+  const recordPaperOpened = useCallback(async (paperId: string) => {
+    const now = new Date().toISOString();
+    setPapers((prev) =>
+      prev.map((p) => (p.id === paperId ? { ...p, lastOpenedAt: now } : p))
+    );
+    if (isTauriEnvironment()) {
+      try {
+        await touchPaperOpenedApi(paperId);
+      } catch (err) {
+        console.warn("Failed to touch paper opened:", err);
+      }
+    }
+  }, []);
+
+  const assignTagToPaper = useCallback(
+    async (paperId: string, tagName: string) => {
+      const cleanTag = tagName.trim();
+      if (!cleanTag) return;
+      setPapers((prev) =>
+        prev.map((p) => {
+          if (p.id !== paperId) return p;
+          if (p.tags.includes(cleanTag)) return p;
+          return { ...p, tags: [...p.tags, cleanTag] };
+        })
+      );
+      if (isTauriEnvironment()) {
+        try {
+          await assignTagToPaperApi(paperId, cleanTag);
+        } catch (err) {
+          showToast(`Failed to assign tag: ${getErrorMessage(err)}`, "error");
+        }
+      }
+    },
+    [showToast]
+  );
+
+  const removeTagFromPaper = useCallback(
+    async (paperId: string, tagIdOrName: string) => {
+      setPapers((prev) =>
+        prev.map((p) => {
+          if (p.id !== paperId) return p;
+          return { ...p, tags: p.tags.filter((t) => t !== tagIdOrName) };
+        })
+      );
+      if (isTauriEnvironment()) {
+        try {
+          await removeTagFromPaperApi(paperId, tagIdOrName);
+        } catch (err) {
+          showToast(`Failed to remove tag: ${getErrorMessage(err)}`, "error");
+        }
+      }
+    },
+    [showToast]
+  );
+
+  const updatePaperMetadata = useCallback(
+    async (paperId: string, fields: Partial<Paper>) => {
+      setPapers((prev) =>
+        prev.map((p) => (p.id === paperId ? { ...p, ...fields } : p))
+      );
+      if (isTauriEnvironment()) {
+        try {
+          await updatePaperApi({
+            id: paperId,
+            title: fields.title,
+            canonical_doi: fields.doi,
+            abstract_text: fields.abstract,
+            publication_year: fields.year,
+            venue: fields.venue,
+            tags: fields.tags,
+          });
+          showToast("Paper metadata updated.", "success");
+        } catch (err) {
+          showToast(`Failed to update metadata: ${getErrorMessage(err)}`, "error");
+        }
+      }
+    },
+    [showToast]
+  );
+
+  const refreshSavedSearches = useCallback(async () => {
+    if (!isTauriEnvironment()) return;
+    try {
+      const searches = await listSavedSearchesApi();
+      setSavedSearches(searches);
+    } catch (err) {
+      console.error("Failed to refresh saved searches:", err);
+    }
+  }, []);
+
+  const createSavedSearch = useCallback(
+    async (input: SavedSearchCreateInput): Promise<SavedSearch> => {
+      if (isTauriEnvironment()) {
+        const created = await createSavedSearchApi(input);
+        setSavedSearches((prev) => [created, ...prev]);
+        showToast(`Saved search "${input.name}" created.`, "success");
+        return created;
+      } else {
+        const mock: SavedSearch = {
+          id: `ss_${Date.now()}`,
+          name: input.name,
+          description: input.description ?? null,
+          query_text: input.query_text ?? null,
+          structured_query_json: input.structured_query_json ?? null,
+          selected_sources_json: input.selected_sources_json ?? null,
+          filters_json: input.filters_json ?? null,
+          sort_by: input.sort_by ?? null,
+          result_count_estimate: 0,
+          last_executed_at: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setSavedSearches((prev) => [mock, ...prev]);
+        showToast(`Saved search "${input.name}" saved.`, "success");
+        return mock;
+      }
+    },
+    [showToast]
+  );
+
+  const deleteSavedSearch = useCallback(
+    async (id: string) => {
+      setSavedSearches((prev) => prev.filter((s) => s.id !== id));
+      if (isTauriEnvironment()) {
+        try {
+          await deleteSavedSearchApi(id);
+          showToast("Saved search removed.", "info");
+        } catch (err) {
+          showToast(`Failed to delete saved search: ${getErrorMessage(err)}`, "error");
+        }
+      }
+    },
+    [showToast]
+  );
+
   const retryJob = useCallback(
     (jobId: string) => {
       setJobs((prev) =>
@@ -742,6 +1098,133 @@ export const AppProvider: React.FC<AppProviderProps> = ({
     [showToast]
   );
 
+  // Authentication Actions
+  const loginUser = useCallback(
+    async (identifier: string, password: string, rememberMe?: boolean) => {
+      const res = await authLogin({ identifier, password, remember_me: rememberMe });
+      setUser(res.user);
+      setAuthToken(res.token);
+      setIsLocked(false);
+      try {
+        const prefs = await authGetPreferences(res.token);
+        setUserPreferences(prefs);
+      } catch {
+        // ignore
+      }
+      showToast(`Welcome back, ${res.user.username}!`, "success");
+    },
+    [showToast]
+  );
+
+  const signupUser = useCallback(
+    async (email: string, username: string, password: string, confirmPassword: string) => {
+      const res = await authSignup({ email, username, password, confirm_password: confirmPassword });
+      setUser(res.user);
+      setAuthToken(res.token);
+      setIsLocked(false);
+      try {
+        const prefs = await authGetPreferences(res.token);
+        setUserPreferences(prefs);
+      } catch {
+        // ignore
+      }
+      showToast(`Account created! Welcome, ${res.user.username}.`, "success");
+    },
+    [showToast]
+  );
+
+  const logoutUser = useCallback(async () => {
+    if (authToken) {
+      try {
+        await authLogout(authToken);
+      } catch {
+        // ignore
+      }
+    }
+    setUser(null);
+    setAuthToken(null);
+    setIsLocked(false);
+    setUserPreferences(null);
+    showToast("Logged out successfully.", "info");
+  }, [authToken, showToast]);
+
+  const lockApplication = useCallback(async () => {
+    if (authToken) {
+      try {
+        await authLock(authToken);
+      } catch {
+        // ignore
+      }
+    }
+    setIsLocked(true);
+    showToast("Application locked.", "info");
+  }, [authToken, showToast]);
+
+  const unlockApplication = useCallback(
+    async (password: string) => {
+      if (!authToken) {
+        throw new Error("No active session to unlock.");
+      }
+      const res = await authUnlock(authToken, password);
+      setUser(res.user);
+      setAuthToken(res.token);
+      setIsLocked(false);
+      showToast("Application unlocked.", "success");
+    },
+    [authToken, showToast]
+  );
+
+  const updateUserPreferences = useCallback(
+    async (prefs: { auto_lock_timeout_minutes: number; remember_me: boolean; theme?: string }) => {
+      if (!authToken) return;
+      const updated = await authUpdatePreferences(authToken, prefs);
+      setUserPreferences(updated);
+      showToast("Preferences saved.", "success");
+    },
+    [authToken, showToast]
+  );
+
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      if (!authToken) throw new Error("Authentication required.");
+      await authChangePassword(authToken, {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      showToast("Password updated successfully.", "success");
+    },
+    [authToken, showToast]
+  );
+
+  // Inactivity Auto-Lock Detector
+  useEffect(() => {
+    if (!authToken || isLocked) return;
+    const timeoutMin = userPreferences?.auto_lock_timeout_minutes ?? 10;
+    if (timeoutMin <= 0) return;
+
+    let timeoutId: NodeJS.Timeout;
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsLocked(true);
+        if (authToken) {
+          void authLock(authToken).catch(() => {});
+        }
+      }, timeoutMin * 60 * 1000);
+      void authTouchActivity(authToken);
+    };
+
+    const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart"];
+    events.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }));
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach((ev) => window.removeEventListener(ev, resetTimer));
+    };
+  }, [authToken, isLocked, userPreferences?.auto_lock_timeout_minutes]);
+
+
   return (
     <AppContext.Provider
       value={{
@@ -759,6 +1242,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({
         setIsCommandPaletteOpen,
         isAboutModalOpen,
         setIsAboutModalOpen,
+        isDonationModalOpen,
+        setIsDonationModalOpen,
         isOnboardingOpen,
         setIsOnboardingOpen,
         isFeedbackCenterOpen,
@@ -768,8 +1253,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({
         globalSearchQuery,
         setGlobalSearchQuery,
         executeGlobalSearch,
-        theme,
+        theme: outerTheme ? outerTheme.theme : theme,
+        preference: outerTheme ? outerTheme.preference : theme,
+        resolvedTheme: outerTheme ? outerTheme.resolvedTheme : resolvedTheme,
+        isDark: outerTheme ? outerTheme.isDark : isDark,
         setTheme,
+        toggleTheme,
+        setThemeWithSplash,
+        isThemeInitialized: outerTheme ? outerTheme.isInitialized : isThemeInitialized,
         papers,
         collections,
         jobs,
@@ -782,6 +1273,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({
         removePaperFromLibrary,
         addPaperToCollection,
         removePaperFromCollection,
+        refreshPapers,
+        updatePaperReadingStatus,
+        updatePaperReadingProgress,
+        recordPaperOpened,
+        assignTagToPaper,
+        removeTagFromPaper,
+        updatePaperMetadata,
+        savedSearches,
+        refreshSavedSearches,
+        createSavedSearch,
+        deleteSavedSearch,
         retryJob,
         cancelJob,
         toast,
@@ -795,6 +1297,18 @@ export const AppProvider: React.FC<AppProviderProps> = ({
         refreshDatabase,
         seedSampleData,
         clearAllData,
+        user,
+        authToken,
+        isLocked,
+        userPreferences,
+        continueAsGuest,
+        loginUser,
+        signupUser,
+        logoutUser,
+        lockApplication,
+        unlockApplication,
+        updateUserPreferences,
+        changePassword,
       }}
     >
       {children}

@@ -4,7 +4,8 @@ use tauri::State;
 use tracing::info;
 
 use crate::academic_sources::{
-    AcademicSearchQuery, ImportSummary, NormalizedWork, ProviderCapabilities, UnifiedSearchResponse,
+    AcademicSearchQuery, ImportSummary, NormalizedWork, ProviderCapabilities, ProviderHealthCheck,
+    ProviderId, UnifiedSearchResponse,
 };
 use crate::errors::CommandError;
 use crate::repositories::SettingsRepository;
@@ -123,4 +124,39 @@ pub async fn set_provider_api_key(
     let db = state.db()?;
     let setting_key = format!("{}_api_key", provider_id.to_lowercase().trim());
     SettingsService::set_setting(db, &setting_key, api_key.trim()).map_err(Into::into)
+}
+
+/// Runs diagnostic health checks against specified or all academic providers.
+#[tauri::command]
+pub async fn check_academic_provider_health(
+    state: State<'_, AppState>,
+    provider_id: Option<String>,
+) -> Result<Vec<ProviderHealthCheck>, CommandError> {
+    info!(?provider_id, "Checking academic provider health");
+    let pid_opt = provider_id.and_then(|s| ProviderId::parse(&s));
+    Ok(state.search_service.check_provider_health(pid_opt).await)
+}
+
+/// Retrieves the complete capabilities declaration matrix for all registered academic providers.
+#[tauri::command]
+pub async fn get_provider_capabilities(
+    state: State<'_, AppState>,
+) -> Result<Vec<ProviderCapabilities>, CommandError> {
+    info!("Handling get_provider_capabilities command invocation");
+    Ok(state.search_service.registry().list_capabilities())
+}
+
+/// Enriches an existing paper with external metadata from scholarly index providers.
+#[tauri::command]
+pub async fn enrich_paper_metadata(
+    state: State<'_, AppState>,
+    paper_id: String,
+) -> Result<crate::domain::paper::Paper, CommandError> {
+    info!(paper_id = %paper_id, "Handling enrich_paper_metadata command invocation");
+    let db = state.db()?;
+    state
+        .search_service
+        .enrich_paper_by_id(db, &paper_id)
+        .await
+        .map_err(Into::into)
 }

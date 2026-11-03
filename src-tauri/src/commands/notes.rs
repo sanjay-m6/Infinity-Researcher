@@ -23,6 +23,15 @@ pub async fn save_note(
 }
 
 #[tauri::command]
+pub async fn search_notes(
+    state: State<'_, AppState>,
+    query: String,
+) -> Result<Vec<Note>, CommandError> {
+    let db = state.db()?;
+    NoteService::search_notes(db, &query).map_err(Into::into)
+}
+
+#[tauri::command]
 pub async fn delete_note(state: State<'_, AppState>, id: String) -> Result<bool, CommandError> {
     let db = state.db()?;
     NoteService::delete_note(db, &id).map_err(Into::into)

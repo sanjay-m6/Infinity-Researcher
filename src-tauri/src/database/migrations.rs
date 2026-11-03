@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Result};
 use tracing::info;
 
-pub const CURRENT_SCHEMA_VERSION: i32 = 9;
+pub const CURRENT_SCHEMA_VERSION: i32 = 18;
 
 const MIGRATION_0001: &str = include_str!("../../migrations/0001_initial_schema.sql");
 const MIGRATION_0002: &str = include_str!("../../migrations/0002_website_scraping_engine.sql");
@@ -15,6 +15,25 @@ const MIGRATION_0008: &str =
     include_str!("../../migrations/0008_research_integrity_and_writing.sql");
 const MIGRATION_0009: &str =
     include_str!("../../migrations/0009_literature_review_matrix_and_copilot.sql");
+const MIGRATION_0010: &str =
+    include_str!("../../migrations/0010_imare_retrieval_state.sql");
+const MIGRATION_0011: &str =
+    include_str!("../../migrations/0011_ai_tools_and_integrity_persistence.sql");
+const MIGRATION_0012: &str =
+    include_str!("../../migrations/0012_local_auth_system.sql");
+const MIGRATION_0013: &str =
+    include_str!("../../migrations/0013_research_library_and_knowledge.sql");
+const MIGRATION_0014: &str =
+    include_str!("../../migrations/0014_download_manager_modernization.sql");
+const MIGRATION_0015: &str =
+    include_str!("../../migrations/0015_multi_source_retrieval_and_verification.sql");
+const MIGRATION_0016: &str =
+    include_str!("../../migrations/0016_research_projects_and_tasks.sql");
+const MIGRATION_0017: &str =
+    include_str!("../../migrations/0017_in_app_ai_engine_default.sql");
+const MIGRATION_0018: &str =
+    include_str!("../../migrations/0018_ensure_nvidia_nim_and_provider_health.sql");
+
 
 pub fn run_migrations(conn: &mut Connection) -> Result<()> {
     // Ensure migrations tracking table exists
@@ -147,6 +166,114 @@ pub fn run_migrations(conn: &mut Connection) -> Result<()> {
         info!("Migration 0009 applied successfully");
     }
 
+    if current < 10 {
+        info!("Applying migration 0010: IMARE Multi-Stage Academic Retrieval Engine State Persistence & Cache");
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRATION_0010)?;
+        tx.execute(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, datetime('now'))",
+            (10, "0010_imare_retrieval_state"),
+        )?;
+        tx.commit()?;
+        info!("Migration 0010 applied successfully");
+    }
+
+    if current < 11 {
+        info!("Applying migration 0011: AI Tools, Citation Audits & Integrity Persistence");
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRATION_0011)?;
+        tx.execute(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, datetime('now'))",
+            (11, "0011_ai_tools_and_integrity_persistence"),
+        )?;
+        tx.commit()?;
+        info!("Migration 0011 applied successfully");
+    }
+
+    if current < 12 {
+        info!("Applying migration 0012: local authentication system and user data protection");
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRATION_0012)?;
+        tx.execute(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, datetime('now'))",
+            (12, "0012_local_auth_system"),
+        )?;
+        tx.commit()?;
+        info!("Migration 0012 applied successfully");
+    }
+
+    if current < 13 {
+        info!("Applying migration 0013: research library, saved searches and knowledge management");
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRATION_0013)?;
+        tx.execute(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, datetime('now'))",
+            (13, "0013_research_library_and_knowledge"),
+        )?;
+        tx.commit()?;
+        info!("Migration 0013 applied successfully");
+    }
+
+    if current < 14 {
+        info!("Applying migration 0014: download manager modernization");
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRATION_0014)?;
+        tx.execute(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, datetime('now'))",
+            (14, "0014_download_manager_modernization"),
+        )?;
+        tx.commit()?;
+        info!("Migration 0014 applied successfully");
+    }
+
+    if current < 15 {
+        info!("Applying migration 0015: multi source retrieval and verification");
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRATION_0015)?;
+        tx.execute(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, datetime('now'))",
+            (15, "0015_multi_source_retrieval_and_verification"),
+        )?;
+        tx.commit()?;
+        info!("Migration 0015 applied successfully");
+    }
+
+    if current < 16 {
+        info!("Applying migration 0016: research projects and tasks");
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRATION_0016)?;
+        tx.execute(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, datetime('now'))",
+            (16, "0016_research_projects_and_tasks"),
+        )?;
+        tx.commit()?;
+        info!("Migration 0016 applied successfully");
+    }
+
+    if current < 17 {
+        info!("Applying migration 0017: in-app local AI engine as system default");
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRATION_0017)?;
+        tx.execute(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, datetime('now'))",
+            (17, "0017_in_app_ai_engine_default"),
+        )?;
+        tx.commit()?;
+        info!("Migration 0017 applied successfully");
+    }
+
+    if current < 18 {
+        info!("Applying migration 0018: Ensure NVIDIA NIM is enabled and provider health guarded");
+        let tx = conn.transaction()?;
+        tx.execute_batch(MIGRATION_0018)?;
+        tx.execute(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, datetime('now'))",
+            (18, "0018_ensure_nvidia_nim_and_provider_health"),
+        )?;
+        tx.commit()?;
+        info!("Migration 0018 applied successfully");
+    }
+
     Ok(())
 }
 
@@ -172,9 +299,9 @@ mod tests {
         run_migrations(&mut conn).expect("run_migrations failed");
 
         let version = get_schema_version(&conn).expect("get_schema_version failed");
-        assert_eq!(version, 9);
+        assert_eq!(version, 18);
 
-        // Verify key tables exist including AI, Integrity, and Matrix tables
+        // Verify key tables exist including AI, Integrity, Matrix, Retrieval State, Auth, Saved Searches, and Projects/Tasks
         let count: i64 = conn
             .query_row(
                 "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN (
@@ -182,7 +309,7 @@ mod tests {
                     'crawl_profiles', 'crawl_jobs', 'crawl_queue', 'crawl_job_papers',
                     'paper_identifiers', 'paper_files', 'duplicate_candidates', 'paper_merge_history',
                     'processing_jobs', 'processing_job_items',
-                    'download_jobs', 'pdf_candidates', 'reader_state',
+                    'download_jobs', 'pdf_candidates', 'reader_state', 'retrieval_state',
                     'ai_providers', 'ai_provider_task_routes', 'ai_paper_chunks',
                     'ai_chat_sessions', 'ai_chat_messages', 'ai_recommendations',
                     'ai_evaluation_results', 'ai_finetuning_jobs', 'ai_settings',
@@ -190,13 +317,18 @@ mod tests {
                     'similarity_runs', 'similarity_matches', 'ai_signal_runs', 'ai_signal_segments',
                     'writing_sessions', 'writing_revisions', 'model_registry',
                     'matrix_workspaces', 'matrix_workspace_papers', 'matrix_extractions',
-                    'evidence_copilot_sessions', 'evidence_copilot_messages'
+                    'evidence_copilot_sessions', 'evidence_copilot_messages',
+                    'saved_integrity_reports', 'integrity_report_findings', 'citation_audits',
+                    'readability_reports', 'analysis_jobs', 'doi_cache',
+                    'users', 'user_preferences', 'saved_searches',
+                    'research_domains', 'research_projects', 'project_milestones', 'project_tasks',
+                    'task_dependencies', 'project_papers', 'task_papers', 'task_reminders', 'project_activity'
                 )",
                 [],
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(count, 45);
+        assert_eq!(count, 64);
 
         // Verify doc_text_fts and ai_chunks_fts virtual tables exist
         let fts_count: i64 = conn
@@ -234,12 +366,14 @@ mod tests {
 
         // Verify seeded default matrix workspace (from migration 9)
         let matrix_count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM matrix_workspaces", [], |row| row.get(0))
+            .query_row("SELECT COUNT(*) FROM matrix_workspaces", [], |row| {
+                row.get(0)
+            })
             .unwrap();
         assert_eq!(matrix_count, 1);
 
         // Idempotency check: running again must succeed without error
         run_migrations(&mut conn).expect("second run_migrations must be idempotent");
-        assert_eq!(get_schema_version(&conn).unwrap(), 9);
+        assert_eq!(get_schema_version(&conn).unwrap(), 18);
     }
 }

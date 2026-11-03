@@ -121,9 +121,68 @@ pub struct ProviderCapabilities {
     pub supports_year_filter: bool,
     pub supports_open_access_filter: bool,
     pub supports_doi_lookup: bool,
+    #[serde(default)]
+    pub supports_author_search: bool,
+    #[serde(default)]
+    pub supports_abstracts: bool,
+    #[serde(default)]
+    pub supports_pdf_discovery: bool,
     pub supports_pagination: bool,
+    #[serde(default)]
+    pub supports_cursor_pagination: bool,
     pub requires_api_key: bool,
     pub rate_limit_rps: f64,
+    #[serde(default = "default_category")]
+    pub category: String,
+    #[serde(default = "default_auth_type")]
+    pub auth_type: String,
+    #[serde(default = "default_preferred_identifier")]
+    pub preferred_identifier: String,
+}
+
+fn default_category() -> String {
+    "General Scholarly".to_string()
+}
+
+fn default_auth_type() -> String {
+    "none".to_string()
+}
+
+fn default_preferred_identifier() -> String {
+    "doi".to_string()
+}
+
+/// Health status classification for academic source connectors.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ProviderHealthStatus {
+    Healthy,
+    Degraded,
+    Unavailable,
+    RateLimited,
+    AuthRequired,
+}
+
+impl ProviderHealthStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ProviderHealthStatus::Healthy => "healthy",
+            ProviderHealthStatus::Degraded => "degraded",
+            ProviderHealthStatus::Unavailable => "unavailable",
+            ProviderHealthStatus::RateLimited => "rate_limited",
+            ProviderHealthStatus::AuthRequired => "auth_required",
+        }
+    }
+}
+
+/// Diagnostic health check result for an academic connector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProviderHealthCheck {
+    pub provider_id: ProviderId,
+    pub status: ProviderHealthStatus,
+    pub latency_ms: u64,
+    pub message: Option<String>,
+    pub checked_at: String,
 }
 
 /// Status categories for individual provider searches.
@@ -196,6 +255,22 @@ pub struct ProviderProvenance {
     pub retrieved_at: String,
 }
 
+fn default_metadata_score() -> u8 {
+    0
+}
+
+/// Metadata completeness assessment for a normalized scholarly work.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct MetadataCompleteness {
+    pub score: u8,
+    pub has_doi: bool,
+    pub has_abstract: bool,
+    pub has_pdf: bool,
+    pub has_authors: bool,
+    pub has_venue: bool,
+    pub has_date: bool,
+}
+
 /// Unified scholarly work model across all academic connectors.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NormalizedWork {
@@ -216,6 +291,92 @@ pub struct NormalizedWork {
     pub provider_id: ProviderId,
     pub provider_record_id: String,
     pub provenance: Vec<ProviderProvenance>,
+    #[serde(default = "default_metadata_score")]
+    pub metadata_score: u8,
+    #[serde(default)]
+    pub completeness: MetadataCompleteness,
+    #[serde(default)]
+    pub version_type: Option<String>,
+    #[serde(default)]
+    pub pdf_status: Option<String>,
+}
+
+impl NormalizedWork {
+    pub fn compute_completeness(&mut self) {
+        let has_doi = self
+            .canonical_doi
+            .as_ref()
+            .map_or(false, |d| !d.trim().is_empty());
+        let has_abstract = self
+            .abstract_text
+            .as_ref()
+            .map_or(false, |a| !a.trim().is_empty());
+        let has_pdf = self
+            .pdf_url
+            .as_ref()
+            .map_or(false, |p| !p.trim().is_empty());
+        let has_authors = !self.authors.is_empty();
+        let has_venue = self
+            .venue
+            .as_ref()
+            .map_or(false, |v| !v.trim().is_empty());
+        let has_date = self.publication_date.is_some() || self.publication_year.is_some();
+
+        let mut score: u8 = 0;
+        if has_doi {
+            score += 25;
+        }
+        if !self.title.trim().is_empty() {
+            score += 20;
+        }
+        if has_abstract {
+            score += 20;
+        }
+        if has_authors {
+            score += 15;
+        }
+        if has_date {
+            score += 10;
+        }
+        if has_venue {
+            score += 5;
+        }
+        if has_pdf || self.is_open_access {
+            score += 5;
+        }
+
+        self.metadata_score = score.min(100);
+        self.completeness = MetadataCompleteness {
+            score: self.metadata_score,
+            has_doi,
+            has_abstract,
+            has_pdf,
+            has_authors,
+            has_venue,
+            has_date,
+        };
+    }
+}
+
+/// Execution plan for an individual provider in an academic search request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProviderQueryPlan {
+    pub provider_id: ProviderId,
+    pub native_query: String,
+    pub pushes_year_filter: bool,
+    pub pushes_oa_filter: bool,
+    pub requires_client_filtering: bool,
+    pub warnings: Vec<String>,
+}
+
+/// Capability-aware query plan across all requested providers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AcademicSearchPlan {
+    pub raw_query: String,
+    pub detected_identifier_type: Option<String>,
+    pub cleaned_identifier: Option<String>,
+    pub provider_plans: Vec<ProviderQueryPlan>,
+    pub global_warnings: Vec<String>,
 }
 
 /// Response returned to the frontend by the unified search coordinator.
@@ -225,6 +386,10 @@ pub struct UnifiedSearchResponse {
     pub provider_statuses: Vec<ProviderStatus>,
     pub total_found: usize,
     pub completed_at: String,
+    #[serde(default)]
+    pub query_plan: Option<AcademicSearchPlan>,
+    #[serde(default)]
+    pub warnings: Vec<String>,
 }
 
 /// Summary returned after importing search results into the SQLite library.

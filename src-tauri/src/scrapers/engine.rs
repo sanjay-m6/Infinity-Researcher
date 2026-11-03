@@ -294,6 +294,7 @@ impl CrawlEngine {
                 is_saved: Some(true),
                 reading_status: None,
                 reading_progress: None,
+                last_opened_at: None,
                 open_access_status: Some("verified_open_access".to_string()),
                 access_evidence_type: Some("explicit_source_label".to_string()),
                 access_evidence_note: Some("Imported from website crawl job".to_string()),

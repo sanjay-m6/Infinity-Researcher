@@ -2,8 +2,8 @@ use tauri::State;
 
 use crate::domain::export::DocumentInspectionStatus;
 use crate::domain::pdf_workspace::{
-    BulkDownloadRequest, BulkDownloadSummary, DownloadJob, EnqueueDownloadInput, PaperPdfInfo,
-    PdfResolutionResult, ReaderState,
+    BulkDownloadRequest, BulkDownloadSummary, CleanOrphanedResult, DownloadJob,
+    DownloadStorageMetrics, EnqueueDownloadInput, PaperPdfInfo, PdfResolutionResult, ReaderState,
 };
 use crate::errors::CommandError;
 use crate::repositories::pdf_workspace_repo::PdfWorkspaceRepository;
@@ -42,35 +42,40 @@ pub async fn read_paper_pdf(
     state: State<'_, AppState>,
     paper_id: String,
 ) -> Result<tauri::ipc::Response, CommandError> {
-    let db = state.db()?;
-    let conn = db
-        .lock()
-        .map_err(|e| CommandError::new("ERR_LOCK", e.to_string(), true))?;
-
-    let file_path_str: String = conn
-        .query_row(
-            "SELECT file_path FROM paper_files WHERE paper_id = ?1
-             UNION ALL
-             SELECT local_pdf_path FROM papers WHERE id = ?1 AND local_pdf_path IS NOT NULL
-             LIMIT 1",
-            [&paper_id],
-            |r| r.get(0),
-        )
-        .map_err(|_| {
-            CommandError::new(
-                "FILE_MISSING",
-                format!("No document attached to paper {}", paper_id),
-                false,
-            )
-        })?;
-
-    let candidate_path = std::path::PathBuf::from(&file_path_str);
-    let resolved_path = if candidate_path.is_absolute() {
-        candidate_path
+    let direct_candidate = std::path::PathBuf::from(paper_id.trim());
+    let resolved_path = if direct_candidate.exists() && direct_candidate.is_file() {
+        direct_candidate
     } else {
-        std::env::current_dir()
-            .unwrap_or_else(|_| std::path::PathBuf::from("."))
-            .join(&candidate_path)
+        let db = state.db()?;
+        let conn = db
+            .lock()
+            .map_err(|e| CommandError::new("ERR_LOCK", e.to_string(), true))?;
+
+        let file_path_str: String = conn
+            .query_row(
+                "SELECT file_path FROM paper_files WHERE paper_id = ?1
+                 UNION ALL
+                 SELECT local_pdf_path FROM papers WHERE id = ?1 AND local_pdf_path IS NOT NULL
+                 LIMIT 1",
+                [&paper_id],
+                |r| r.get(0),
+            )
+            .map_err(|_| {
+                CommandError::new(
+                    "FILE_MISSING",
+                    format!("No document attached to paper {}", paper_id),
+                    false,
+                )
+            })?;
+
+        let candidate_path = std::path::PathBuf::from(&file_path_str);
+        if candidate_path.is_absolute() {
+            candidate_path
+        } else {
+            std::env::current_dir()
+                .unwrap_or_else(|_| std::path::PathBuf::from("."))
+                .join(&candidate_path)
+        }
     };
 
     if !resolved_path.exists() {
@@ -92,6 +97,28 @@ pub async fn read_paper_pdf(
         )
     })?;
 
+    // Verify %PDF- signature
+    use std::io::Read;
+    let mut f = std::fs::File::open(&canonical).map_err(|e| {
+        CommandError::new(
+            "IO_ERROR",
+            format!("Cannot open file for reading: {}", e),
+            false,
+        )
+    })?;
+    let mut header = [0u8; 1024];
+    let n = f.read(&mut header).map_err(|e| {
+        CommandError::new("IO_ERROR", format!("Cannot read file header: {}", e), false)
+    })?;
+    let header_str = String::from_utf8_lossy(&header[..n]);
+    if !header_str.contains("%PDF-") {
+        return Err(CommandError::new(
+            "INVALID_PDF_SIGNATURE",
+            "The selected file does not contain a valid %PDF- header signature.",
+            false,
+        ));
+    }
+
     let bytes = std::fs::read(&canonical).map_err(|e| {
         CommandError::new(
             "STORAGE_ERROR",
@@ -101,6 +128,49 @@ pub async fn read_paper_pdf(
     })?;
 
     Ok(tauri::ipc::Response::new(bytes))
+}
+
+/// Extracts rich metadata and structural text from a local PDF without mutating library state
+#[tauri::command]
+pub async fn extract_pdf_metadata(
+    file_path: String,
+) -> Result<crate::services::pdf_processor::ExtractedPdfMetadata, CommandError> {
+    let clean_path = std::path::PathBuf::from(file_path.trim());
+    if !clean_path.exists() || !clean_path.is_file() {
+        return Err(CommandError::new(
+            "FILE_NOT_FOUND",
+            format!(
+                "Specified PDF file does not exist: {}",
+                clean_path.display()
+            ),
+            false,
+        ));
+    }
+
+    // Verify %PDF- signature
+    use std::io::Read;
+    let mut f = std::fs::File::open(&clean_path).map_err(|e| {
+        CommandError::new(
+            "IO_ERROR",
+            format!("Cannot open file for reading: {}", e),
+            false,
+        )
+    })?;
+    let mut header = [0u8; 1024];
+    let n = f.read(&mut header).map_err(|e| {
+        CommandError::new("IO_ERROR", format!("Cannot read file header: {}", e), false)
+    })?;
+    let header_str = String::from_utf8_lossy(&header[..n]);
+    if !header_str.contains("%PDF-") {
+        return Err(CommandError::new(
+            "INVALID_PDF_SIGNATURE",
+            "The selected file is not a valid PDF (%PDF- header missing).",
+            false,
+        ));
+    }
+
+    let meta = crate::services::pdf_processor::PdfProcessor::process_pdf_file(&clean_path);
+    Ok(meta)
 }
 
 /// Retrieves consolidated PDF information (file details, verification status, reader state)
@@ -133,9 +203,11 @@ pub async fn resolve_paper_pdf(
 /// Enqueues a single PDF download into the background queue
 #[tauri::command]
 pub async fn enqueue_pdf_download(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     input: EnqueueDownloadInput,
 ) -> Result<DownloadJob, CommandError> {
+    state.download_manager.set_app_handle(app).await;
     state
         .download_manager
         .enqueue(input)
@@ -146,9 +218,11 @@ pub async fn enqueue_pdf_download(
 /// Enqueues multiple selected papers for batch PDF download
 #[tauri::command]
 pub async fn enqueue_bulk_pdf_downloads(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     request: BulkDownloadRequest,
 ) -> Result<BulkDownloadSummary, CommandError> {
+    state.download_manager.set_app_handle(app).await;
     state
         .download_manager
         .enqueue_bulk(request.paper_ids)
@@ -200,6 +274,41 @@ pub async fn clear_completed_pdf_downloads(
     state: State<'_, AppState>,
 ) -> Result<usize, CommandError> {
     state.download_manager.clear_completed().map_err(Into::into)
+}
+
+/// Deletes a single download job record from history
+#[tauri::command]
+pub async fn delete_pdf_download_job(
+    state: State<'_, AppState>,
+    job_id: String,
+) -> Result<usize, CommandError> {
+    state
+        .download_manager
+        .delete_job(&job_id)
+        .map_err(Into::into)
+}
+
+/// Retrieves disk storage metrics for downloaded PDFs and temporary parts
+#[tauri::command]
+pub async fn get_download_storage_metrics(
+    state: State<'_, AppState>,
+) -> Result<DownloadStorageMetrics, CommandError> {
+    state
+        .download_manager
+        .get_storage_metrics()
+        .map_err(Into::into)
+}
+
+/// Safely purges orphaned `.part` and temporary files not tied to active downloads
+#[tauri::command]
+pub async fn clean_orphaned_downloads(
+    state: State<'_, AppState>,
+) -> Result<CleanOrphanedResult, CommandError> {
+    state
+        .download_manager
+        .clean_orphaned_downloads()
+        .await
+        .map_err(Into::into)
 }
 
 /// Persists reading progress, page position, zoom, and rotation

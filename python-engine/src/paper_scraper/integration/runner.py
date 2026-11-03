@@ -17,7 +17,13 @@ from paper_scraper.integration.protocol import PROTOCOL_VERSION, emit_log, emit_
 from paper_scraper.middleware.logging import configure_engine_logging
 from paper_scraper.models import QueryFilter
 from paper_scraper.pdf import PdfManager
-from paper_scraper.ai import chunk_pdf_document, evaluate_hardware_capability, prepare_finetuning_dataset
+from paper_scraper.ai import (
+    chunk_pdf_document,
+    evaluate_hardware_capability,
+    prepare_finetuning_dataset,
+    extract_document_file,
+    compute_statistical_ai_signals,
+)
 
 
 async def stdin_reader_loop(search_engine: ScrapySearchEngine, pdf_manager: PdfManager) -> None:
@@ -150,6 +156,22 @@ async def stdin_reader_loop(search_engine: ScrapySearchEngine, pdf_manager: PdfM
                 emit_response("prepare_finetuning_dataset_result", request_id, {
                     "dataset": dataset_res,
                 })
+
+            elif msg_type == "extract_document_text":
+                file_path = msg.get("file_path", "")
+                try:
+                    res = extract_document_file(file_path)
+                    emit_response("extract_document_text_result", request_id, res)
+                except Exception as ex:
+                    emit_response("error", request_id, {"error": str(ex)})
+
+            elif msg_type == "detect_ai_signals":
+                text = msg.get("text", "")
+                try:
+                    signals = compute_statistical_ai_signals(text)
+                    emit_response("detect_ai_signals_result", request_id, signals)
+                except Exception as ex:
+                    emit_response("error", request_id, {"error": str(ex)})
 
             elif msg_type == "shutdown":
                 emit_log("info", "Shutdown command received")

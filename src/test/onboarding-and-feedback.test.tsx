@@ -113,7 +113,7 @@ describe("Dynamic Onboarding Wizard", () => {
   it("renders Welcome step with Infinity Researcher branding and tagline", () => {
     render(
       <AppProvider>
-        <OnboardingWizard isOpen={true} onClose={() => {}} onComplete={() => {}} />
+        <OnboardingWizard isOpen={true} onClose={() => { }} onComplete={() => { }} />
       </AppProvider>
     );
 
@@ -122,13 +122,13 @@ describe("Dynamic Onboarding Wizard", () => {
     expect(screen.getByText("Created by Sanjay · Infinity Web Technology")).toBeInTheDocument();
     expect(screen.getByText("Discover Papers")).toBeInTheDocument();
     expect(screen.getByText("Review Matrix")).toBeInTheDocument();
-    expect(screen.getByText("Research Integrity")).toBeInTheDocument();
+    expect(screen.getByText("AI Assistant")).toBeInTheDocument();
   });
 
   it("navigates through steps and allows selecting research topics", async () => {
     render(
       <AppProvider>
-        <OnboardingWizard isOpen={true} onClose={() => {}} onComplete={() => {}} />
+        <OnboardingWizard isOpen={true} onClose={() => { }} onComplete={() => { }} />
       </AppProvider>
     );
 
@@ -161,7 +161,7 @@ describe("Dynamic Onboarding Wizard", () => {
     const onComplete = vi.fn();
     render(
       <AppProvider>
-        <OnboardingWizard isOpen={true} onClose={() => {}} onComplete={onComplete} />
+        <OnboardingWizard isOpen={true} onClose={() => { }} onComplete={onComplete} />
       </AppProvider>
     );
 
@@ -194,7 +194,7 @@ describe("FeedbackCenterModal Component", () => {
   it("renders Bug Report form with required fields and area selection", () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
       </AppProvider>
     );
 
@@ -207,7 +207,7 @@ describe("FeedbackCenterModal Component", () => {
   it("switches to Feature Request tab and displays feature fields", () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
       </AppProvider>
     );
 
@@ -221,7 +221,7 @@ describe("FeedbackCenterModal Component", () => {
   it("switches between Double-Sided, Edit, and Preview layouts", () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
       </AppProvider>
     );
 
@@ -233,7 +233,7 @@ describe("FeedbackCenterModal Component", () => {
     fireEvent.click(screen.getByText("Edit"));
     expect(screen.queryByText(/Live GitHub Issue Preview/i)).not.toBeInTheDocument();
 
-    // Click Preview to enter preview-only mode
+    // Click Preview to enter preview-only 
     fireEvent.click(screen.getByText("Preview"));
     expect(screen.getByText(/Live GitHub Issue Preview/i)).toBeInTheDocument();
 
@@ -246,7 +246,7 @@ describe("FeedbackCenterModal Component", () => {
   it("clears validation error when user begins typing", async () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
       </AppProvider>
     );
 
@@ -263,7 +263,7 @@ describe("FeedbackCenterModal Component", () => {
   it("switches to Preview tab and shows Markdown preview", () => {
     render(
       <AppProvider>
-        <FeedbackCenterModal isOpen={true} onClose={() => {}} initialCategory="bug" />
+        <FeedbackCenterModal isOpen={true} onClose={() => { }} initialCategory="bug" />
       </AppProvider>
     );
 

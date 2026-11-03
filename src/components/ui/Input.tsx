@@ -1,4 +1,5 @@
 import React, { forwardRef, InputHTMLAttributes } from "react";
+import { cn } from "../../lib/utils";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -20,37 +21,41 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            className="block text-xs font-semibold text-foreground mb-1 select-none"
           >
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leadingIcon && (
-            <div className="absolute left-3 text-slate-400 pointer-events-none">
+            <div className="absolute left-3 text-muted-foreground pointer-events-none">
               {leadingIcon}
             </div>
           )}
           <input
             ref={ref}
             id={inputId}
-            className={`w-full rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 text-sm px-3 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-800/50 ${
-              leadingIcon ? "pl-9" : ""
-            } ${trailingIcon ? "pr-9" : ""} ${
+            className={cn(
+              "w-full rounded-lg border bg-card text-foreground placeholder:text-muted-foreground text-sm px-3 py-2 transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+              "disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted",
+              leadingIcon ? "pl-9" : "",
+              trailingIcon ? "pr-9" : "",
               error
-                ? "border-rose-400 focus:ring-rose-500 focus:border-rose-500"
-                : "border-slate-300 dark:border-slate-700"
-            } ${className}`}
+                ? "border-destructive text-destructive-foreground focus-visible:ring-destructive"
+                : "border-border hover:border-border-subtle",
+              className
+            )}
             {...props}
           />
           {trailingIcon && (
-            <div className="absolute right-3 text-slate-400">{trailingIcon}</div>
+            <div className="absolute right-3 text-muted-foreground">{trailingIcon}</div>
           )}
         </div>
         {error ? (
-          <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>
+          <p className="mt-1 text-xs text-destructive font-medium">{error}</p>
         ) : helperText ? (
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{helperText}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{helperText}</p>
         ) : null}
       </div>
     );
@@ -58,3 +63,4 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 );
 
 Input.displayName = "Input";
+export default Input;

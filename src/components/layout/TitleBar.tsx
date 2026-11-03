@@ -5,13 +5,15 @@ import {
   toggleMaximizeWindow,
   closeWindow,
   isWindowMaximized,
+  startDraggingWindow,
 } from "../../lib/desktop-api";
 import applicationIcon from "../../assets/application.png";
-import { Minus, Square, Copy, X, Search, ShieldCheck } from "lucide-react";
+import { Minus, Square, Copy, X, ShieldCheck } from "lucide-react";
+import { AppIcon } from "../icons/AppIcon";
 import { GithubIcon } from "../ui/GithubIcon";
 
 export const TitleBar: React.FC = () => {
-  const { isTauri, setIsCommandPaletteOpen, setIsAboutModalOpen, activeSection } = useApp();
+  const { isTauri, setIsAboutModalOpen, activeSection } = useApp();
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
@@ -48,11 +50,32 @@ export const TitleBar: React.FC = () => {
     await closeWindow();
   };
 
+  const handleTitleBarMouseDown = async (e: React.MouseEvent) => {
+    if (e.button === 0 && (e.target as HTMLElement).closest("button, a, input, select") === null) {
+      if (isTauri) {
+        try {
+          await startDraggingWindow();
+        } catch {
+          try {
+            const { getCurrentWindow } = await import("@tauri-apps/api/window");
+            await getCurrentWindow().startDragging();
+          } catch {
+            // Ignored
+          }
+        }
+      }
+    }
+  };
+
   return (
     <header
+      aria-label="Window title bar"
       data-tauri-drag-region
-      className="h-9 w-full bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-between select-none z-40 shrink-0 text-xs px-2 transition-colors duration-200"
+      onMouseDown={handleTitleBarMouseDown}
+      onDoubleClick={handleToggleMaximize}
+      className="h-9 w-full bg-slate-100 dark:bg-[#070b12] border-b border-slate-200 dark:border-white/[0.06] text-slate-700 dark:text-slate-200 flex items-center justify-between select-none z-40 shrink-0 text-xs px-2 transition-colors duration-200"
     >
+
       {/* Left: App Logo & Title (Draggable region + click for About dialog) */}
       <div data-tauri-drag-region className="flex items-center gap-2 px-1 py-1">
         <button
@@ -61,7 +84,7 @@ export const TitleBar: React.FC = () => {
           title="Infinity Researcher — Discover. Understand. Research. Created by Sanjay (Infinity Web Technology)"
           className="flex items-center gap-2 group cursor-pointer"
         >
-          <div className="w-5 h-5 rounded-md overflow-hidden shrink-0 flex items-center justify-center bg-white dark:bg-white/10 border border-slate-300 dark:border-slate-700/60 shadow-2xs group-hover:scale-105 transition-transform">
+          <div className="w-5 h-5 shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
             <img
               src={applicationIcon}
               alt="Infinity Researcher"
@@ -76,37 +99,35 @@ export const TitleBar: React.FC = () => {
           </span>
         </button>
         <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-200/60 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-300/60 dark:border-slate-700/50">
-          <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+          <AppIcon icon={ShieldCheck} size="xs" className="text-emerald-600 dark:text-emerald-400" />
           <span>Local Core</span>
         </span>
       </div>
 
-      {/* Center: Draggable region with modern Quick Search Command Pill */}
+      {/* Center: Draggable region with clean window title */}
       <div
         data-tauri-drag-region
-        className="flex-1 flex items-center justify-center px-4 max-w-md mx-auto"
+        className="flex-1 flex items-center justify-center px-4 text-center select-none"
       >
-        <button
-          type="button"
-          onClick={() => setIsCommandPaletteOpen(true)}
-          className="w-full max-w-xs h-6.5 px-3 rounded-full bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-300 dark:border-slate-700/60 flex items-center justify-between text-[11px] transition-all cursor-pointer shadow-xs"
+        <span
+          data-tauri-drag-region
+          className="font-medium text-slate-700 dark:text-slate-300 tracking-tight text-[11px]"
         >
-          <div className="flex items-center gap-1.5 truncate">
-            <Search className="w-3 h-3 text-slate-400 dark:text-slate-400 shrink-0" />
-            <span className="truncate">Search papers, DOIs, commands...</span>
-          </div>
-          <kbd className="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/80 rounded border border-slate-200 dark:border-slate-700/70">
-            Ctrl+K
-          </kbd>
-        </button>
+          Infinity Researcher
+        </span>
+        <span data-tauri-drag-region className="mx-2 text-slate-300 dark:text-slate-700">
+          •
+        </span>
+        <span
+          data-tauri-drag-region
+          className="text-[11px] font-normal text-slate-500 dark:text-slate-400 capitalize"
+        >
+          {activeSection.replace("_", " ")}
+        </span>
       </div>
 
-      {/* Right: Section tag & Window Control Buttons */}
+      {/* Right: Window Control Buttons */}
       <div className="flex items-center h-full">
-        {/* Active Section pill */}
-        <div data-tauri-drag-region className="hidden md:flex items-center px-2 text-[10px] text-slate-400 dark:text-slate-400 font-mono capitalize mr-1">
-          <span>{activeSection}</span>
-        </div>
 
         {/* GitHub Repository Quick Link */}
         <button
@@ -134,7 +155,7 @@ export const TitleBar: React.FC = () => {
             title="Minimize"
             className="w-10 h-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            <Minus className="w-3.5 h-3.5" />
+            <AppIcon icon={Minus} size="sm" />
           </button>
 
           {/* Maximize / Restore */}
@@ -145,11 +166,11 @@ export const TitleBar: React.FC = () => {
             title={isMaximized ? "Restore" : "Maximize"}
             className="w-10 h-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            {isMaximized ? (
-              <Copy className="w-3 h-3 rotate-180" />
-            ) : (
-              <Square className="w-3 h-3" />
-            )}
+            <AppIcon
+              icon={isMaximized ? Copy : Square}
+              size="xs"
+              className={isMaximized ? "rotate-180" : ""}
+            />
           </button>
 
           {/* Close */}
@@ -160,7 +181,7 @@ export const TitleBar: React.FC = () => {
             title="Close"
             className="w-10 h-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-white hover:bg-rose-600 transition-colors cursor-pointer"
           >
-            <X className="w-3.5 h-3.5" />
+            <AppIcon icon={X} size="sm" />
           </button>
         </div>
       </div>

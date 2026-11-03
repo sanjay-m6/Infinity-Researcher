@@ -118,30 +118,46 @@ pub async fn import_ieee_paper(
         }
     }
 
-    // 6. Safe local PDF storage directory setup
-    let config = state.config.read().await;
-    let storage_dir = config.default_library_dir.clone();
-    drop(config);
-
-    std::fs::create_dir_all(&storage_dir).map_err(|e| {
-        CommandError::new(
-            "STORAGE_ERROR",
-            format!("Failed to create paper storage directory: {}", e),
-            true,
-        )
-    })?;
-
+    // 6. Safe local PDF storage directory setup (or link-only in place)
+    let should_copy = input.copy_to_library.unwrap_or(true);
     let paper_id = uuid::Uuid::new_v4().to_string();
-    let target_filename = format!("{}.pdf", paper_id);
-    let dest_path = storage_dir.join(&target_filename);
 
-    std::fs::copy(&raw_path, &dest_path).map_err(|e| {
-        CommandError::new(
-            "STORAGE_ERROR",
-            format!("Failed to copy PDF into application storage: {}", e),
-            true,
-        )
-    })?;
+    let target_filename = if should_copy {
+        format!("{}.pdf", paper_id)
+    } else {
+        raw_path
+            .file_name()
+            .and_then(|f| f.to_str())
+            .unwrap_or("document.pdf")
+            .to_string()
+    };
+
+    let dest_path = if should_copy {
+        let config = state.config.read().await;
+        let storage_dir = config.default_library_dir.clone();
+        drop(config);
+
+        std::fs::create_dir_all(&storage_dir).map_err(|e| {
+            CommandError::new(
+                "STORAGE_ERROR",
+                format!("Failed to create paper storage directory: {}", e),
+                true,
+            )
+        })?;
+
+        let dest = storage_dir.join(&target_filename);
+
+        std::fs::copy(&raw_path, &dest).map_err(|e| {
+            CommandError::new(
+                "STORAGE_ERROR",
+                format!("Failed to copy PDF into application storage: {}", e),
+                true,
+            )
+        })?;
+        dest
+    } else {
+        raw_path.clone()
+    };
 
     // 7. Extract structural metadata from PDF
     let pdf_meta = PdfProcessor::process_pdf_file(&dest_path);
@@ -205,7 +221,7 @@ pub async fn import_ieee_paper(
         canonical_doi: normalized_doi,
         title,
         clean_title_key: clean_title,
-        abstract_text: None,
+        abstract_text: input.abstract_text.clone().or(pdf_meta.abstract_text.clone()),
         publication_date: input.publication_year.map(|y| format!("{}-01-01", y)),
         publication_year: input.publication_year,
         venue: input.venue.map(|v| v.trim().to_string()),
@@ -224,6 +240,7 @@ pub async fn import_ieee_paper(
         is_saved: true,
         reading_status: "unread".to_string(),
         reading_progress: 0.0,
+        last_opened_at: None,
         created_at: now.clone(),
         updated_at: now.clone(),
         open_access_status: OA_STATUS_USER_CONFIRMED.to_string(),
@@ -261,6 +278,10 @@ pub async fn import_ieee_paper(
             file_size,
             &content_hash,
             page_count,
+            Some("published_version"),
+            Some("verified_match"),
+            Some(1.0),
+            Some("IEEE Open Access Document"),
         )
         .map_err(|e| {
             CommandError::new("DB_ERROR", format!("Failed to attach file: {}", e), true)
@@ -274,6 +295,8 @@ pub async fn import_ieee_paper(
                     paper_id: paper_id.clone(),
                     title: Some("Import Notes".to_string()),
                     content_markdown: note_content.trim().to_string(),
+                    page_number: None,
+                    highlighted_text: None,
                 };
                 let _ = NoteService::save_note(db, note_input);
             }
@@ -368,30 +391,46 @@ pub async fn import_local_oa_pdf(
         }
     }
 
-    // Storage
-    let config = state.config.read().await;
-    let storage_dir = config.default_library_dir.clone();
-    drop(config);
-
-    std::fs::create_dir_all(&storage_dir).map_err(|e| {
-        CommandError::new(
-            "STORAGE_ERROR",
-            format!("Cannot create storage dir: {}", e),
-            true,
-        )
-    })?;
-
+    // Storage (or link in-place if copy_to_library is false)
+    let should_copy = input.copy_to_library.unwrap_or(true);
     let paper_id = uuid::Uuid::new_v4().to_string();
-    let target_filename = format!("{}.pdf", paper_id);
-    let dest_path = storage_dir.join(&target_filename);
 
-    std::fs::copy(&raw_path, &dest_path).map_err(|e| {
-        CommandError::new(
-            "STORAGE_ERROR",
-            format!("Failed to copy PDF file: {}", e),
-            true,
-        )
-    })?;
+    let target_filename = if should_copy {
+        format!("{}.pdf", paper_id)
+    } else {
+        raw_path
+            .file_name()
+            .and_then(|f| f.to_str())
+            .unwrap_or("document.pdf")
+            .to_string()
+    };
+
+    let dest_path = if should_copy {
+        let config = state.config.read().await;
+        let storage_dir = config.default_library_dir.clone();
+        drop(config);
+
+        std::fs::create_dir_all(&storage_dir).map_err(|e| {
+            CommandError::new(
+                "STORAGE_ERROR",
+                format!("Cannot create storage dir: {}", e),
+                true,
+            )
+        })?;
+
+        let dest = storage_dir.join(&target_filename);
+
+        std::fs::copy(&raw_path, &dest).map_err(|e| {
+            CommandError::new(
+                "STORAGE_ERROR",
+                format!("Failed to copy PDF file: {}", e),
+                true,
+            )
+        })?;
+        dest
+    } else {
+        raw_path.clone()
+    };
 
     let pdf_meta = PdfProcessor::process_pdf_file(&dest_path);
     let page_count = if pdf_meta.page_count > 0 {
@@ -417,7 +456,23 @@ pub async fn import_local_oa_pdf(
     let now = chrono::Utc::now().to_rfc3339();
 
     let authors: Vec<Author> = if input.authors.is_empty() {
-        if let Some(a_name) = pdf_meta.author {
+        if !pdf_meta.authors.is_empty() {
+            pdf_meta
+                .authors
+                .into_iter()
+                .enumerate()
+                .map(|(idx, name)| Author {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    full_name: name.trim().to_string(),
+                    family_name: None,
+                    given_name: None,
+                    orcid: None,
+                    affiliation: None,
+                    author_order: idx as i32,
+                    created_at: now.clone(),
+                })
+                .collect()
+        } else if let Some(a_name) = pdf_meta.author {
             vec![Author {
                 id: uuid::Uuid::new_v4().to_string(),
                 full_name: a_name.trim().to_string(),
@@ -458,10 +513,10 @@ pub async fn import_local_oa_pdf(
         canonical_doi: normalized_doi,
         title,
         clean_title_key: clean_title,
-        abstract_text: None,
+        abstract_text: input.abstract_text.clone().or(pdf_meta.abstract_text.clone()),
         publication_date: input.publication_year.map(|y| format!("{}-01-01", y)),
         publication_year: input.publication_year,
-        venue: input.venue.map(|v| v.trim().to_string()),
+        venue: input.venue.map(|v| v.trim().to_string()).or(pdf_meta.venue.clone()),
         venue_type: Some("journal".to_string()),
         language: "en".to_string(),
         citation_count: 0,
@@ -477,6 +532,7 @@ pub async fn import_local_oa_pdf(
         is_saved: true,
         reading_status: "unread".to_string(),
         reading_progress: 0.0,
+        last_opened_at: None,
         created_at: now.clone(),
         updated_at: now.clone(),
         open_access_status: OA_STATUS_USER_CONFIRMED.to_string(),
@@ -512,6 +568,10 @@ pub async fn import_local_oa_pdf(
             file_size,
             &content_hash,
             page_count,
+            Some("published_version"),
+            Some("verified_match"),
+            Some(1.0),
+            Some("IEEE Open Access Document"),
         )
         .map_err(|e| {
             CommandError::new("DB_ERROR", format!("Failed to attach file: {}", e), true)
@@ -524,6 +584,8 @@ pub async fn import_local_oa_pdf(
                     paper_id: paper_id.clone(),
                     title: Some("Import Notes".to_string()),
                     content_markdown: note_content.trim().to_string(),
+                    page_number: None,
+                    highlighted_text: None,
                 };
                 let _ = NoteService::save_note(db, note_input);
             }

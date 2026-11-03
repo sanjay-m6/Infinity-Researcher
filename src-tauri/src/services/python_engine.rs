@@ -1104,6 +1104,30 @@ impl PythonEngineService {
                 request_delay_ms: 1000,
                 content_types: vec!["Conference Paper".to_string(), "Journal Article".to_string()],
             },
+            WebsiteSourceDescriptor {
+                id: "acm_dl".to_string(),
+                name: "ACM Digital Library (Python Engine)".to_string(),
+                domain: "dl.acm.org".to_string(),
+                status: "enabled".to_string(),
+                policy_url: "https://www.acm.org/about-acm/terms-of-use".to_string(),
+                policy_notes: "ACM Digital Library publications and conference proceedings via Crossref prefix 10.1145 and ACM DL indexing."
+                    .to_string(),
+                supports_native_years: true,
+                request_delay_ms: 1000,
+                content_types: vec!["Conference Paper".to_string(), "Journal Article".to_string()],
+            },
+            WebsiteSourceDescriptor {
+                id: "google_scholar".to_string(),
+                name: "Google Scholar (Python Engine)".to_string(),
+                domain: "scholar.google.com".to_string(),
+                status: "enabled".to_string(),
+                policy_url: "https://policies.google.com/terms".to_string(),
+                policy_notes: "Google Scholar query discovery with live parsing and automated open scholarly catalog fallback."
+                    .to_string(),
+                supports_native_years: true,
+                request_delay_ms: 1500,
+                content_types: vec!["Article".to_string(), "Preprint".to_string(), "Conference Paper".to_string()],
+            },
         ]
     }
 }

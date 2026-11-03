@@ -4,4 +4,3 @@ use std::process::Command;
 pub fn configure_background_process(_cmd: &mut Command) {
     // Linux handles background stdout/stderr via Stdio::null()
 }
-

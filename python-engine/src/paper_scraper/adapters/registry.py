@@ -9,17 +9,19 @@ import datetime
 from typing import Dict, List, Optional
 import httpx
 
+from paper_scraper.adapters.acm import AcmAdapter
 from paper_scraper.adapters.arxiv import ArxivAdapter
 from paper_scraper.adapters.base import BaseAdapter
 from paper_scraper.adapters.biorxiv import BiorxivAdapter
+from paper_scraper.adapters.core_api import CoreApiAdapter
+from paper_scraper.adapters.google_scholar import GoogleScholarAdapter
 from paper_scraper.adapters.ieee import IeeeAdapter
 from paper_scraper.adapters.medrxiv import MedrxivAdapter
 from paper_scraper.adapters.nature import NatureAdapter
+from paper_scraper.adapters.openalex import OpenAlexAdapter
 from paper_scraper.adapters.plos import PlosAdapter
 from paper_scraper.adapters.pubmed import PubmedAdapter
 from paper_scraper.adapters.semantic_scholar import SemanticScholarAdapter
-from paper_scraper.adapters.openalex import OpenAlexAdapter
-from paper_scraper.adapters.core_api import CoreApiAdapter
 from paper_scraper.models import SourceDescriptor
 
 
@@ -42,6 +44,8 @@ class SourceRegistry:
         self.register(SemanticScholarAdapter())
         self.register(OpenAlexAdapter())
         self.register(CoreApiAdapter())
+        self.register(AcmAdapter())
+        self.register(GoogleScholarAdapter())
 
     def register(self, adapter: BaseAdapter) -> None:
         self.adapters[adapter.id] = adapter
@@ -80,6 +84,10 @@ class SourceRegistry:
             return self.adapters.get("core_api")
         if source_id in ("openalex", "oa"):
             return self.adapters.get("openalex")
+        if source_id in ("acm", "acm_dl"):
+            return self.adapters.get("acm_dl")
+        if source_id in ("scholar", "google_scholar"):
+            return self.adapters.get("google_scholar")
         return None
 
     def list_descriptors(self) -> List[SourceDescriptor]:

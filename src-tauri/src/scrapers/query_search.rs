@@ -704,7 +704,11 @@ pub mod tests {
 
         let scholar = sources.iter().find(|s| s.id == "google_scholar");
         assert!(scholar.is_some());
-        assert_eq!(scholar.unwrap().status, "disabled");
+        assert_eq!(scholar.unwrap().status, "enabled");
+
+        let acm = sources.iter().find(|s| s.id == "acm_dl");
+        assert!(acm.is_some());
+        assert_eq!(acm.unwrap().status, "enabled");
     }
 
     #[tokio::test]

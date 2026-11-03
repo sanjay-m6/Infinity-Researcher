@@ -8,4 +8,3 @@ pub const CREATE_NO_WINDOW: u32 = 0x08000000;
 pub fn configure_background_process(cmd: &mut Command) {
     cmd.creation_flags(CREATE_NO_WINDOW);
 }
-

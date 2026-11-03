@@ -107,8 +107,7 @@ describe("Query-First Academic Discovery & Advanced Filters (Part J)", () => {
     // Check popover content
     expect(screen.getByText("Academic Sources")).toBeInTheDocument();
     expect(screen.getAllByText(/^Policy Checked$/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/^Manual Only$/i)).toBeInTheDocument();
-    expect(screen.getByText(/^Disabled$/i)).toBeInTheDocument();
+    expect(screen.getByText("ACM Digital Library")).toBeInTheDocument();
     expect(screen.getByText("Google Scholar")).toBeInTheDocument();
   });
 

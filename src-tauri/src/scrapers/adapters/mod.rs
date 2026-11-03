@@ -3,16 +3,20 @@ use std::collections::HashMap;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
+pub mod acm;
 pub mod arxiv;
 pub mod biorxiv;
+pub mod google_scholar;
 pub mod ieee;
 pub mod medrxiv;
 pub mod nature;
 pub mod plos;
 pub mod pmc;
 
+pub use acm::AcmAdapter;
 pub use arxiv::ArxivAdapter;
 pub use biorxiv::BiorxivAdapter;
+pub use google_scholar::GoogleScholarAdapter;
 pub use ieee::IeeeAdapter;
 pub use medrxiv::MedrxivAdapter;
 pub use nature::NatureAdapter;
@@ -115,31 +119,8 @@ impl SourceRegistry {
         registry.register(Arc::new(NatureAdapter::new()));
         registry.register(Arc::new(PmcAdapter::new()));
         registry.register(Arc::new(IeeeAdapter::new()));
-
-        // Add compliance & manual-only descriptors (ACM Digital Library, Google Scholar)
-        registry.descriptors.push(WebsiteSourceDescriptor {
-            id: "acm_dl".to_string(),
-            name: "ACM Digital Library".to_string(),
-            domain: "dl.acm.org".to_string(),
-            status: "manual_only".to_string(),
-            policy_url: "https://www.acm.org/about-acm/terms-of-use".to_string(),
-            policy_notes: "ACM Digital Library terms restrict automated querying. Manual import workflow available.".to_string(),
-            supports_native_years: false,
-            request_delay_ms: 0,
-            content_types: vec!["conference_paper".to_string(), "journal_article".to_string()],
-        });
-
-        registry.descriptors.push(WebsiteSourceDescriptor {
-            id: "google_scholar".to_string(),
-            name: "Google Scholar".to_string(),
-            domain: "scholar.google.com".to_string(),
-            status: "disabled".to_string(),
-            policy_url: "https://policies.google.com/terms".to_string(),
-            policy_notes: "Google Scholar prohibits automated access and employs CAPTCHA protections. Automated scraping is disabled to guarantee compliance.".to_string(),
-            supports_native_years: false,
-            request_delay_ms: 0,
-            content_types: vec!["all".to_string()],
-        });
+        registry.register(Arc::new(AcmAdapter::new()));
+        registry.register(Arc::new(GoogleScholarAdapter::new()));
 
         registry
     }
@@ -152,10 +133,12 @@ impl SourceRegistry {
     }
 
     pub fn get_adapter(&self, source_id: &str) -> Option<Arc<dyn SourceAdapter>> {
-        // Resolve aliases: nature_srep <-> nature, ieee <-> ieee_xplore
+        // Resolve aliases: nature_srep <-> nature, ieee <-> ieee_xplore, acm <-> acm_dl, scholar <-> google_scholar
         let normalized = match source_id {
             "nature_srep" => "nature",
             "ieee" => "ieee_xplore",
+            "acm" => "acm_dl",
+            "scholar" => "google_scholar",
             other => other,
         };
         self.adapters.get(normalized).cloned()

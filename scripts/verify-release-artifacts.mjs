@@ -27,57 +27,74 @@ export function calculateSha256(filePath) {
   return crypto.createHash('sha256').update(fileBuffer).digest('hex');
 }
 
+/**
+ * Recursively collect all files under a directory tree.
+ * Returns an array of { relative, absolute } objects.
+ */
+function walkDir(dir, base = dir) {
+  let results = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results = results.concat(walkDir(full, base));
+    } else if (entry.isFile()) {
+      results.push({ relative: path.relative(base, full), absolute: full, name: entry.name });
+    }
+  }
+  return results;
+}
+
 export function verifyReleaseDirectory(dirPath, expectedVersion = null) {
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Target directory does not exist: ${dirPath}`);
   }
 
-  const files = fs.readdirSync(dirPath);
+  // Recursively walk the bundle directory tree so we find installers
+  // inside subdirectories like appimage/, deb/, rpm/, nsis/, msi/, dmg/.
+  const allFiles = walkDir(dirPath);
   const issues = [];
   const verifiedAssets = [];
 
   // Categorize files across Windows, Linux, and macOS
-  const installers = files.filter(f => 
-    f.endsWith('.exe') || 
-    f.endsWith('.msi') || 
-    f.endsWith('.AppImage') || 
-    f.endsWith('.deb') || 
-    f.endsWith('.rpm') || 
-    f.endsWith('.dmg')
+  const installers = allFiles.filter(f => 
+    f.name.endsWith('.exe') || 
+    f.name.endsWith('.msi') || 
+    f.name.endsWith('.AppImage') || 
+    f.name.endsWith('.deb') || 
+    f.name.endsWith('.rpm') || 
+    f.name.endsWith('.dmg')
   );
-  const updaterArchives = files.filter(f => (f.endsWith('.zip') || f.endsWith('.tar.gz')) && !f.endsWith('.sig'));
-  const signatures = files.filter(f => f.endsWith('.sig'));
-  const manifests = files.filter(f => f === 'latest.json');
+  const updaterArchives = allFiles.filter(f => (f.name.endsWith('.zip') || f.name.endsWith('.tar.gz')) && !f.name.endsWith('.sig'));
+  const signatures = allFiles.filter(f => f.name.endsWith('.sig'));
+  const manifests = allFiles.filter(f => f.name === 'latest.json');
 
   // Check 1: Installers
   if (installers.length === 0) {
     issues.push('No installer packages (.exe, .msi, .AppImage, .deb, .rpm, or .dmg) found in release artifacts.');
   } else {
     for (const inst of installers) {
-      const full = path.join(dirPath, inst);
-      const size = fs.statSync(full).size;
+      const size = fs.statSync(inst.absolute).size;
       if (size < 1024 * 100) {
-        issues.push(`Installer ${inst} appears corrupt or abnormally small (${size} bytes).`);
+        issues.push(`Installer ${inst.relative} appears corrupt or abnormally small (${size} bytes).`);
       } else {
-        verifiedAssets.push({ name: inst, type: 'installer', size, hash: calculateSha256(full) });
+        verifiedAssets.push({ name: inst.relative, type: 'installer', size, hash: calculateSha256(inst.absolute) });
       }
     }
   }
 
   // Check 2: Updater archives & signatures
   for (const sig of signatures) {
-    const fullSig = path.join(dirPath, sig);
-    const sigContent = fs.readFileSync(fullSig, 'utf8').trim();
+    const sigContent = fs.readFileSync(sig.absolute, 'utf8').trim();
     if (!sigContent.startsWith('untrusted comment:') && sigContent.length < 30) {
-      issues.push(`Signature file ${sig} does not appear to be a valid Minisign signature.`);
+      issues.push(`Signature file ${sig.relative} does not appear to be a valid Minisign signature.`);
     } else {
-      verifiedAssets.push({ name: sig, type: 'signature', size: sigContent.length });
+      verifiedAssets.push({ name: sig.relative, type: 'signature', size: sigContent.length });
     }
   }
 
   // Check 3: latest.json manifest verification
   if (manifests.length > 0) {
-    const manifestPath = path.join(dirPath, 'latest.json');
+    const manifestPath = manifests[0].absolute;
     try {
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
@@ -113,15 +130,13 @@ export function verifyReleaseDirectory(dirPath, expectedVersion = null) {
 }
 
 export function generateChecksumFile(dirPath, outputPath) {
-  const files = fs.readdirSync(dirPath).filter(f => !f.endsWith('.txt') && !f.endsWith('.md'));
+  const allFiles = walkDir(dirPath);
+  const filtered = allFiles.filter(f => !f.name.endsWith('.txt') && !f.name.endsWith('.md'));
   const lines = [];
 
-  for (const f of files.sort()) {
-    const full = path.join(dirPath, f);
-    if (fs.statSync(full).isFile()) {
-      const hash = calculateSha256(full);
-      lines.push(`${hash}  ${f}`);
-    }
+  for (const f of filtered.sort((a, b) => a.relative.localeCompare(b.relative))) {
+    const hash = calculateSha256(f.absolute);
+    lines.push(`${hash}  ${f.relative}`);
   }
 
   const content = lines.join('\n') + '\n';

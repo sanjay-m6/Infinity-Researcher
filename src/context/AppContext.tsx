@@ -359,11 +359,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({
         last_login_at: new Date().toISOString(),
       };
     }
-    return DEFAULT_LOCAL_RESEARCHER;
+    return null;
   });
-  const [authToken, setAuthToken] = useState<string | null>(() =>
-    user ? "token_local_researcher" : null
-  );
+  const [authToken, setAuthToken] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
 

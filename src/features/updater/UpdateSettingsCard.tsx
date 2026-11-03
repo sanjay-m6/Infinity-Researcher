@@ -337,7 +337,14 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
         <span>
           Last checked: {lastChecked ? lastChecked : "Never during this session"}
         </span>
-        <span>Platform: {isTauri && platform ? `${platform.os.toUpperCase()} (${platform.arch}) · ${platform.target_triple}` : isTauri ? "Native Desktop" : "Web Preview"}</span>
+        <span>
+          Platform:{" "}
+          {isTauri && platform
+            ? `${platform.os.toUpperCase()} (${platform.arch}) · ${platform.target_triple}`
+            : isTauri
+              ? "Native Desktop"
+              : "Web Preview"}
+        </span>
       </div>
     </section>
   );

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Lock, User, ArrowRight, Eye, EyeOff, BookOpen, Laptop } from "lucide-react";
+import { Lock, User, ArrowRight, Eye, EyeOff, BookOpen } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 
 interface LoginModalProps {
@@ -7,7 +7,7 @@ interface LoginModalProps {
 }
 
 export const LoginView: React.FC<LoginModalProps> = ({ onSwitchToSignup }) => {
-  const { loginUser, continueAsGuest } = useApp();
+  const { loginUser } = useApp();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -136,24 +136,6 @@ export const LoginView: React.FC<LoginModalProps> = ({ onSwitchToSignup }) => {
           >
             {isLoading ? "Signing in..." : "Sign In"}
             <ArrowRight className="w-4 h-4" />
-          </button>
-
-          <div className="relative my-3 flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200 dark:border-white/10" />
-            </div>
-            <span className="relative px-2 bg-white dark:bg-slate-900 text-[11px] text-slate-400">
-              or
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => continueAsGuest?.()}
-            className="w-full py-2.5 px-4 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Laptop className="w-4 h-4 text-indigo-500" />
-            Continue as Local Researcher (Offline Mode)
           </button>
         </form>
 

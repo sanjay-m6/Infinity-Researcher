@@ -67,6 +67,7 @@ describe("Feature: Local Authentication System — UI & Behavior", () => {
     expect(passwordInput).toBeInTheDocument();
     expect(passwordInput).toHaveAttribute("type", "password");
     expect(rememberMeCheckbox).toBeChecked();
+    expect(screen.queryByText(/continue as local researcher/i)).toBeNull();
 
     // Click Show/Hide password toggle
     const toggleButton = passwordInput.parentElement?.querySelector("button");

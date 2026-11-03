@@ -107,10 +107,6 @@ jobs:
             target: aarch64-apple-darwin
             platform_name: macOS Apple Silicon
             artifact_key: macos-arm64
-          - os: macos-13
-            target: x86_64-apple-darwin
-            platform_name: macOS Intel
-            artifact_key: macos-x64
 
     steps:
       - name: Checkout Repository

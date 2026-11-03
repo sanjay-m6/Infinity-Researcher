@@ -31,10 +31,6 @@ jobs:
             target: aarch64-apple-darwin
             arch_name: Apple Silicon (ARM64)
             artifact_name: infinity-researcher-macos-arm64
-          - os: macos-13
-            target: x86_64-apple-darwin
-            arch_name: Intel (x64)
-            artifact_name: infinity-researcher-macos-x64
 
     steps:
       - name: Checkout Repository

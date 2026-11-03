@@ -93,6 +93,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
   let version = '0.1.0';
   let tag = 'v0.1.0';
   let repo = 'sanjay-m6/Infinity-Researcher';
+  let notes = 'Bug fixes and performance improvements.';
   let output = 'latest.json';
 
   for (let i = 0; i < args.length; i++) {
@@ -104,6 +105,15 @@ if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
       i++;
     } else if (args[i] === '--repo' && args[i + 1]) {
       repo = args[i + 1];
+      i++;
+    } else if (args[i] === '--notes' && args[i + 1]) {
+      notes = args[i + 1];
+      i++;
+    } else if (args[i] === '--notes-file' && args[i + 1]) {
+      const notesFilePath = path.resolve(args[i + 1]);
+      if (fs.existsSync(notesFilePath)) {
+        notes = fs.readFileSync(notesFilePath, 'utf8').trim();
+      }
       i++;
     } else if (args[i] === '--output' && args[i + 1]) {
       output = args[i + 1];
@@ -117,8 +127,14 @@ if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
   }
 
   try {
-    const manifest = buildTauriUpdaterManifest({ artifactsDir, version, tag, repo });
-    const outPath = path.isAbsolute(output) ? output : path.join(artifactsDir, output);
+    const manifest = buildTauriUpdaterManifest({ artifactsDir, version, tag, repo, notes });
+    // If output is a relative path, resolve it relative to cwd, NOT artifactsDir.
+    // Ensure parent directories exist before writing.
+    const outPath = path.resolve(output);
+    const parentDir = path.dirname(outPath);
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
     fs.writeFileSync(outPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
     console.log(`✓ [updater] Generated Tauri v2 updater manifest: ${outPath}`);
     console.log(`   Configured platforms (${Object.keys(manifest.platforms).length}): ${Object.keys(manifest.platforms).join(', ')}`);

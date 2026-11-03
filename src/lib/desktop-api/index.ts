@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { isTauriEnvironment, normalizeCommandError } from "../tauri-bridge";
 import type {
+  AppPlatformInfo,
   AcademicSearchQuery,
   AppSetting,
   CollectionCreateInput,
@@ -3127,3 +3128,17 @@ export async function getAiEngineStatus(): Promise<LocalAiStatus> {
 
 export * from "./auth";
 export * from "./types";
+
+export async function getAppPlatform(): Promise<AppPlatformInfo> {
+  if (!isTauriEnvironment()) {
+    return {
+      os: "web",
+      arch: "wasm",
+      family: "browser",
+      target_triple: "browser-wasm",
+      app_data_dir: "IndexedDB",
+      library_dir: "VirtualFileSystem",
+    };
+  }
+  return invokeCommand<AppPlatformInfo>("app_platform");
+}

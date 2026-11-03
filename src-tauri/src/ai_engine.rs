@@ -277,18 +277,19 @@ async fn resolve_or_download_sidecar_binary(app: &AppHandle) -> Result<PathBuf, 
         .and_then(|p| p.parent().map(|p| p.to_path_buf()))
         .unwrap_or_default();
 
+    let binary_name = crate::platform::llama_server_binary_name();
+
     let candidate_paths = vec![
-        app_data_dir.join("binaries").join("llama-server.exe"),
-        app_data_dir.join("binaries").join("llama-server"),
+        app_data_dir.join("binaries").join(binary_name),
         current_dir
             .join("src-tauri")
             .join("binaries")
-            .join("llama-server.exe"),
-        current_dir.join("binaries").join("llama-server.exe"),
-        resource_dir.join("binaries").join("llama-server.exe"),
-        resource_dir.join("binaries").join("llama-server"),
-        current_exe_dir.join("binaries").join("llama-server.exe"),
-        current_exe_dir.join("llama-server.exe"),
+            .join(binary_name),
+        current_dir.join("binaries").join(binary_name),
+        resource_dir.join("binaries").join(binary_name),
+        resource_dir.join(binary_name),
+        current_exe_dir.join("binaries").join(binary_name),
+        current_exe_dir.join(binary_name),
     ];
 
     for cand in candidate_paths {
@@ -297,27 +298,20 @@ async fn resolve_or_download_sidecar_binary(app: &AppHandle) -> Result<PathBuf, 
         }
     }
 
-    // Try PATH via where.exe on Windows
-    #[cfg(windows)]
-    if let Ok(output) = Command::new("where.exe").arg("llama-server.exe").output() {
-        if output.status.success() {
-            let path_str = String::from_utf8_lossy(&output.stdout);
-            if let Some(first_line) = path_str.lines().next() {
-                let p = PathBuf::from(first_line.trim());
-                if p.is_file() {
-                    return Ok(p);
-                }
-            }
-        }
+    // Try cross-platform PATH search
+    if let Some(path) = crate::platform::find_in_system_path(binary_name) {
+        return Ok(path);
     }
 
-    // If not found anywhere, download CPU Windows release bundle to app_data_dir/binaries
+    // Download CPU release bundle for current platform
     let dest_dir = app_data_dir.join("binaries");
     fs::create_dir_all(&dest_dir)
         .map_err(|e| format!("Failed to create binaries directory: {}", e))?;
-    let target_exe = dest_dir.join("llama-server.exe");
+    let target_exe = dest_dir.join(binary_name);
 
-    let url = "https://github.com/ggml-org/llama.cpp/releases/download/b12032/llama-b12032-bin-win-cpu-x64.zip";
+    let url = crate::platform::llama_server_download_url()
+        .ok_or_else(|| format!("Automated {} download is not supported on this platform/architecture. Please install it manually.", binary_name))?;
+
     let client = Client::builder()
         .timeout(std::time::Duration::from_secs(60))
         .build()
@@ -338,22 +332,19 @@ async fn resolve_or_download_sidecar_binary(app: &AppHandle) -> Result<PathBuf, 
     let temp_zip = dest_dir.join("llama-server-tmp.zip");
     fs::write(&temp_zip, &bytes).map_err(|e| format!("Failed to write temp zip: {}", e))?;
 
-    // Extract using Windows PowerShell
-    let ps_cmd = format!(
-        "Expand-Archive -Force -Path '{}' -DestinationPath '{}'",
-        temp_zip.display(),
-        dest_dir.display()
-    );
-    let _ = Command::new("powershell")
-        .args(["-NoProfile", "-Command", &ps_cmd])
-        .output();
+    // Extract using pure-Rust zip extractor (zero shell dependencies)
+    crate::platform::extract_zip_archive(&temp_zip, &dest_dir)
+        .map_err(|e| format!("Failed to extract llama-server archive: {}", e))?;
 
     let _ = fs::remove_file(&temp_zip);
 
     if target_exe.is_file() {
         Ok(target_exe)
     } else {
-        Err("llama-server.exe not found and automated download failed. Please verify network access.".to_string())
+        Err(format!(
+            "{} not found after download and extraction. Please verify permissions.",
+            binary_name
+        ))
     }
 }
 
@@ -514,12 +505,7 @@ pub async fn start_in_app_ai_engine(
     cmd.stdout(Stdio::null());
     cmd.stderr(Stdio::null());
 
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        const CREATE_NO_WINDOW: u32 = 0x08000000;
-        cmd.creation_flags(CREATE_NO_WINDOW);
-    }
+    crate::platform::configure_background_process(&mut cmd);
 
     let child = cmd.spawn().map_err(|e| {
         format!(

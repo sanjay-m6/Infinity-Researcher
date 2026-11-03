@@ -638,7 +638,7 @@ mod tests {
             title: Some("Quantum Error Correction with Surface Codes".to_string()),
             author: Some("John Preskill".to_string()),
             text_preview: Some(
-                "We analyze fault-tolerant quantum computation using 2D topological codes"
+                "We analyze fault-tolerant quantum computation using 2D topological codes in planar lattice architectures with syndrome extraction circuits. We demonstrate fault-tolerant quantum memory with high threshold rates."
                     .to_string(),
             ),
             ..Default::default()

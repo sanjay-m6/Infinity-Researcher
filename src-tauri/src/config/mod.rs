@@ -16,12 +16,7 @@ pub struct AppConfig {
 
 impl Default for AppConfig {
     fn default() -> Self {
-        let home_dir = std::env::var_os("USERPROFILE")
-            .or_else(|| std::env::var_os("HOME"))
-            .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from("."));
-
-        let default_library_dir = home_dir.join("Documents").join("ResearchPapers");
+        let default_library_dir = crate::platform::default_library_dir();
 
         Self {
             app_name: "Infinity Researcher".to_string(),

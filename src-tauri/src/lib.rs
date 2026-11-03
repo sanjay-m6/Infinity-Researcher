@@ -6,6 +6,7 @@ pub mod database;
 pub mod domain;
 pub mod errors;
 pub mod logging;
+pub mod platform;
 pub mod repositories;
 pub mod scrapers;
 pub mod services;
@@ -59,6 +60,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             app_health,
             app_ping,
+            app_platform,
             list_papers,
             get_paper,
             create_paper,

@@ -1,0 +1,98 @@
+name: Build Windows Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (release or debug)'
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+
+concurrency:
+  group: build-windows-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Windows x64 Build & Package
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Setup Python (3.12)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Rust Stable (x86_64-pc-windows-msvc)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Build Frontend Bundle
+        run: npm run build
+
+      - name: Build Python Sidecar Engine
+        shell: pwsh
+        run: |
+          python scripts/build-python-sidecar.py --target x86_64-pc-windows-msvc --stub
+
+      - name: Build Tauri Desktop Application (Windows NSIS & MSI)
+        shell: pwsh
+        run: |
+          if ("${{ inputs.build_type }}" -eq "debug") {
+            npm run tauri build -- --debug --target x86_64-pc-windows-msvc
+          } else {
+            npm run tauri build -- --target x86_64-pc-windows-msvc
+          }
+
+      - name: Verify Windows Release Artifacts & Generate Checksums
+        shell: pwsh
+        run: |
+          $buildDir = if ("${{ inputs.build_type }}" -eq "debug") {
+            "src-tauri/target/x86_64-pc-windows-msvc/debug/bundle"
+          } else {
+            "src-tauri/target/x86_64-pc-windows-msvc/release/bundle"
+          }
+          if (Test-Path $buildDir) {
+            node scripts/verify-release-artifacts.mjs $buildDir --generate-checksums
+          } else {
+            Write-Error "Bundle directory not found at $buildDir"
+            exit 1
+          }
+
+      - name: Upload Windows Packages (NSIS, MSI, Updater)
+        uses: actions/upload-artifact@v4
+        with:
+          name: infinity-researcher-windows-x64
+          path: |
+            src-tauri/target/x86_64-pc-windows-msvc/**/bundle/nsis/*.exe
+            src-tauri/target/x86_64-pc-windows-msvc/**/bundle/msi/*.msi
+            src-tauri/target/x86_64-pc-windows-msvc/**/bundle/**/*.zip
+            src-tauri/target/x86_64-pc-windows-msvc/**/bundle/**/*.sig
+            src-tauri/target/x86_64-pc-windows-msvc/**/bundle/**/SHA256SUMS.txt
+          retention-days: 14
+

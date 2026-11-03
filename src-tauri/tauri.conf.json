@@ -30,7 +30,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi"],
+    "targets": "all",
     "externalBin": [
       "binaries/paper-scraper"
     ],
@@ -38,6 +38,7 @@
     "publisher": "Infinity Web Technology",
     "shortDescription": "Infinity Researcher — An AI-powered research workspace, created by Sanjay.",
     "longDescription": "Infinity Researcher is a local-first scholarly workbench engineered by Sanjay and Infinity Web Technology. Discover. Understand. Research.",
+    "category": "Education",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -57,6 +58,35 @@
       "wix": {
         "language": ["en-US"]
       }
+    },
+    "linux": {
+      "deb": {
+        "depends": [
+          "libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37",
+          "libappindicator3-1",
+          "librsvg2-2",
+          "libsoup-3.0-0 | libsoup2.4-1"
+        ],
+        "section": "science",
+        "priority": "optional"
+      },
+      "rpm": {
+        "release": "1",
+        "epoch": 0,
+        "depends": [
+          "webkit2gtk4.1",
+          "libappindicator-gtk3",
+          "librsvg2"
+        ]
+      },
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    },
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.15",
+      "exceptionDomain": ""
     }
   },
   "plugins": {

@@ -1,0 +1,124 @@
+name: Build Linux Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (release or debug)'
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+
+concurrency:
+  group: build-linux-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    name: Linux x64 Build & Package (AppImage, Deb, RPM)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies (WebKit2GTK 4.1, AppIndicator, RPM, FUSE)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            squashfs-tools \
+            rpm \
+            xvfb
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Setup Python (3.12)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Rust Stable (x86_64-unknown-linux-gnu)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Build Frontend Bundle
+        run: npm run build
+
+      - name: Build Python Sidecar Engine
+        run: |
+          python scripts/build-python-sidecar.py --target x86_64-unknown-linux-gnu --stub
+
+      - name: Build Tauri Desktop Application (AppImage, Deb, RPM)
+        run: |
+          if [ "${{ inputs.build_type }}" = "debug" ]; then
+            npm run tauri build -- --debug --target x86_64-unknown-linux-gnu
+          else
+            npm run tauri build -- --target x86_64-unknown-linux-gnu
+          fi
+
+      - name: Verify Linux Release Artifacts & Generate Checksums
+        run: |
+          BUILD_DIR="src-tauri/target/x86_64-unknown-linux-gnu/release/bundle"
+          if [ "${{ inputs.build_type }}" = "debug" ]; then
+            BUILD_DIR="src-tauri/target/x86_64-unknown-linux-gnu/debug/bundle"
+          fi
+          if [ -d "$BUILD_DIR" ]; then
+            node scripts/verify-release-artifacts.mjs "$BUILD_DIR" --generate-checksums
+          else
+            echo "Error: Bundle directory $BUILD_DIR not found"
+            exit 1
+          fi
+
+      - name: Validate Binary Execution via Xvfb
+        run: |
+          BIN_PATH="src-tauri/target/x86_64-unknown-linux-gnu/release/infinity-researcher"
+          if [ "${{ inputs.build_type }}" = "debug" ]; then
+            BIN_PATH="src-tauri/target/x86_64-unknown-linux-gnu/debug/infinity-researcher"
+          fi
+          if [ -f "$BIN_PATH" ]; then
+            echo "Validating binary headers and dynamic library linkages:"
+            file "$BIN_PATH"
+            ldd "$BIN_PATH" | head -n 25
+          fi
+
+      - name: Upload Linux Packages (AppImage, Deb, RPM)
+        uses: actions/upload-artifact@v4
+        with:
+          name: infinity-researcher-linux-x64
+          path: |
+            src-tauri/target/x86_64-unknown-linux-gnu/**/bundle/appimage/*.AppImage
+            src-tauri/target/x86_64-unknown-linux-gnu/**/bundle/deb/*.deb
+            src-tauri/target/x86_64-unknown-linux-gnu/**/bundle/rpm/*.rpm
+            src-tauri/target/x86_64-unknown-linux-gnu/**/bundle/**/*.tar.gz
+            src-tauri/target/x86_64-unknown-linux-gnu/**/bundle/**/*.sig
+            src-tauri/target/x86_64-unknown-linux-gnu/**/bundle/**/SHA256SUMS.txt
+          retention-days: 14
+

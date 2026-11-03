@@ -1,0 +1,136 @@
+name: Nightly Automated Pre-Release
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Every night at 02:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-nightly:
+    name: Prepare Nightly Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.nightly-tag.outputs.tag }}
+      date: ${{ steps.nightly-tag.outputs.date }}
+    steps:
+      - name: Generate Nightly Tag
+        id: nightly-tag
+        run: |
+          DATE_STR=$(date -u +"%Y%m%d")
+          echo "tag=nightly-$DATE_STR" >> $GITHUB_OUTPUT
+          echo "date=$DATE_STR" >> $GITHUB_OUTPUT
+          echo "Nightly Tag: nightly-$DATE_STR"
+
+  build-nightly-packages:
+    name: Build Nightly (${{ matrix.platform_name }})
+    needs: prepare-nightly
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            platform_name: Windows x64
+            key: windows-x64
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            platform_name: Linux x64
+            key: linux-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            platform_name: macOS Apple Silicon
+            key: macos-arm64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            platform_name: macOS Intel
+            key: macos-x64
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Linux Native Build Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            squashfs-tools \
+            rpm
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Setup Python (3.12)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Rust Stable (${{ matrix.target }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Build Python Sidecar Engine
+        shell: bash
+        run: |
+          python scripts/build-python-sidecar.py --target ${{ matrix.target }} --stub
+
+      - name: Build Tauri Nightly Application
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ needs.prepare-nightly.outputs.tag }}
+          releaseName: "Infinity Researcher Nightly (${{ needs.prepare-nightly.outputs.date }})"
+          releaseDraft: false
+          prerelease: true
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true
+          args: --target ${{ matrix.target }}
+
+      - name: Stage Artifacts
+        shell: bash
+        run: |
+          mkdir -p nightly-staged/${{ matrix.key }}
+          BUNDLE_DIR="src-tauri/target/${{ matrix.target }}/release/bundle"
+          if [ -d "$BUNDLE_DIR" ]; then
+            cp -r "$BUNDLE_DIR"/* nightly-staged/${{ matrix.key }}/ || true
+          fi
+
+      - name: Upload Nightly Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-${{ matrix.key }}
+          path: nightly-staged/${{ matrix.key }}
+          retention-days: 3
+

@@ -1,56 +1,41 @@
 # Changelog
 
-All notable changes to the Research Paper Scraper desktop application will be documented in this file.
+All notable changes to the Infinity Researcher desktop application will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2026-11-03
 
 ### Added
-- **Signed In-App Automatic Updates:** Integrated official Tauri v2 updater (`@tauri-apps/plugin-updater`, `tauri-plugin-updater`) with Minisign Ed25519 cryptographic signature verification and passive Windows installer execution.
-- **Dedicated Updates UI:** Added Settings Updates panel and About dialog displaying current version, update check state, release notes preview, download progress bars, channel selection, and safe user-approved restart.
-- **Unified Version Source of Truth:** Added scripts for SemVer synchronization across `package.json`, `tauri.conf.json`, and `Cargo.toml` (`version:check`, `version:bump`, `release:check`, `release:notes`).
-- **Production CI/CD Release Pipeline:** Added GitHub Actions workflows with full SHA-pinned actions, secret scanning audit, non-publishing PR verification, and automated Windows release bundling.
-- **Automated Secret Auditing:** Added `scripts/audit-secrets.mjs` checking for leaked private keys, API credentials, unredacted tokens, and stray sensitive files.
-
-### Changed
-- Configured Tauri bundle targets to generate both standalone NSIS installer (`.exe`) and WiX MSI packages (`.msi`).
-- Replaced manual version editing with single command `npm run version:bump`.
-
-## [0.1.0] - 2026-10-24
-
-### Added
+- **Cross-Platform Operating System Support:** Engineered first-class support for Windows 10/11 (x64 and ARM64), Linux (AppImage, Debian `.deb`, and Fedora/RHEL `.rpm`), and macOS (Apple Silicon M1/M2/M3/M4 `aarch64-apple-darwin` and Intel `x86_64-apple-darwin`).
+- **Platform Abstraction Layer:** Created modular Rust abstractions (`src-tauri/src/platform/`) providing cross-platform application data and research library path resolution, process execution isolation, and native background process control.
+- **Dynamic System Platform IPC:** Added `app_platform` Tauri command and frontend `getAppPlatform()` API displaying real-time OS name, architecture, kernel family, target triple, and storage paths.
+- **Pure-Rust In-Memory Archive Extraction:** Built native ZIP decompression via the `zip` crate to eliminate external OS shell dependencies (`powershell`, `unzip`).
+- **Automated Cross-Platform GitHub Actions Matrix:** Created complete automated workflows (`build.yml`, `ci.yml`, `build-windows.yml`, `build-linux.yml`, `build-macos.yml`, `release.yml`, `nightly.yml`) building, testing, and packaging across Windows, Linux, and macOS runners.
+- **Signed In-App Automatic Updates:** Integrated official Tauri v2 updater (`@tauri-apps/plugin-updater`, `tauri-plugin-updater`) with Minisign Ed25519 cryptographic signature verification and multi-platform `latest.json` generation.
+- **Dedicated In-App Updates & Diagnostics UI:** Added Settings Updates panel and About dialog displaying current version (v0.1.0), update check status, download progress, release channel selection (Stable/Beta), and platform diagnostics.
 - **Multi-Source Academic Discovery Engine:** Integrated unified search across arXiv (Atom feed), Crossref, Semantic Scholar, OpenAlex, and Europe PMC with deduplication and token bucket rate pacing.
 - **Configurable Website Scraping & Crawler:** Built HTML metadata extraction framework supporting Dublin Core, Highwire Press, and JSON-LD structured schemas, RFC-compliant robots.txt parsing, and background crawl jobs.
 - **Paper Processing Pipeline:** Implemented metadata normalization (DOI standardization, author arrays, publication date parsing), near-duplicate scoring (Jaro-Winkler title distance and DOI exact match), and transactional paper merging with audit logs.
 - **PDF Document Processing:** Added SHA-256 streaming file integrity calculation, PDF magic-byte verification (`%PDF-`), text extraction via worker threads, and graceful degradation for corrupt, textless, or encrypted documents.
-- **Research Library & Full-Text Search:** Integrated SQLite 3 FTS5 virtual tables indexing titles, abstracts, and extracted PDF text with sub-50ms query times across 1,000 papers.
+- **Research Library & Full-Text Search:** Integrated SQLite 3 FTS5 virtual tables indexing titles, abstracts, and extracted PDF text with sub-50ms query times.
 - **Collections & Research Tags:** Added hierarchical research collections, multi-tag assignments, bulk management, and safety invariants preventing paper deletion when collections or tags are removed.
-- **Research Notes & Reading Tracking:** Added persistent per-paper markdown research notes, reading state machine (`Unread`, `Reading`, `Completed`, `Archived`), and reading progress tracking.
 - **Academic Citation Exports:** Added citation serializers for BibTeX, RIS, CSV, and JSON formats supporting individual and full-library batch exports.
-- **Desktop Application Packaging:** Added production Tauri 2 release bundling for Windows, producing both standalone executables and native Windows Installer (MSI) packages via the WiX Toolset.
-- **CI/CD Automation:** Added GitHub Actions workflows for continuous integration quality gates and version-tagged release packaging.
-
-### Changed
-- Normalized Tauri bundle identifier to `com.researchpaperscraper.desktop` to prevent macOS `.app` bundle naming collisions.
-- Raised SQLite query pagination clamp from 100 to 10,000 to enable large library citation exports in a single pass.
-- Streamlined desktop application title to `Research Paper Scraper`.
+- **Comprehensive Platform Documentation:** Added 10 production architecture guides in `docs/platform/` covering Windows, Linux, macOS, Apple Silicon, GitHub Actions, Release Process, Auto Update, Code Signing, and Troubleshooting.
 
 ### Fixed
-- **Tauri IPC Command Registration:** Registered 15 previously missing Phase 8 commands (citation exports, document status, reading progress, bulk collections/tags) in `tauri::generate_handler!`.
-- **CSV Formula Injection:** Neutralized spreadsheet formula execution triggers (`=`, `+`, `-`, `@`, `\t`, `\r`) with leading whitespace trimming before checking characters.
-- **Unbounded HTTP Streaming:** Capped crawler response body consumption at 10 MB maximum via streaming chunks to prevent memory exhaustion and DoS.
+- **Windows Loader Fault `0xc0000139` (`STATUS_ENTRYPOINT_NOT_FOUND`):** Injected Windows Common Controls v6 (`comctl32.dll`) manifest dependency into the MSVC linker in `build.rs` to resolve missing `TaskDialogIndirect` entrypoint during unit and integration test execution.
+- **Duplicate Resource Collision (`CVT1100`):** Configured `WindowsAttributes::new_without_app_manifest()` in `build.rs` to prevent conflicting manifest resource generation between `tauri_build` and MSVC linker arguments.
+- **Shell & Toolchain Dependencies:** Removed hardcoded calls to `powershell -Command Expand-Archive` and `where.exe`, replacing them with portable Rust functions and system `PATH` resolution.
+- **Hardcoded File System Paths:** Eliminated hardcoded references to `%APPDATA%`, `%USERPROFILE%`, and `%HOME%` in favor of standard `dirs` crate resolution across Windows, Linux, and macOS.
+- **Tauri IPC Command Registration:** Registered all Phase 8 commands (citation exports, document status, reading progress, bulk collections/tags) and `app_platform` in `tauri::generate_handler!`.
+- **CSV Formula Injection:** Neutralized spreadsheet formula execution triggers (`=`, `+`, `-`, `@`, `\t`, `\r`) with leading whitespace trimming.
+- **Unbounded HTTP Streaming:** Capped crawler response body consumption at 10 MB maximum via streaming chunks to prevent memory exhaustion.
 - **BibTeX Character Escaping:** Escaped LaTeX special characters (`{`, `}`, `\`, `%`, `&`, `_`, `#`, `~`, `^`) in generated BibTeX citations.
 
 ### Security
-- Implemented Anti-SSRF protection in `UrlGuard`, rejecting loopback (`127.0.0.0/8`), link-local (`169.254.0.0/16`), cloud metadata (`169.254.169.254`), and RFC1918 private IP ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
-- Enforced strict Content Security Policy (CSP) in `tauri.conf.json` preventing remote script execution and inline scripts in production.
-- Enforced filesystem path canonicalization, rejecting `..` traversal and absolute path escaping.
-- Verified automatic regex redaction of Bearer tokens and API keys in diagnostic logs.
-- Confirmed 0 vulnerabilities across all frontend dependencies via `npm audit`.
-
-### Known Limitations
-- Release artifacts are currently unsigned with a commercial Authenticode certificate; Windows SmartScreen will display an "Unknown Publisher" prompt during installation.
-- macOS and Linux packaging workflows are defined in CI but remain untested on native macOS/Linux runner hardware.
-- Live academic provider searches require active network access; local library search and stored papers remain 100% offline.
+- **Anti-SSRF Protection:** Enforced `UrlGuard` blocking access to loopback (`127.0.0.0/8`), link-local (`169.254.0.0/16`), cloud metadata (`169.254.169.254`), and RFC1918 private IP ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
+- **Content Security Policy (CSP):** Enforced strict CSP in `tauri.conf.json` preventing remote script execution and inline scripts in production.
+- **Path Traversal Defense:** Enforced strict filesystem path canonicalization, rejecting directory traversal attempts (`..`).
+- **Data Protection Guarantee:** Guaranteed that application updates never overwrite or purge user databases or stored research collections.

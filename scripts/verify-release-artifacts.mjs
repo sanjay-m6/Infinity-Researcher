@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * scripts/verify-release-artifacts.mjs
- * Post-build release verification tool.
+ * Post-build cross-platform release verification tool.
  *
  * Verifies that:
- * 1. Installer packages (.exe, .msi) were produced and are non-empty.
- * 2. Updater archives (.zip) and signatures (.sig) were produced.
+ * 1. Installer packages (.exe, .msi, .AppImage, .deb, .rpm, .dmg) were produced and are non-empty.
+ * 2. Updater archives (.zip, .tar.gz) and signatures (.sig) were produced.
  * 3. Minisign signature files are non-empty and formatted correctly.
  * 4. latest.json updater manifest is valid and matches the target version.
  * 5. Generates/validates SHA-256 checksums file.
@@ -36,15 +36,22 @@ export function verifyReleaseDirectory(dirPath, expectedVersion = null) {
   const issues = [];
   const verifiedAssets = [];
 
-  // Categorize files
-  const installers = files.filter(f => f.endsWith('.exe') || f.endsWith('.msi'));
+  // Categorize files across Windows, Linux, and macOS
+  const installers = files.filter(f => 
+    f.endsWith('.exe') || 
+    f.endsWith('.msi') || 
+    f.endsWith('.AppImage') || 
+    f.endsWith('.deb') || 
+    f.endsWith('.rpm') || 
+    f.endsWith('.dmg')
+  );
   const updaterArchives = files.filter(f => (f.endsWith('.zip') || f.endsWith('.tar.gz')) && !f.endsWith('.sig'));
   const signatures = files.filter(f => f.endsWith('.sig'));
   const manifests = files.filter(f => f === 'latest.json');
 
   // Check 1: Installers
   if (installers.length === 0) {
-    issues.push('No installer packages (.exe or .msi) found in release artifacts.');
+    issues.push('No installer packages (.exe, .msi, .AppImage, .deb, .rpm, or .dmg) found in release artifacts.');
   } else {
     for (const inst of installers) {
       const full = path.join(dirPath, inst);

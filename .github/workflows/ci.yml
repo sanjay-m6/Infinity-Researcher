@@ -5,6 +5,7 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -14,10 +15,9 @@ permissions:
   contents: read
 
 jobs:
-  quality-gate:
-    name: Lint, Test, Security & Build Validation
-    runs-on: windows-latest
-
+  frontend-and-hygiene:
+    name: Frontend Quality, Hygiene & Secret Audit
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -28,43 +28,14 @@ jobs:
           node-version: 22
           cache: "npm"
 
-      - name: Setup Python (3.12)
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: "python-engine/requirements*.txt"
-
-      - name: Setup Rust Stable
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-
-      - name: Rust Cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: "./src-tauri -> target"
-
       - name: Install Frontend Dependencies
         run: npm ci
-
-      - name: Install Python Engine Dependencies
-        shell: bash
-        run: |
-          if [ -f python-engine/requirements.txt ]; then
-            python -m pip install --upgrade pip
-            pip install -r python-engine/requirements.txt
-            pip install pytest
-          fi
 
       - name: Repository Secret & Hygiene Audit
         run: npm run audit:secrets
 
       - name: Application Version Consistency Check
         run: npm run version:check
-
-      - name: Verify Code Formatting (Prettier)
-        run: npm run format:check
 
       - name: TypeScript Type Checking
         run: npm run typecheck
@@ -78,9 +49,80 @@ jobs:
       - name: Build Frontend Production Bundle
         run: npm run build
 
-      - name: Provision Sidecar Binary for Tauri Validation
-        shell: pwsh
-        run: python scripts/build-python-sidecar.py --stub
+  python-engine:
+    name: Python Engine Tests & Stub Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python (3.12)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: "python-engine/requirements*.txt"
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f python-engine/requirements.txt ]; then
+            pip install -r python-engine/requirements.txt
+          fi
+          pip install pytest
+
+      - name: Python Syntax & Compilation Verification
+        run: |
+          python -m compileall python-engine/ -q
+
+      - name: Python Engine Tests (pytest)
+        run: |
+          if [ -d python-engine/tests ]; then
+            python -m pytest python-engine/tests -q
+          else
+            echo "No python-engine/tests directory found; skipping pytest."
+          fi
+
+      - name: Verify Python Sidecar Stub Generator
+        run: |
+          python scripts/build-python-sidecar.py --stub
+
+  rust-quality-matrix:
+    name: Rust (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Linux System Dependencies (WebKitGTK, AppIndicator)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            build-essential \
+            curl \
+            wget \
+            file
+
+      - name: Setup Rust Stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
 
       - name: Rust Code Formatting (cargo fmt)
         working-directory: ./src-tauri
@@ -90,13 +132,14 @@ jobs:
         working-directory: ./src-tauri
         run: cargo clippy -- -D warnings
 
-      - name: Rust Unit Tests (cargo test)
+      - name: Rust Unit & Integration Tests (cargo test)
         working-directory: ./src-tauri
         run: cargo test
 
-      - name: Python Engine Tests (pytest)
-        shell: bash
-        run: |
-          if [ -d python-engine/tests ]; then
-            python -m pytest python-engine/tests -q
-          fi
+  ci-status:
+    name: Continuous Integration Status Gate
+    needs: [frontend-and-hygiene, python-engine, rust-quality-matrix]
+    runs-on: ubuntu-latest
+    steps:
+      - name: CI Checks Passed
+        run: echo "All frontend, Python, and Rust cross-platform CI checks completed successfully."

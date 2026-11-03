@@ -30,7 +30,7 @@ pub use crawl::*;
 pub use database::*;
 pub use documents::*;
 pub use export::*;
-pub use health::{app_health, app_ping};
+pub use health::{app_health, app_ping, app_platform};
 pub use ieee::*;
 pub use matrix::*;
 pub use notes::*;

@@ -189,18 +189,11 @@ impl AiProviderService {
             ));
         }
 
-        // Guard 3: Cloud paper data sharing requires explicit user consent for paid cloud endpoints
+        // Guard 3: Cloud paper data sharing requires explicit user consent
         if !provider.is_local && contains_paper_data && !settings.cloud_paper_sharing_enabled {
-            if settings.local_only_mode {
-                return Err(AppError::Validation(
-                    "Local-only mode is active in AI Settings. All outbound cloud requests are strictly blocked.".into()
-                ));
-            }
-            if provider.access_category == "paid" {
-                return Err(AppError::Validation(
-                    format!("Cloud paper context sharing is disabled in AI Settings for paid cloud endpoints ('{}'). Switch to a local engine or free hosted tier in AI Settings.", provider.display_name)
-                ));
-            }
+            return Err(AppError::Validation(
+                "Cloud paper context sharing is disabled in AI Settings. To query this cloud model with paper excerpts, enable 'Cloud paper context sharing' or switch to a local model (Ollama / LM Studio).".into()
+            ));
         }
 
         Ok(())
@@ -1453,22 +1446,21 @@ impl AiProviderService {
 }
 
 fn dirs_fallback() -> PathBuf {
-    let app_data = std::env::var("APPDATA")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("."));
-    let modern = app_data.join("com.infinitywebtechnology.infinityresearcher");
+    let modern = crate::platform::default_app_data_dir();
     if modern.exists() {
         modern
     } else {
-        app_data.join("research-paper-scraper")
+        dirs_legacy()
     }
 }
 
 fn dirs_legacy() -> PathBuf {
-    std::env::var("APPDATA")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("."))
-        .join("research-paper-scraper")
+    if let Some(mut base) = dirs::data_dir() {
+        base.push("research-paper-scraper");
+        base
+    } else {
+        PathBuf::from(".").join("research-paper-scraper")
+    }
 }
 
 #[cfg(test)]

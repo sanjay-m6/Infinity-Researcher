@@ -1,0 +1,128 @@
+name: Build macOS Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (release or debug)'
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+
+concurrency:
+  group: build-macos-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-macos:
+    name: macOS Build & Package (${{ matrix.arch_name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            arch_name: Apple Silicon (ARM64)
+            artifact_name: infinity-researcher-macos-arm64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            arch_name: Intel (x64)
+            artifact_name: infinity-researcher-macos-x64
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Setup Python (3.12)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Rust Stable (${{ matrix.target }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Build Frontend Bundle
+        run: npm run build
+
+      - name: Build Python Sidecar Engine
+        run: |
+          python scripts/build-python-sidecar.py --target ${{ matrix.target }} --stub
+
+      - name: Build Tauri Desktop Application (DMG & App Bundle)
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ "${{ inputs.build_type }}" = "debug" ]; then
+            npm run tauri build -- --debug --target ${{ matrix.target }}
+          else
+            npm run tauri build -- --target ${{ matrix.target }}
+          fi
+
+      - name: Verify macOS Release Artifacts & Generate Checksums
+        run: |
+          BUILD_DIR="src-tauri/target/${{ matrix.target }}/release/bundle"
+          if [ "${{ inputs.build_type }}" = "debug" ]; then
+            BUILD_DIR="src-tauri/target/${{ matrix.target }}/debug/bundle"
+          fi
+          if [ -d "$BUILD_DIR" ]; then
+            node scripts/verify-release-artifacts.mjs "$BUILD_DIR" --generate-checksums
+          else
+            echo "Error: Bundle directory $BUILD_DIR not found"
+            exit 1
+          fi
+
+      - name: Inspect Application Bundle Architecture & Metadata
+        run: |
+          BUILD_DIR="src-tauri/target/${{ matrix.target }}/release/bundle"
+          if [ "${{ inputs.build_type }}" = "debug" ]; then
+            BUILD_DIR="src-tauri/target/${{ matrix.target }}/debug/bundle"
+          fi
+          APP_PATH=$(find "$BUILD_DIR/macos" -name "*.app" -maxdepth 1 2>/dev/null | head -n 1)
+          if [ -n "$APP_PATH" ] && [ -d "$APP_PATH" ]; then
+            echo "Found Application Bundle: $APP_PATH"
+            echo "Inspecting Info.plist:"
+            plutil -p "$APP_PATH/Contents/Info.plist" | head -n 30 || cat "$APP_PATH/Contents/Info.plist" | head -n 30
+            echo "Inspecting binary architecture:"
+            file "$APP_PATH/Contents/MacOS/"*
+          fi
+
+      - name: Upload macOS Packages (DMG, App Tarball, Signatures)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            src-tauri/target/${{ matrix.target }}/**/bundle/dmg/*.dmg
+            src-tauri/target/${{ matrix.target }}/**/bundle/macos/*.app
+            src-tauri/target/${{ matrix.target }}/**/bundle/**/*.tar.gz
+            src-tauri/target/${{ matrix.target }}/**/bundle/**/*.sig
+            src-tauri/target/${{ matrix.target }}/**/bundle/**/SHA256SUMS.txt
+          retention-days: 14
+

@@ -2,6 +2,7 @@ use tauri::State;
 use tracing::info;
 
 use crate::errors::CommandError;
+use crate::platform::PlatformInfo;
 use crate::services::{HealthResponse, HealthService};
 use crate::state::AppState;
 
@@ -18,4 +19,10 @@ pub async fn app_health(state: State<'_, AppState>) -> Result<HealthResponse, Co
 pub async fn app_ping() -> Result<String, CommandError> {
     info!("Handling app_ping command invocation");
     Ok("pong".to_string())
+}
+
+/// Returns host platform metadata for cross-platform diagnostics.
+#[tauri::command]
+pub fn app_platform() -> PlatformInfo {
+    crate::platform::get_platform_info()
 }

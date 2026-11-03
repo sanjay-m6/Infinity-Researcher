@@ -10,6 +10,16 @@ on:
         description: 'Tag to release (e.g. v0.1.0)'
         required: false
         type: string
+      draft:
+        description: 'Publish as draft release'
+        required: false
+        default: true
+        type: boolean
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: release-${{ github.workflow }}-${{ github.ref }}
@@ -19,9 +29,12 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
-    name: Build & Package Windows (x86_64)
-    runs-on: windows-latest
+  validate-release-metadata:
+    name: Validate Release Version & Extract Changelog
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve-tag.outputs.tag }}
+      has_notes: ${{ steps.extract-notes.outputs.has_notes }}
 
     steps:
       - name: Checkout Repository
@@ -35,16 +48,108 @@ jobs:
           node-version: 22
           cache: "npm"
 
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Resolve Release Tag
+        id: resolve-tag
+        run: |
+          TAG="${{ inputs.tag_override }}"
+          if [ -z "$TAG" ]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Resolved Tag: $TAG"
+
+      - name: Verify Version Consistency Across Manifests
+        run: |
+          node scripts/version-check.mjs
+
+      - name: Pre-Release Quality & Hygiene Audit
+        run: |
+          node scripts/audit-secrets.mjs
+          node scripts/release-check.mjs --tag "${{ steps.resolve-tag.outputs.tag }}"
+
+      - name: Extract Release Notes from CHANGELOG.md
+        id: extract-notes
+        run: |
+          node scripts/release-notes.mjs "${{ steps.resolve-tag.outputs.tag }}" --output ./RELEASE_NOTES.md --fallback
+          if [ -f "./RELEASE_NOTES.md" ]; then
+            echo "has_notes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_notes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload Release Notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: ./RELEASE_NOTES.md
+          retention-days: 7
+
+  build-cross-platform:
+    name: Build & Package (${{ matrix.platform_name }})
+    needs: validate-release-metadata
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            platform_name: Windows x64
+            artifact_key: windows-x64
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            platform_name: Linux x64
+            artifact_key: linux-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            platform_name: macOS Apple Silicon
+            artifact_key: macos-arm64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            platform_name: macOS Intel
+            artifact_key: macos-x64
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Linux Native Build Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            squashfs-tools \
+            rpm
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
       - name: Setup Python (3.12)
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Setup Rust Stable
+      - name: Setup Rust Stable (${{ matrix.target }})
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: x86_64-pc-windows-msvc
-          components: rustfmt, clippy
+          targets: ${{ matrix.target }}
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
@@ -54,53 +159,136 @@ jobs:
       - name: Install Frontend Dependencies
         run: npm ci
 
-      - name: Pre-Release Prerequisites Check
+      - name: Build Python Sidecar Engine
+        shell: bash
         run: |
-          node scripts/release-check.mjs --tag "${{ inputs.tag_override || github.ref_name }}"
+          python scripts/build-python-sidecar.py --target ${{ matrix.target }} --stub
 
-      - name: Extract Release Notes from CHANGELOG.md
-        run: |
-          node scripts/release-notes.mjs "${{ inputs.tag_override || github.ref_name }}" --output ./RELEASE_NOTES.md --fallback
-
-      - name: Frontend Quality Gate
-        run: |
-          npm run typecheck
-          npm run lint
-          npm run test
-          npm run build
-
-      - name: Provision Sidecar Binary for Tauri Packaging
-        shell: pwsh
-        run: python scripts/build-python-sidecar.py --stub
-
-      - name: Backend Quality Gate (Format, Clippy, Tests)
-        working-directory: ./src-tauri
-        run: |
-          cargo fmt --check
-          cargo clippy -- -D warnings
-          cargo test
-
-      - name: Build Tauri Application & Generate Signed Updater Bundle
+      - name: Build Tauri Application & Generate Signed Bundles
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
-          tagName: ${{ inputs.tag_override || github.ref_name }}
-          releaseName: "Infinity Researcher ${{ inputs.tag_override || github.ref_name }}"
-          releaseBodyFile: "./RELEASE_NOTES.md"
+          tagName: ${{ needs.validate-release-metadata.outputs.tag }}
+          releaseName: "Infinity Researcher ${{ needs.validate-release-metadata.outputs.tag }}"
           releaseDraft: true
-          prerelease: false
+          prerelease: ${{ inputs.prerelease || false }}
           includeUpdaterJson: true
           updaterJsonPreferNsis: true
+          args: --target ${{ matrix.target }}
 
-      - name: Post-Build Release Verification & Checksums
-        shell: pwsh
+      - name: Verify Bundle Artifacts & Create Checksums
+        shell: bash
         run: |
-          $bundleDir = "src-tauri/target/release/bundle"
-          if (Test-Path $bundleDir) {
-            node scripts/verify-release-artifacts.mjs $bundleDir --generate-checksums
-          } else {
-            Write-Host "Bundle directory created and published by tauri-action."
-          }
+          BUNDLE_DIR="src-tauri/target/${{ matrix.target }}/release/bundle"
+          if [ -d "$BUNDLE_DIR" ]; then
+            node scripts/verify-release-artifacts.mjs "$BUNDLE_DIR" --generate-checksums
+          else
+            echo "Bundle directory checked and processed by tauri-action."
+          fi
+
+      - name: Stage Artifacts for Aggregation
+        shell: bash
+        run: |
+          mkdir -p staged-artifacts/${{ matrix.artifact_key }}
+          BUNDLE_DIR="src-tauri/target/${{ matrix.target }}/release/bundle"
+          if [ -d "$BUNDLE_DIR" ]; then
+            cp -r "$BUNDLE_DIR"/* staged-artifacts/${{ matrix.artifact_key }}/ || true
+          fi
+
+      - name: Upload Platform Staged Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-artifacts-${{ matrix.artifact_key }}
+          path: staged-artifacts/${{ matrix.artifact_key }}
+          retention-days: 7
+
+  publish-and-finalize:
+    name: Aggregate Checksums, Generate Updater Manifest & Publish Release
+    needs: [validate-release-metadata, build-cross-platform]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Download Release Notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: ./
+
+      - name: Download Staged Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./all-artifacts
+
+      - name: Prepare Release Distribution Directory
+        run: |
+          mkdir -p dist/
+          # Copy all installers, bundles, updater archives, and signatures into dist/
+          find ./all-artifacts -type f \( \
+            -name "*.exe" -o \
+            -name "*.msi" -o \
+            -name "*.AppImage" -o \
+            -name "*.deb" -o \
+            -name "*.rpm" -o \
+            -name "*.dmg" -o \
+            -name "*.tar.gz" -o \
+            -name "*.zip" -o \
+            -name "*.sig" \
+          \) -exec cp {} dist/ \;
+
+          echo "Collected release files in dist/:"
+          ls -lah dist/
+
+      - name: Generate Multi-Platform Update Manifest (latest.json)
+        run: |
+          node scripts/generate-update-manifest.mjs dist/ \
+            --version "${{ needs.validate-release-metadata.outputs.tag }}" \
+            --notes-file ./RELEASE_NOTES.md \
+            --output dist/latest.json
+          cat dist/latest.json
+
+      - name: Generate Master Checksum Digest (SHA256SUMS.txt)
+        working-directory: dist
+        run: |
+          sha256sum * > SHA256SUMS.txt
+          echo "Generated SHA256SUMS.txt:"
+          cat SHA256SUMS.txt
+
+      - name: Publish or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.validate-release-metadata.outputs.tag }}
+          name: "Infinity Researcher ${{ needs.validate-release-metadata.outputs.tag }}"
+          body_path: ./RELEASE_NOTES.md
+          draft: ${{ inputs.draft != false }}
+          prerelease: ${{ inputs.prerelease || false }}
+          files: |
+            dist/*.exe
+            dist/*.msi
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.dmg
+            dist/*.tar.gz
+            dist/*.zip
+            dist/*.sig
+            dist/latest.json
+            dist/SHA256SUMS.txt

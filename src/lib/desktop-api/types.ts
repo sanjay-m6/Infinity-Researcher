@@ -1899,3 +1899,12 @@ export interface InstalledModelInfo {
   size_mb: number;
   full_path: string;
 }
+
+export interface AppPlatformInfo {
+  os: string;
+  arch: string;
+  family: string;
+  target_triple: string;
+  app_data_dir: string;
+  library_dir: string;
+}

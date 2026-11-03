@@ -1,5 +1,6 @@
 import React from "react";
 import { useAppUpdater } from "./useAppUpdater";
+import { getAppPlatform, type AppPlatformInfo } from "../../lib/desktop-api";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import {
@@ -40,6 +41,19 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
   } = useAppUpdater();
 
   const [showNotes, setShowNotes] = React.useState(true);
+  const [platform, setPlatform] = React.useState<AppPlatformInfo | null>(null);
+
+  React.useEffect(() => {
+    let active = true;
+    void getAppPlatform()
+      .then((info) => {
+        if (active) setPlatform(info);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const formatBytes = (bytes: number): string => {
     if (bytes <= 0) return "0 B";
@@ -323,7 +337,7 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
         <span>
           Last checked: {lastChecked ? lastChecked : "Never during this session"}
         </span>
-        <span>Environment: {isTauri ? "Native Windows Desktop" : "Web Preview"}</span>
+        <span>Platform: {isTauri && platform ? `${platform.os.toUpperCase()} (${platform.arch}) · ${platform.target_triple}` : isTauri ? "Native Desktop" : "Web Preview"}</span>
       </div>
     </section>
   );

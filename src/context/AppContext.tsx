@@ -191,7 +191,6 @@ export interface AppContextType {
   authToken: string | null;
   isLocked: boolean;
   userPreferences: UserPreferences | null;
-  continueAsGuest: () => void;
   loginUser: (
     identifier: string,
     password: string,
@@ -223,14 +222,6 @@ export interface AppProviderProps {
   initialActivity?: ActivityEvent[];
   initialUser?: User | null;
 }
-
-export const DEFAULT_LOCAL_RESEARCHER: User = {
-  id: "usr_local_researcher",
-  email: "researcher@local.workspace",
-  username: "Local Researcher",
-  created_at: "2026-01-01T00:00:00.000Z",
-  last_login_at: new Date().toISOString(),
-};
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -398,13 +389,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({
       isMounted = false;
     };
   }, []);
-
-  const continueAsGuest = useCallback(() => {
-    setUser(DEFAULT_LOCAL_RESEARCHER);
-    setAuthToken("token_local_researcher");
-    setIsLocked(false);
-    showToast("Welcome to your local research workspace!", "info");
-  }, [showToast]);
 
   // Theme application and persistent sync with optional circular splash transition
   const setTheme = useCallback(
@@ -1334,7 +1318,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({
         authToken,
         isLocked,
         userPreferences,
-        continueAsGuest,
         loginUser,
         signupUser,
         logoutUser,

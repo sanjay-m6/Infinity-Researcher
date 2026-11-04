@@ -3,19 +3,15 @@ import { LoginView } from "./LoginView";
 import { SignupView } from "./SignupView";
 import applicationIcon from "../../assets/application.png";
 import { Search, Database, ShieldCheck } from "lucide-react";
+import { HoleBackground } from "@/components/animate-ui/backgrounds/hole";
 
 export const AuthView: React.FC = () => {
   const [mode, setMode] = useState<"login" | "signup">("login");
 
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto bg-slate-50 dark:bg-[#070b12] text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      {/* Ambient background decoration */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Subtle radial center spotlight */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/[0.04] dark:bg-indigo-500/[0.08] rounded-full blur-3xl pointer-events-none" />
-        {/* Subtle dot grid pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 dark:opacity-20 pointer-events-none" />
-      </div>
+      {/* Animated Hole Background tunnel & aurora */}
+      <HoleBackground className="absolute inset-0 pointer-events-none z-0" />
 
       <div className="w-full max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 lg:gap-16 relative z-10 my-auto py-6">
         {/* Desktop Scholarly Hero Panel (Visible on lg screens to balance canvas & eliminate empty void) */}

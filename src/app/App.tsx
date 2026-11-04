@@ -22,9 +22,9 @@ const MainAppContent: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#070b12] text-slate-100 font-sans antialiased">
+      <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#070b12] text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-indigo-500/20">
         <TitleBar />
-        <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+        <div className="flex-1 overflow-hidden relative">
           <AuthView />
         </div>
       </div>

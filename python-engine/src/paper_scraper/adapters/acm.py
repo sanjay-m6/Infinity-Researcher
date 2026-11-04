@@ -178,3 +178,4 @@ class AcmAdapter(BaseAdapter):
             return {"status": "degraded", "code": resp.status_code}
         except Exception as e:
             return {"status": "unhealthy", "error": str(e)}
+

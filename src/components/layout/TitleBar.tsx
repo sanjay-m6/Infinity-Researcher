@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../../context/AppContext";
+import { useTheme } from "../../hooks/useTheme";
 import {
   minimizeWindow,
   toggleMaximizeWindow,
@@ -8,12 +9,13 @@ import {
   startDraggingWindow,
 } from "../../lib/desktop-api";
 import applicationIcon from "../../assets/application.png";
-import { Minus, Square, Copy, X, ShieldCheck } from "lucide-react";
+import { Minus, Square, Copy, X, ShieldCheck, Sun, Moon } from "lucide-react";
 import { AppIcon } from "../icons/AppIcon";
 import { GithubIcon } from "../ui/GithubIcon";
 
 export const TitleBar: React.FC = () => {
-  const { isTauri, setIsAboutModalOpen, activeSection } = useApp();
+  const { isTauri, setIsAboutModalOpen, activeSection, user } = useApp();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
@@ -121,19 +123,43 @@ export const TitleBar: React.FC = () => {
         >
           Infinity Researcher
         </span>
-        <span data-tauri-drag-region className="mx-2 text-slate-300 dark:text-slate-700">
-          •
-        </span>
-        <span
-          data-tauri-drag-region
-          className="text-[11px] font-normal text-slate-500 dark:text-slate-400 capitalize"
-        >
-          {activeSection.replace("_", " ")}
-        </span>
+        {user && (
+          <>
+            <span
+              data-tauri-drag-region
+              className="mx-2 text-slate-300 dark:text-slate-700"
+            >
+              •
+            </span>
+            <span
+              data-tauri-drag-region
+              className="text-[11px] font-normal text-slate-500 dark:text-slate-400 capitalize"
+            >
+              {activeSection.replace("_", " ")}
+            </span>
+          </>
+        )}
       </div>
 
       {/* Right: Window Control Buttons */}
       <div className="flex items-center h-full">
+        {/* Quick Theme Toggle */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="p-1.5 rounded hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer mr-0.5"
+          title={
+            resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+          }
+          aria-label="Toggle theme"
+        >
+          {resolvedTheme === "dark" ? (
+            <Sun className="w-3.5 h-3.5" />
+          ) : (
+            <Moon className="w-3.5 h-3.5" />
+          )}
+        </button>
+
         {/* GitHub Repository Quick Link */}
         <button
           type="button"

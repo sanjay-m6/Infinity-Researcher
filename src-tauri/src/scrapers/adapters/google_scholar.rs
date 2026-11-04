@@ -86,6 +86,58 @@ impl GoogleScholarAdapter {
         cleaned.to_string()
     }
 
+    pub fn extract_keywords(query: &str) -> String {
+        let stop_words = [
+            "using", "ahead", "with", "from", "that", "this", "which", "into", "over", "than",
+            "more", "then", "their", "about", "study", "based", "approach", "through", "under",
+            "between", "these", "those", "such", "after", "before", "and", "the", "for", "in",
+            "of", "to", "a", "an", "on", "at", "by",
+        ];
+        let words: Vec<&str> = query
+            .split(|c: char| {
+                c.is_whitespace() || c == '-' || c == '_' || c == ',' || c == ';' || c == ':'
+            })
+            .filter(|w| !w.is_empty())
+            .collect();
+        if words.len() <= 4 {
+            return query.to_string();
+        }
+        let salient: Vec<&str> = words
+            .into_iter()
+            .filter(|w| w.len() > 3 && !stop_words.contains(&w.to_lowercase().as_str()))
+            .collect();
+        if salient.len() >= 3 {
+            salient.join(" ")
+        } else {
+            query.to_string()
+        }
+    }
+
+    pub fn merge_discovered(
+        target: &mut Vec<DiscoveredSearchResult>,
+        seen: &mut std::collections::HashSet<String>,
+        incoming: Vec<DiscoveredSearchResult>,
+    ) {
+        for paper in incoming {
+            let key = paper
+                .canonical_doi
+                .as_deref()
+                .map(|d| d.to_lowercase())
+                .unwrap_or_else(|| {
+                    paper
+                        .title
+                        .to_lowercase()
+                        .chars()
+                        .filter(|c| c.is_alphanumeric())
+                        .collect()
+                });
+            if !seen.contains(&key) {
+                seen.insert(key);
+                target.push(paper);
+            }
+        }
+    }
+
     fn extract_year(text: &str) -> Option<i32> {
         let bytes = text.as_bytes();
         for i in 0..bytes.len().saturating_sub(3) {
@@ -241,6 +293,163 @@ impl GoogleScholarAdapter {
 
         results
     }
+
+    pub fn parse_crossref_general_works(
+        json_str: &str,
+        cancel: Arc<AtomicBool>,
+    ) -> Result<Vec<DiscoveredSearchResult>, String> {
+        let cr_val: serde_json::Value = serde_json::from_str(json_str)
+            .map_err(|e| format!("Failed to parse Crossref response: {e}"))?;
+
+        let empty_vec = Vec::new();
+        let items = cr_val["message"]["items"].as_array().unwrap_or(&empty_vec);
+
+        let mut results = Vec::new();
+        for item in items {
+            if cancel.load(Ordering::Relaxed) {
+                return Err("Search was cancelled by user.".to_string());
+            }
+
+            let raw_title = item["title"]
+                .as_array()
+                .and_then(|t| t.first())
+                .and_then(|t| t.as_str())
+                .unwrap_or("")
+                .trim();
+
+            let title = Self::strip_html_tags(raw_title);
+            if title.is_empty() {
+                continue;
+            }
+
+            let mut authors = Vec::new();
+            if let Some(author_list) = item["author"].as_array() {
+                for a in author_list {
+                    let full_name = match (a["given"].as_str(), a["family"].as_str()) {
+                        (Some(g), Some(f)) => format!("{} {}", g.trim(), f.trim()),
+                        (None, Some(f)) => f.trim().to_string(),
+                        (Some(g), None) => g.trim().to_string(),
+                        _ => a["name"].as_str().unwrap_or("").trim().to_string(),
+                    };
+                    if !full_name.is_empty() {
+                        authors.push(full_name);
+                    }
+                }
+            }
+            if authors.is_empty() {
+                authors.push("Google Scholar Contributor".to_string());
+            }
+
+            let pub_year = item["published-print"]["date-parts"][0][0]
+                .as_i64()
+                .or_else(|| item["published-online"]["date-parts"][0][0].as_i64())
+                .or_else(|| item["created"]["date-parts"][0][0].as_i64())
+                .map(|y| y as i32);
+
+            let pub_date = pub_year.map(|y| format!("{}-01-01", y));
+
+            let venue = item["container-title"]
+                .as_array()
+                .and_then(|c| c.first())
+                .and_then(|c| c.as_str())
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .or_else(|| {
+                    item["short-container-title"]
+                        .as_array()
+                        .and_then(|c| c.first())
+                        .and_then(|c| c.as_str())
+                        .map(|s| s.trim().to_string())
+                })
+                .or(Some("Google Scholar Indexed Publication".to_string()));
+
+            let doi = item["DOI"]
+                .as_str()
+                .map(|d| d.trim().to_string())
+                .filter(|d| !d.is_empty());
+
+            let landing_url = doi
+                .as_ref()
+                .map(|d| format!("https://doi.org/{d}"))
+                .or_else(|| item["URL"].as_str().map(|u| u.to_string()))
+                .unwrap_or_else(|| {
+                    format!(
+                        "https://scholar.google.com/scholar?q={}",
+                        Self::url_encode(&title)
+                    )
+                });
+
+            let abstract_text = item["abstract"]
+                .as_str()
+                .map(Self::strip_html_tags)
+                .filter(|a| !a.is_empty());
+
+            let is_oa = item["license"].as_array().map_or(false, |licenses| {
+                licenses.iter().any(|lic| {
+                    lic["URL"].as_str().map_or(false, |u| {
+                        let u_lower = u.to_lowercase();
+                        u_lower.contains("creativecommons.org")
+                            || u_lower.contains("/open-access")
+                            || u_lower.contains("/oa/")
+                    })
+                })
+            });
+
+            let pdf_url = if let Some(ref d) = doi {
+                if d.starts_with("10.48550/arxiv.") {
+                    let id = d.replace("10.48550/arxiv.", "");
+                    Some(format!("https://arxiv.org/pdf/{id}.pdf"))
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
+            let raw_type = item["type"].as_str().unwrap_or("journal-article");
+            let content_type = match raw_type {
+                "proceedings-article" | "proceedings-series" | "proceedings" => "conference_paper",
+                "book-chapter" | "book" => "book_chapter",
+                _ => "journal_article",
+            }
+            .to_string();
+
+            let paper_id = doi
+                .as_ref()
+                .map(|d| format!("scholar-cr-{}", d.replace(['/', '.'], "-")))
+                .unwrap_or_else(|| format!("scholar-cr-{}", uuid::Uuid::new_v4().simple()));
+
+            results.push(DiscoveredSearchResult {
+                id: paper_id,
+                title,
+                authors,
+                publication_date: pub_date,
+                publication_year: pub_year,
+                venue,
+                canonical_doi: doi,
+                abstract_text,
+                landing_url: landing_url.clone(),
+                pdf_url,
+                source_id: "google_scholar".to_string(),
+                source_name: "Google Scholar".to_string(),
+                content_type,
+                is_open_access: is_oa,
+                license_name: if is_oa {
+                    Some("Open Access / Creative Commons".to_string())
+                } else {
+                    None
+                },
+                peer_reviewed: Some(true),
+                subject_tags: vec!["Google Scholar".to_string()],
+                language: Some("en".to_string()),
+                relevance_score: 1.0,
+                provenance_urls: vec![landing_url],
+                metadata_confidence: Some(0.92),
+            });
+        }
+
+        Ok(results)
+    }
 }
 
 #[async_trait]
@@ -356,8 +565,11 @@ impl SourceAdapter for GoogleScholarAdapter {
         }
 
         let limit = query.limit_per_source.unwrap_or(20).min(50);
-        let encoded_q = Self::url_encode(&query.query);
+        let mut results: Vec<DiscoveredSearchResult> = Vec::new();
+        let mut seen_keys: std::collections::HashSet<String> = std::collections::HashSet::new();
 
+        // Strategy 1: Direct Google Scholar search with standard browser headers
+        let encoded_q = Self::url_encode(&query.query);
         let mut scholar_url = format!("https://scholar.google.com/scholar?q={}&hl=en", encoded_q);
         if let Some(ys) = query.year_start {
             scholar_url.push_str(&format!("&as_ylo={ys}"));
@@ -366,16 +578,18 @@ impl SourceAdapter for GoogleScholarAdapter {
             scholar_url.push_str(&format!("&as_yhi={ye}"));
         }
 
-        // Strategy 1: Direct Google Scholar search with standard browser headers
         if let Ok(validated_url) = UrlGuard::validate_url(&scholar_url) {
             info!(query = %query.query, "Attempting direct Google Scholar search");
             let resp = client
                 .get(validated_url.as_str())
                 .header(
                     "User-Agent",
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
                 )
-                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                .header(
+                    "Accept",
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                )
                 .header("Accept-Language", "en-US,en;q=0.9")
                 .send()
                 .await;
@@ -383,30 +597,24 @@ impl SourceAdapter for GoogleScholarAdapter {
             if let Ok(response) = resp {
                 if response.status().is_success() {
                     if let Ok(body) = CrawlEngine::read_response_body_bounded(response).await {
-                        // Check for CAPTCHA or blocking markers
                         let lower_body = body.to_lowercase();
                         let is_blocked = lower_body.contains("recaptcha")
                             || lower_body.contains("/sorry/index")
                             || lower_body.contains("unusual traffic from your computer network");
 
                         if !is_blocked {
-                            let results = Self::parse_scholar_html(&body, validated_url.as_str());
-                            if !results.is_empty() {
+                            let parsed = Self::parse_scholar_html(&body, validated_url.as_str());
+                            if !parsed.is_empty() {
                                 info!(
-                                    count = results.len(),
+                                    count = parsed.len(),
                                     "Successfully parsed papers directly from Google Scholar"
                                 );
-                                return Ok(results);
+                                Self::merge_discovered(&mut results, &mut seen_keys, parsed);
                             }
                         } else {
-                            tracing::warn!("Google Scholar CAPTCHA/bot detection triggered; falling back to OpenAlex index");
+                            tracing::warn!("Google Scholar bot challenge detected; activating resilient open scholarly indices");
                         }
                     }
-                } else {
-                    tracing::warn!(
-                        status = %response.status(),
-                        "Google Scholar returned non-200 status; falling back to OpenAlex index"
-                    );
                 }
             }
         }
@@ -415,136 +623,163 @@ impl SourceAdapter for GoogleScholarAdapter {
             return Err("Search cancelled".to_string());
         }
 
-        // Strategy 2: Resilient Fallback to OpenAlex Scholarly Works Catalog
-        info!(query = %query.query, "Executing resilient Google Scholar fallback via OpenAlex index");
-        let mut oa_url = format!(
-            "https://api.openalex.org/works?search={}&per_page={}",
-            Self::url_encode(&query.query),
-            limit
-        );
+        // Strategy 2: OpenAlex Scholarly Works Catalog Fallback
+        if results.len() < limit {
+            info!(query = %query.query, "Executing resilient Google Scholar fallback via OpenAlex index");
+            let mut oa_url = format!(
+                "https://api.openalex.org/works?search={}&per_page={}",
+                Self::url_encode(&query.query),
+                limit
+            );
 
-        if let (Some(ys), Some(ye)) = (query.year_start, query.year_end) {
-            oa_url.push_str(&format!("&filter=publication_year:{ys}-{ye}"));
-        } else if let Some(ys) = query.year_start {
-            oa_url.push_str(&format!("&filter=publication_year:{ys}-2030"));
-        } else if let Some(ye) = query.year_end {
-            oa_url.push_str(&format!("&filter=publication_year:1900-{ye}"));
-        }
+            let mut filters = Vec::new();
+            if let (Some(ys), Some(ye)) = (query.year_start, query.year_end) {
+                filters.push(format!("publication_year:{ys}-{ye}"));
+            } else if let Some(ys) = query.year_start {
+                filters.push(format!("publication_year:{ys}-2030"));
+            } else if let Some(ye) = query.year_end {
+                filters.push(format!("publication_year:1900-{ye}"));
+            }
+            if query.open_access_only == Some(true) {
+                filters.push("open_access.is_oa:true".to_string());
+            }
 
-        if let Ok(validated_oa) = UrlGuard::validate_url(&oa_url) {
-            let oa_resp = client
-                .get(validated_oa.as_str())
-                .header(
-                    "User-Agent",
-                    "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
-                )
-                .header("Accept", "application/json")
-                .send()
-                .await;
+            if !filters.is_empty() {
+                oa_url.push_str(&format!("&filter={}", filters.join(",")));
+            }
 
-            if let Ok(resp) = oa_resp {
-                if resp.status().is_success() {
-                    if let Ok(body) = CrawlEngine::read_response_body_bounded(resp).await {
-                        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&body) {
-                            let empty_vec = Vec::new();
-                            let works = val["results"].as_array().unwrap_or(&empty_vec);
-                            let mut results = Vec::new();
+            if let Ok(validated_oa) = UrlGuard::validate_url(&oa_url) {
+                let oa_resp = client
+                    .get(validated_oa.as_str())
+                    .header(
+                        "User-Agent",
+                        "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
+                    )
+                    .header("Accept", "application/json")
+                    .send()
+                    .await;
 
-                            for w in works {
-                                if cancel.load(Ordering::Relaxed) {
-                                    return Err("Search cancelled".to_string());
-                                }
+                if let Ok(resp) = oa_resp {
+                    if resp.status().is_success() {
+                        if let Ok(body) = CrawlEngine::read_response_body_bounded(resp).await {
+                            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&body) {
+                                let empty_vec = Vec::new();
+                                let works = val["results"].as_array().unwrap_or(&empty_vec);
 
-                                let title = w["title"]
-                                    .as_str()
-                                    .or_else(|| w["display_name"].as_str())
-                                    .unwrap_or("")
-                                    .trim()
-                                    .to_string();
-                                if title.is_empty() {
-                                    continue;
-                                }
+                                for w in works {
+                                    if cancel.load(Ordering::Relaxed) {
+                                        return Err("Search cancelled".to_string());
+                                    }
 
-                                let mut authors = Vec::new();
-                                if let Some(authorships) = w["authorships"].as_array() {
-                                    for a in authorships {
-                                        if let Some(name) = a["author"]["display_name"].as_str() {
-                                            authors.push(name.trim().to_string());
+                                    let title = w["title"]
+                                        .as_str()
+                                        .or_else(|| w["display_name"].as_str())
+                                        .unwrap_or("")
+                                        .trim()
+                                        .to_string();
+                                    if title.is_empty() {
+                                        continue;
+                                    }
+
+                                    let mut authors = Vec::new();
+                                    if let Some(authorships) = w["authorships"].as_array() {
+                                        for a in authorships {
+                                            if let Some(name) = a["author"]["display_name"].as_str()
+                                            {
+                                                authors.push(name.trim().to_string());
+                                            }
                                         }
                                     }
-                                }
-                                if authors.is_empty() {
-                                    authors.push("Google Scholar Author".to_string());
-                                }
+                                    if authors.is_empty() {
+                                        authors.push("Google Scholar Author".to_string());
+                                    }
 
-                                let pub_year = w["publication_year"].as_i64().map(|y| y as i32);
-                                let doi = w["doi"]
-                                    .as_str()
-                                    .map(|d| d.replace("https://doi.org/", "").trim().to_string());
-
-                                let landing_url = doi
-                                    .as_ref()
-                                    .map(|d| format!("https://doi.org/{d}"))
-                                    .or_else(|| {
-                                        w["primary_location"]["landing_page_url"]
-                                            .as_str()
-                                            .map(|u| u.to_string())
-                                    })
-                                    .unwrap_or_else(|| {
-                                        format!(
-                                            "https://scholar.google.com/scholar?q={}",
-                                            Self::url_encode(&title)
-                                        )
+                                    let pub_year = w["publication_year"].as_i64().map(|y| y as i32);
+                                    let doi = w["doi"].as_str().map(|d| {
+                                        d.replace("https://doi.org/", "").trim().to_string()
                                     });
 
-                                let pdf_url = w["open_access"]["oa_url"]
-                                    .as_str()
-                                    .map(|u| u.to_string())
-                                    .or_else(|| {
-                                        w["primary_location"]["pdf_url"]
-                                            .as_str()
-                                            .map(|u| u.to_string())
-                                    });
+                                    let landing_url = doi
+                                        .as_ref()
+                                        .map(|d| format!("https://doi.org/{d}"))
+                                        .or_else(|| {
+                                            w["primary_location"]["landing_page_url"]
+                                                .as_str()
+                                                .map(|u| u.to_string())
+                                        })
+                                        .unwrap_or_else(|| {
+                                            format!(
+                                                "https://scholar.google.com/scholar?q={}",
+                                                Self::url_encode(&title)
+                                            )
+                                        });
 
-                                let is_oa = w["open_access"]["is_oa"].as_bool().unwrap_or(false)
-                                    || pdf_url.is_some();
+                                    let pdf_url = w["open_access"]["oa_url"]
+                                        .as_str()
+                                        .map(|u| u.to_string())
+                                        .or_else(|| {
+                                            w["primary_location"]["pdf_url"]
+                                                .as_str()
+                                                .map(|u| u.to_string())
+                                        });
 
-                                let venue = w["primary_location"]["source"]["display_name"]
-                                    .as_str()
-                                    .map(|s| s.to_string())
-                                    .or(Some("Google Scholar".to_string()));
+                                    let oa_status =
+                                        w["open_access"]["oa_status"].as_str().unwrap_or("closed");
+                                    let is_oa =
+                                        w["open_access"]["is_oa"].as_bool().unwrap_or(false)
+                                            || pdf_url.is_some()
+                                            || oa_status != "closed";
 
-                                results.push(DiscoveredSearchResult {
-                                    id: format!("scholar-oa-{}", uuid::Uuid::new_v4().simple()),
-                                    title,
-                                    authors,
-                                    publication_date: pub_year.map(|y| format!("{}-01-01", y)),
-                                    publication_year: pub_year,
-                                    venue,
-                                    canonical_doi: doi,
-                                    abstract_text: None,
-                                    landing_url: landing_url.clone(),
-                                    pdf_url,
-                                    source_id: "google_scholar".to_string(),
-                                    source_name: "Google Scholar".to_string(),
-                                    content_type: "journal_article".to_string(),
-                                    is_open_access: is_oa,
-                                    license_name: if is_oa {
-                                        Some("Open Access Repository".to_string())
-                                    } else {
-                                        None
-                                    },
-                                    peer_reviewed: Some(true),
-                                    subject_tags: vec!["Google Scholar".to_string()],
-                                    language: Some("en".to_string()),
-                                    relevance_score: 1.0,
-                                    provenance_urls: vec![landing_url],
-                                    metadata_confidence: Some(0.92),
-                                });
-                            }
+                                    let venue = w["primary_location"]["source"]["display_name"]
+                                        .as_str()
+                                        .map(|s| s.to_string())
+                                        .or(Some("Google Scholar".to_string()));
 
-                            if !results.is_empty() {
-                                return Ok(results);
+                                    let paper = DiscoveredSearchResult {
+                                        id: format!("scholar-oa-{}", uuid::Uuid::new_v4().simple()),
+                                        title,
+                                        authors,
+                                        publication_date: pub_year.map(|y| format!("{}-01-01", y)),
+                                        publication_year: pub_year,
+                                        venue,
+                                        canonical_doi: doi,
+                                        abstract_text: None,
+                                        landing_url: landing_url.clone(),
+                                        pdf_url,
+                                        source_id: "google_scholar".to_string(),
+                                        source_name: "Google Scholar".to_string(),
+                                        content_type: "journal_article".to_string(),
+                                        is_open_access: is_oa,
+                                        license_name: if is_oa {
+                                            Some("Open Access Repository".to_string())
+                                        } else {
+                                            None
+                                        },
+                                        peer_reviewed: Some(true),
+                                        subject_tags: vec!["Google Scholar".to_string()],
+                                        language: Some("en".to_string()),
+                                        relevance_score: 1.0,
+                                        provenance_urls: vec![landing_url],
+                                        metadata_confidence: Some(0.92),
+                                    };
+
+                                    let key = paper
+                                        .canonical_doi
+                                        .as_deref()
+                                        .map(|d| d.to_lowercase())
+                                        .unwrap_or_else(|| {
+                                            paper
+                                                .title
+                                                .to_lowercase()
+                                                .chars()
+                                                .filter(|c| c.is_alphanumeric())
+                                                .collect()
+                                        });
+                                    if !seen_keys.contains(&key) {
+                                        seen_keys.insert(key);
+                                        results.push(paper);
+                                    }
+                                }
                             }
                         }
                     }
@@ -552,7 +787,88 @@ impl SourceAdapter for GoogleScholarAdapter {
             }
         }
 
-        Ok(Vec::new())
+        if cancel.load(Ordering::Relaxed) {
+            return Err("Search cancelled".to_string());
+        }
+
+        // Strategy 3: Crossref General Scholarly Works Index
+        if results.len() < limit {
+            info!(query = %query.query, "Querying Crossref General Works index for scholarly articles");
+            let cr_url = format!(
+                "https://api.crossref.org/works?query={}&rows={}",
+                Self::url_encode(&query.query),
+                limit
+            );
+
+            if let Ok(validated_cr) = UrlGuard::validate_url(&cr_url) {
+                if let Ok(resp) = client
+                    .get(validated_cr.as_str())
+                    .header(
+                        "User-Agent",
+                        "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
+                    )
+                    .header("Accept", "application/json")
+                    .send()
+                    .await
+                {
+                    if resp.status().is_success() {
+                        if let Ok(body) = CrawlEngine::read_response_body_bounded(resp).await {
+                            if let Ok(parsed) =
+                                Self::parse_crossref_general_works(&body, cancel.clone())
+                            {
+                                Self::merge_discovered(&mut results, &mut seen_keys, parsed);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if cancel.load(Ordering::Relaxed) {
+            return Err("Search cancelled".to_string());
+        }
+
+        // Strategy 4: If still under limit, query Crossref with relaxed keywords
+        if results.len() < limit {
+            let relaxed = Self::extract_keywords(&query.query);
+            if relaxed != query.query {
+                let cr_relaxed_url = format!(
+                    "https://api.crossref.org/works?query={}&rows={}",
+                    Self::url_encode(&relaxed),
+                    limit
+                );
+
+                if let Ok(validated_cr_relaxed) = UrlGuard::validate_url(&cr_relaxed_url) {
+                    info!(relaxed = %relaxed, "Querying Crossref General Works with relaxed keywords");
+                    if let Ok(resp) = client
+                        .get(validated_cr_relaxed.as_str())
+                        .header(
+                            "User-Agent",
+                            "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
+                        )
+                        .header("Accept", "application/json")
+                        .send()
+                        .await
+                    {
+                        if resp.status().is_success() {
+                            if let Ok(body) = CrawlEngine::read_response_body_bounded(resp).await {
+                                if let Ok(parsed) =
+                                    Self::parse_crossref_general_works(&body, cancel.clone())
+                                {
+                                    Self::merge_discovered(&mut results, &mut seen_keys, parsed);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        info!(
+            count = results.len(),
+            "Total discovered Google Scholar publications"
+        );
+        Ok(results)
     }
 }
 

@@ -31,6 +31,20 @@ def _strip_html(text: Optional[str]) -> str:
     )
 
 
+def _extract_keywords(query: str) -> str:
+    """Extract salient academic terms if query is a long sentence or title."""
+    stop_words = {
+        "using", "ahead", "with", "from", "that", "this", "which", "into", "over",
+        "than", "more", "then", "their", "about", "study", "based", "approach",
+        "through", "under", "between", "these", "those", "such", "after", "before",
+    }
+    words = [w.strip() for w in re.split(r"[\s\-_,;:]+", query) if w.strip()]
+    if len(words) <= 4:
+        return query
+    salient = [w for w in words if len(w) > 3 and w.lower() not in stop_words]
+    return " ".join(salient) if len(salient) >= 3 else query
+
+
 class GoogleScholarAdapter(BaseAdapter):
     id = "google_scholar"
     name = "Google Scholar"
@@ -49,13 +63,8 @@ class GoogleScholarAdapter(BaseAdapter):
     ) -> AsyncGenerator[PaperResult, None]:
         limit = filters.limit_per_source or 20
         yielded = 0
-
-        # Strategy 1: Attempt direct Google Scholar search
-        scholar_url = f"https://scholar.google.com/scholar?q={quote_plus(query)}&hl=en"
-        if filters.year_start:
-            scholar_url += f"&as_ylo={filters.year_start}"
-        if filters.year_end:
-            scholar_url += f"&as_yhi={filters.year_end}"
+        seen_dois: set[str] = set()
+        seen_titles: set[str] = set()
 
         headers = {
             "User-Agent": (
@@ -66,8 +75,15 @@ class GoogleScholarAdapter(BaseAdapter):
             "Accept-Language": "en-US,en;q=0.9",
         }
 
+        # Strategy 1: Attempt direct Google Scholar search
+        scholar_url = f"https://scholar.google.com/scholar?q={quote_plus(query)}&hl=en"
+        if filters.year_start:
+            scholar_url += f"&as_ylo={filters.year_start}"
+        if filters.year_end:
+            scholar_url += f"&as_yhi={filters.year_end}"
+
         try:
-            resp = await client.get(scholar_url, headers=headers, timeout=10.0)
+            resp = await client.get(scholar_url, headers=headers, timeout=8.0)
             if resp.status_code == 200:
                 html = resp.text
                 if "recaptcha" not in html.lower() and "/sorry/index" not in html.lower():
@@ -86,7 +102,7 @@ class GoogleScholarAdapter(BaseAdapter):
                             if raw_title.startswith(prefix):
                                 raw_title = raw_title[len(prefix):].strip()
                         title = _strip_html(raw_title).rstrip(".").strip()
-                        if not title:
+                        if not title or title.lower() in seen_titles:
                             continue
 
                         landing_url = title_elem.get("href") or scholar_url
@@ -105,18 +121,18 @@ class GoogleScholarAdapter(BaseAdapter):
                             parts = [p.strip() for p in re.split(r"[-–—]", a_text)]
                             if parts:
                                 for a in parts[0].split(","):
-                                    cleaned = a.strip().rstrip("….").strip()
-                                    if cleaned:
-                                        authors.append(cleaned)
+                                    c_name = a.strip().rstrip("….").strip()
+                                    if c_name:
+                                        authors.append(c_name)
                             if len(parts) >= 2:
-                                venue = parts[1].strip() or venue
-                                match_yr = re.search(r"\b(19\d\d|20\d\d)\b", parts[1])
-                                if match_yr:
-                                    pub_year = int(match_yr.group(1))
+                                venue = parts[1].strip() or "Google Scholar"
+                                y_match = re.search(r"\b(19\d\d|20\d\d)\b", parts[1])
+                                if y_match:
+                                    pub_year = int(y_match.group(1))
                             if not pub_year and len(parts) >= 3:
-                                match_yr = re.search(r"\b(19\d\d|20\d\d)\b", parts[2])
-                                if match_yr:
-                                    pub_year = int(match_yr.group(1))
+                                y_match = re.search(r"\b(19\d\d|20\d\d)\b", parts[2])
+                                if y_match:
+                                    pub_year = int(y_match.group(1))
 
                         if not authors:
                             authors = ["Google Scholar Author"]
@@ -125,9 +141,6 @@ class GoogleScholarAdapter(BaseAdapter):
                             continue
                         if filters.year_end and pub_year and pub_year > filters.year_end:
                             continue
-                        if filters.author and authors:
-                            if not any(filters.author.lower() in a.lower() for a in authors):
-                                continue
 
                         is_oa = pdf_url is not None
                         if filters.open_access_only and not is_oa:
@@ -147,6 +160,9 @@ class GoogleScholarAdapter(BaseAdapter):
                             pdf=0.9 if pdf_url else 0.0,
                         )
                         paper_id = PaperResult.generate_id(self.id, title, doi)
+                        seen_titles.add(title.lower())
+                        if doi:
+                            seen_dois.add(doi.lower())
 
                         yield PaperResult(
                             paper_id=paper_id,
@@ -158,15 +174,19 @@ class GoogleScholarAdapter(BaseAdapter):
                             venue=venue,
                             publisher="Google Scholar",
                             doi=doi,
+                            source_id=self.id,
+                            source_name=self.name,
+                            source_page_url="https://scholar.google.com",
                             landing_page_url=landing_url,
-                            pdf_download_url=pdf_url,
-                            is_open_access=is_oa,
-                            source_domain=self.domain,
-                            source_adapter=self.id,
-                            content_type="Journal Article",
-                            confidence_score=breakdown.composite(),
-                            breakdown=breakdown,
-                            provenance=[scholar_url, landing_url],
+                            pdf_url=pdf_url,
+                            pdf_access_status="available" if is_oa else "restricted",
+                            open_access_evidence="Google Scholar Direct PDF" if is_oa else None,
+                            document_type="journal_article",
+                            language="en",
+                            keywords=["Google Scholar"],
+                            metadata_confidence=breakdown.compute_composite(),
+                            confidence_breakdown=breakdown,
+                            provenance={"scholar": scholar_url, "landing": landing_url},
                         )
                         yielded += 1
                         if yielded >= limit:
@@ -174,82 +194,100 @@ class GoogleScholarAdapter(BaseAdapter):
         except Exception:
             pass
 
-        # Strategy 2: Resilient Fallback to OpenAlex Scholarly Catalog
-        oa_url = f"https://api.openalex.org/works?search={quote_plus(query)}&per_page={min(limit, 50)}"
-        if filters.year_start and filters.year_end:
-            oa_url += f"&filter=publication_year:{filters.year_start}-{filters.year_end}"
-        elif filters.year_start:
-            oa_url += f"&filter=publication_year:{filters.year_start}-2030"
-        elif filters.year_end:
-            oa_url += f"&filter=publication_year:1900-{filters.year_end}"
+        # Strategy 2: Resilient Fallback to OpenAlex Scholarly Catalog (Handles direct queries + relaxed keywords)
+        queries_to_try = [query]
+        relaxed = _extract_keywords(query)
+        if relaxed.lower() != query.lower():
+            queries_to_try.append(relaxed)
 
-        try:
-            resp = await client.get(oa_url, headers={"Accept": "application/json"}, timeout=12.0)
-            if resp.status_code == 200:
-                data = resp.json()
-                works = data.get("results", [])
-                for w in works:
-                    if yielded >= limit:
-                        return
+        for q_attempt in queries_to_try:
+            if yielded >= limit:
+                break
 
-                    title = (w.get("title") or w.get("display_name") or "").strip()
-                    if not title:
-                        continue
+            oa_url = f"https://api.openalex.org/works?search={quote_plus(q_attempt)}&per_page={min(limit - yielded, 50)}"
+            if filters.year_start and filters.year_end:
+                oa_url += f"&filter=publication_year:{filters.year_start}-{filters.year_end}"
+            elif filters.year_start:
+                oa_url += f"&filter=publication_year:{filters.year_start}-2030"
+            elif filters.year_end:
+                oa_url += f"&filter=publication_year:1900-{filters.year_end}"
 
-                    authors = []
-                    for a in w.get("authorships", []):
-                        aname = (a.get("author") or {}).get("display_name")
-                        if aname:
-                            authors.append(aname.strip())
-                    if not authors:
-                        authors = ["Google Scholar Author"]
+            try:
+                resp = await client.get(oa_url, headers={"Accept": "application/json"}, timeout=12.0)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    works = data.get("results", [])
+                    for w in works:
+                        if yielded >= limit:
+                            return
 
-                    pub_year = w.get("publication_year")
-                    doi_raw = w.get("doi") or ""
-                    doi = doi_raw.replace("https://doi.org/", "").strip() or None
+                        title = (w.get("title") or w.get("display_name") or "").strip()
+                        if not title or title.lower() in seen_titles:
+                            continue
 
-                    landing_url = f"https://doi.org/{doi}" if doi else (w.get("primary_location") or {}).get("landing_page_url") or f"https://scholar.google.com/scholar?q={quote_plus(title)}"
-                    pdf_url = (w.get("open_access") or {}).get("oa_url") or (w.get("primary_location") or {}).get("pdf_url")
-                    is_oa = (w.get("open_access") or {}).get("is_oa", False) or pdf_url is not None
+                        authors = []
+                        for a in w.get("authorships", []):
+                            aname = (a.get("author") or {}).get("display_name")
+                            if aname:
+                                authors.append(aname.strip())
+                        if not authors:
+                            authors = ["Google Scholar Author"]
 
-                    if filters.open_access_only and not is_oa:
-                        continue
+                        pub_year = w.get("publication_year")
+                        doi_raw = w.get("doi") or ""
+                        doi = doi_raw.replace("https://doi.org/", "").strip() or None
+                        if doi and doi.lower() in seen_dois:
+                            continue
 
-                    venue_obj = (w.get("primary_location") or {}).get("source") or {}
-                    venue = venue_obj.get("display_name") or "Google Scholar"
+                        landing_url = f"https://doi.org/{doi}" if doi else (w.get("primary_location") or {}).get("landing_page_url") or f"https://scholar.google.com/scholar?q={quote_plus(title)}"
+                        pdf_url = (w.get("open_access") or {}).get("oa_url") or (w.get("primary_location") or {}).get("pdf_url")
+                        is_oa = (w.get("open_access") or {}).get("is_oa", False) or pdf_url is not None
 
-                    breakdown = ConfidenceBreakdown(
-                        title=1.0,
-                        authors=0.9 if authors else 0.5,
-                        abstract=0.0,
-                        doi=1.0 if doi else 0.0,
-                        pdf=0.9 if pdf_url else 0.0,
-                    )
-                    paper_id = PaperResult.generate_id(self.id, title, doi)
+                        if filters.open_access_only and not is_oa:
+                            continue
 
-                    yield PaperResult(
-                        paper_id=paper_id,
-                        title=title,
-                        authors=authors,
-                        abstract=None,
-                        publication_year=pub_year,
-                        published_date=str(pub_year) if pub_year else None,
-                        venue=venue,
-                        publisher="Google Scholar",
-                        doi=doi,
-                        landing_page_url=landing_url,
-                        pdf_download_url=pdf_url,
-                        is_open_access=is_oa,
-                        source_domain=self.domain,
-                        source_adapter=self.id,
-                        content_type="Journal Article",
-                        confidence_score=breakdown.composite(),
-                        breakdown=breakdown,
-                        provenance=[oa_url, landing_url],
-                    )
-                    yielded += 1
-        except Exception:
-            return
+                        venue_obj = (w.get("primary_location") or {}).get("source") or {}
+                        venue = venue_obj.get("display_name") or "Google Scholar"
+
+                        breakdown = ConfidenceBreakdown(
+                            title=1.0,
+                            authors=0.9 if authors else 0.5,
+                            abstract=0.0,
+                            doi=1.0 if doi else 0.0,
+                            pdf=0.9 if pdf_url else 0.0,
+                        )
+                        paper_id = PaperResult.generate_id(self.id, title, doi)
+                        seen_titles.add(title.lower())
+                        if doi:
+                            seen_dois.add(doi.lower())
+
+                        yield PaperResult(
+                            paper_id=paper_id,
+                            title=title,
+                            authors=authors,
+                            abstract=None,
+                            publication_year=pub_year,
+                            published_date=str(pub_year) if pub_year else None,
+                            venue=venue,
+                            publisher="Google Scholar",
+                            doi=doi,
+                            source_id=self.id,
+                            source_name=self.name,
+                            source_page_url="https://scholar.google.com",
+                            landing_page_url=landing_url,
+                            pdf_url=pdf_url,
+                            pdf_access_status="available" if is_oa else "restricted",
+                            open_access_evidence="OpenAlex OA" if is_oa else None,
+                            document_type="journal_article",
+                            language="en",
+                            keywords=["Google Scholar"],
+                            metadata_confidence=breakdown.compute_composite(),
+                            confidence_breakdown=breakdown,
+                            provenance={"openalex": oa_url, "landing": landing_url},
+                        )
+                        yielded += 1
+            except Exception:
+                pass
 
     async def health_check(self, client: httpx.AsyncClient) -> Dict[str, Any]:
         """Verify Google Scholar connectivity or OpenAlex fallback."""
@@ -260,4 +298,3 @@ class GoogleScholarAdapter(BaseAdapter):
             return {"status": "degraded", "code": resp.status_code}
         except Exception as e:
             return {"status": "unhealthy", "error": str(e)}
-

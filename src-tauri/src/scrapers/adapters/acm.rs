@@ -64,6 +64,58 @@ impl AcmAdapter {
             .to_string()
     }
 
+    pub fn merge_discovered(
+        target: &mut Vec<DiscoveredSearchResult>,
+        seen: &mut std::collections::HashSet<String>,
+        incoming: Vec<DiscoveredSearchResult>,
+    ) {
+        for paper in incoming {
+            let key = paper
+                .canonical_doi
+                .as_deref()
+                .map(|d| d.to_lowercase())
+                .unwrap_or_else(|| {
+                    paper
+                        .title
+                        .to_lowercase()
+                        .chars()
+                        .filter(|c| c.is_alphanumeric())
+                        .collect()
+                });
+            if !seen.contains(&key) {
+                seen.insert(key);
+                target.push(paper);
+            }
+        }
+    }
+
+    pub fn extract_keywords(query: &str) -> String {
+        let stop_words = [
+            "using", "ahead", "with", "from", "that", "this", "which", "into", "over", "than",
+            "more", "then", "their", "about", "study", "based", "approach", "through", "under",
+            "between", "these", "those", "such", "after", "before", "and", "the", "for", "in",
+            "of", "to", "a", "an", "on", "at", "by",
+        ];
+        let words: Vec<&str> = query
+            .split(|c: char| {
+                c.is_whitespace() || c == '-' || c == '_' || c == ',' || c == ';' || c == ':'
+            })
+            .filter(|w| !w.is_empty())
+            .collect();
+        if words.len() <= 4 {
+            return query.to_string();
+        }
+        let salient: Vec<&str> = words
+            .into_iter()
+            .filter(|w| w.len() > 3 && !stop_words.contains(&w.to_lowercase().as_str()))
+            .collect();
+        if salient.len() >= 3 {
+            salient.join(" ")
+        } else {
+            query.to_string()
+        }
+    }
+
     pub fn parse_crossref_acm_json(
         json_str: &str,
         cancel: Arc<AtomicBool>,
@@ -165,9 +217,11 @@ impl AcmAdapter {
                 })
             });
 
-            let pdf_url = doi
-                .as_ref()
-                .map(|d| format!("https://dl.acm.org/doi/pdf/{d}"));
+            // Note: dl.acm.org/doi/pdf/{doi} returns HTTP 403 / Cloudflare challenge on direct
+            // automated GET requests without a browser session. We leave pdf_url as None
+            // so the UI presents the accurate Publisher Landing / OA Mirror workflow
+            // instead of failing on a broken direct stream.
+            let pdf_url: Option<String> = None;
 
             let raw_type = item["type"].as_str().unwrap_or("journal-article");
             let content_type = match raw_type {
@@ -318,70 +372,20 @@ impl SourceAdapter for AcmAdapter {
         }
 
         let limit = query.limit_per_source.unwrap_or(25).min(50);
-        info!(query = %query.query, "Querying Crossref index for ACM publications (prefix 10.1145)");
+        let mut results: Vec<DiscoveredSearchResult> = Vec::new();
+        let mut seen_keys: std::collections::HashSet<String> = std::collections::HashSet::new();
 
+        // Pass 1: Crossref ACM with verbatim query (filter prefix:10.1145)
         let crossref_url = format!(
             "https://api.crossref.org/works?query={}&filter=prefix:10.1145&rows={}",
             Self::url_encode(&query.query),
             limit
         );
 
-        let validated_crossref = UrlGuard::validate_url(&crossref_url)
-            .map_err(|e| format!("Anti-SSRF blocked Crossref ACM URL: {e}"))?;
-
-        let cr_resp = client
-            .get(validated_crossref.as_str())
-            .header(
-                "User-Agent",
-                "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
-            )
-            .header("Accept", "application/json")
-            .send()
-            .await;
-
-        match cr_resp {
-            Ok(resp) if resp.status().is_success() => {
-                if let Ok(body) = CrawlEngine::read_response_body_bounded(resp).await {
-                    if let Ok(results) = Self::parse_crossref_acm_json(&body, cancel.clone()) {
-                        if !results.is_empty() {
-                            info!(
-                                count = results.len(),
-                                "Successfully discovered ACM papers via Crossref ACM index"
-                            );
-                            return Ok(results);
-                        }
-                    }
-                }
-            }
-            Ok(resp) => {
-                tracing::warn!(
-                    status = %resp.status(),
-                    "Crossref ACM query returned non-success; attempting OpenAlex ACM fallback"
-                );
-            }
-            Err(e) => {
-                tracing::warn!(
-                    error = %e,
-                    "Failed reaching Crossref for ACM; attempting OpenAlex ACM fallback"
-                );
-            }
-        }
-
-        if cancel.load(Ordering::Relaxed) {
-            return Err("Search cancelled".to_string());
-        }
-
-        // Secondary Fallback: Query OpenAlex works for ACM works
-        let oa_url = format!(
-            "https://api.openalex.org/works?search={}&filter=doi:10.1145*&per_page={}",
-            Self::url_encode(&query.query),
-            limit
-        );
-
-        if let Ok(validated_oa) = UrlGuard::validate_url(&oa_url) {
-            info!(query = %query.query, "Querying OpenAlex index for ACM publications");
-            let oa_resp = client
-                .get(validated_oa.as_str())
+        if let Ok(validated_crossref) = UrlGuard::validate_url(&crossref_url) {
+            info!(query = %query.query, "Querying Crossref index for ACM publications (prefix 10.1145)");
+            let cr_resp = client
+                .get(validated_crossref.as_str())
                 .header(
                     "User-Agent",
                     "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
@@ -390,94 +394,49 @@ impl SourceAdapter for AcmAdapter {
                 .send()
                 .await;
 
-            if let Ok(resp) = oa_resp {
+            if let Ok(resp) = cr_resp {
                 if resp.status().is_success() {
                     if let Ok(body) = CrawlEngine::read_response_body_bounded(resp).await {
-                        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&body) {
-                            let empty_vec = Vec::new();
-                            let works = val["results"].as_array().unwrap_or(&empty_vec);
-                            let mut results = Vec::new();
-                            for w in works {
-                                if cancel.load(Ordering::Relaxed) {
-                                    return Err("Search cancelled".to_string());
+                        if let Ok(parsed) = Self::parse_crossref_acm_json(&body, cancel.clone()) {
+                            Self::merge_discovered(&mut results, &mut seen_keys, parsed);
+                        }
+                    }
+                }
+            }
+        }
+
+        if cancel.load(Ordering::Relaxed) {
+            return Err("Search cancelled".to_string());
+        }
+
+        // Pass 2: If fewer than limit, relax query keywords to extract salient terms
+        if results.len() < limit {
+            let relaxed = Self::extract_keywords(&query.query);
+            if relaxed != query.query {
+                let relaxed_url = format!(
+                    "https://api.crossref.org/works?query={}&filter=prefix:10.1145&rows={}",
+                    Self::url_encode(&relaxed),
+                    limit
+                );
+                if let Ok(validated_relaxed) = UrlGuard::validate_url(&relaxed_url) {
+                    info!(relaxed = %relaxed, "Querying Crossref index for ACM with relaxed keywords");
+                    if let Ok(resp) = client
+                        .get(validated_relaxed.as_str())
+                        .header(
+                            "User-Agent",
+                            "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
+                        )
+                        .header("Accept", "application/json")
+                        .send()
+                        .await
+                    {
+                        if resp.status().is_success() {
+                            if let Ok(body) = CrawlEngine::read_response_body_bounded(resp).await {
+                                if let Ok(parsed) =
+                                    Self::parse_crossref_acm_json(&body, cancel.clone())
+                                {
+                                    Self::merge_discovered(&mut results, &mut seen_keys, parsed);
                                 }
-                                let title = w["title"]
-                                    .as_str()
-                                    .or_else(|| w["display_name"].as_str())
-                                    .unwrap_or("")
-                                    .trim()
-                                    .to_string();
-                                if title.is_empty() {
-                                    continue;
-                                }
-
-                                let mut authors = Vec::new();
-                                if let Some(authorships) = w["authorships"].as_array() {
-                                    for a in authorships {
-                                        if let Some(name) = a["author"]["display_name"].as_str() {
-                                            authors.push(name.trim().to_string());
-                                        }
-                                    }
-                                }
-                                if authors.is_empty() {
-                                    authors.push("ACM Contributor".to_string());
-                                }
-
-                                let pub_year = w["publication_year"].as_i64().map(|y| y as i32);
-                                let doi = w["doi"]
-                                    .as_str()
-                                    .map(|d| d.replace("https://doi.org/", "").trim().to_string());
-
-                                let landing_url = doi
-                                    .as_ref()
-                                    .map(|d| format!("https://dl.acm.org/doi/{d}"))
-                                    .unwrap_or_else(|| {
-                                        format!("https://doi.org/{}", doi.as_deref().unwrap_or(""))
-                                    });
-
-                                let pdf_url = w["open_access"]["oa_url"]
-                                    .as_str()
-                                    .map(|u| u.to_string())
-                                    .or_else(|| {
-                                        doi.as_ref()
-                                            .map(|d| format!("https://dl.acm.org/doi/pdf/{d}"))
-                                    });
-
-                                let is_oa = w["open_access"]["is_oa"].as_bool().unwrap_or(false);
-
-                                results.push(DiscoveredSearchResult {
-                                    id: format!("acm-oa-{}", uuid::Uuid::new_v4().simple()),
-                                    title,
-                                    authors,
-                                    publication_date: pub_year.map(|y| format!("{}-01-01", y)),
-                                    publication_year: pub_year,
-                                    venue: Some("ACM Digital Library".to_string()),
-                                    canonical_doi: doi,
-                                    abstract_text: None,
-                                    landing_url: landing_url.clone(),
-                                    pdf_url,
-                                    source_id: "acm_dl".to_string(),
-                                    source_name: "ACM Digital Library".to_string(),
-                                    content_type: "conference_paper".to_string(),
-                                    is_open_access: is_oa,
-                                    license_name: if is_oa {
-                                        Some("ACM Open Access".to_string())
-                                    } else {
-                                        None
-                                    },
-                                    peer_reviewed: Some(true),
-                                    subject_tags: vec![
-                                        "ACM".to_string(),
-                                        "Computer Science".to_string(),
-                                    ],
-                                    language: Some("en".to_string()),
-                                    relevance_score: 1.0,
-                                    provenance_urls: vec![landing_url],
-                                    metadata_confidence: Some(0.92),
-                                });
-                            }
-                            if !results.is_empty() {
-                                return Ok(results);
                             }
                         }
                     }
@@ -485,7 +444,156 @@ impl SourceAdapter for AcmAdapter {
             }
         }
 
-        Ok(Vec::new())
+        if cancel.load(Ordering::Relaxed) {
+            return Err("Search cancelled".to_string());
+        }
+
+        // Pass 3: Secondary Fallback to OpenAlex works for ACM works
+        if results.len() < limit {
+            let oa_url = format!(
+                "https://api.openalex.org/works?search={}&per_page={}",
+                Self::url_encode(&query.query),
+                limit
+            );
+
+            if let Ok(validated_oa) = UrlGuard::validate_url(&oa_url) {
+                info!(query = %query.query, "Querying OpenAlex index for ACM publications");
+                let oa_resp = client
+                    .get(validated_oa.as_str())
+                    .header(
+                        "User-Agent",
+                        "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
+                    )
+                    .header("Accept", "application/json")
+                    .send()
+                    .await;
+
+                if let Ok(resp) = oa_resp {
+                    if resp.status().is_success() {
+                        if let Ok(body) = CrawlEngine::read_response_body_bounded(resp).await {
+                            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&body) {
+                                let empty_vec = Vec::new();
+                                let works = val["results"].as_array().unwrap_or(&empty_vec);
+                                for w in works {
+                                    if cancel.load(Ordering::Relaxed) {
+                                        return Err("Search cancelled".to_string());
+                                    }
+                                    let doi = w["doi"].as_str().map(|d| {
+                                        d.replace("https://doi.org/", "").trim().to_string()
+                                    });
+
+                                    let is_acm =
+                                        doi.as_deref().map_or(false, |d| d.starts_with("10.1145"))
+                                            || w["primary_location"]["source"]["display_name"]
+                                                .as_str()
+                                                .map_or(false, |s| s.contains("ACM"));
+                                    if !is_acm {
+                                        continue;
+                                    }
+
+                                    let title = w["title"]
+                                        .as_str()
+                                        .or_else(|| w["display_name"].as_str())
+                                        .unwrap_or("")
+                                        .trim()
+                                        .to_string();
+                                    if title.is_empty() {
+                                        continue;
+                                    }
+
+                                    let mut authors = Vec::new();
+                                    if let Some(authorships) = w["authorships"].as_array() {
+                                        for a in authorships {
+                                            if let Some(name) = a["author"]["display_name"].as_str()
+                                            {
+                                                authors.push(name.trim().to_string());
+                                            }
+                                        }
+                                    }
+                                    if authors.is_empty() {
+                                        authors.push("ACM Contributor".to_string());
+                                    }
+
+                                    let pub_year = w["publication_year"].as_i64().map(|y| y as i32);
+                                    let landing_url = doi
+                                        .as_ref()
+                                        .map(|d| format!("https://dl.acm.org/doi/{d}"))
+                                        .unwrap_or_else(|| {
+                                            format!(
+                                                "https://doi.org/{}",
+                                                doi.as_deref().unwrap_or("")
+                                            )
+                                        });
+
+                                    // Only keep pdf_url if it does NOT point to dl.acm.org (which blocks bots)
+                                    let pdf_url = w["open_access"]["oa_url"]
+                                        .as_str()
+                                        .filter(|u| !u.contains("dl.acm.org"))
+                                        .map(|u| u.to_string());
+
+                                    let is_oa =
+                                        w["open_access"]["is_oa"].as_bool().unwrap_or(false);
+
+                                    let paper = DiscoveredSearchResult {
+                                        id: format!("acm-oa-{}", uuid::Uuid::new_v4().simple()),
+                                        title,
+                                        authors,
+                                        publication_date: pub_year.map(|y| format!("{}-01-01", y)),
+                                        publication_year: pub_year,
+                                        venue: Some("ACM Digital Library".to_string()),
+                                        canonical_doi: doi,
+                                        abstract_text: None,
+                                        landing_url: landing_url.clone(),
+                                        pdf_url,
+                                        source_id: "acm_dl".to_string(),
+                                        source_name: "ACM Digital Library".to_string(),
+                                        content_type: "conference_paper".to_string(),
+                                        is_open_access: is_oa,
+                                        license_name: if is_oa {
+                                            Some("ACM Open Access".to_string())
+                                        } else {
+                                            None
+                                        },
+                                        peer_reviewed: Some(true),
+                                        subject_tags: vec![
+                                            "ACM".to_string(),
+                                            "Computer Science".to_string(),
+                                        ],
+                                        language: Some("en".to_string()),
+                                        relevance_score: 1.0,
+                                        provenance_urls: vec![landing_url],
+                                        metadata_confidence: Some(0.92),
+                                    };
+
+                                    let key = paper
+                                        .canonical_doi
+                                        .as_deref()
+                                        .map(|d| d.to_lowercase())
+                                        .unwrap_or_else(|| {
+                                            paper
+                                                .title
+                                                .to_lowercase()
+                                                .chars()
+                                                .filter(|c| c.is_alphanumeric())
+                                                .collect()
+                                        });
+                                    if !seen_keys.contains(&key) {
+                                        seen_keys.insert(key);
+                                        results.push(paper);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        info!(
+            count = results.len(),
+            "Total discovered ACM publications after query expansion"
+        );
+        Ok(results)
     }
 }
 
@@ -568,10 +676,7 @@ mod tests {
         assert_eq!(r.publication_year, Some(2021));
         assert_eq!(r.canonical_doi, Some("10.1145/3430030".to_string()));
         assert_eq!(r.landing_url, "https://dl.acm.org/doi/10.1145/3430030");
-        assert_eq!(
-            r.pdf_url,
-            Some("https://dl.acm.org/doi/pdf/10.1145/3430030".to_string())
-        );
+        assert_eq!(r.pdf_url, None);
         assert!(r.is_open_access);
         assert_eq!(
             r.abstract_text,

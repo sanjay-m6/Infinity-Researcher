@@ -87,6 +87,7 @@ import {
   AlertCircle,
   Loader2,
   ShieldAlert,
+  Award,
   RefreshCw,
   Activity,
   Clock,
@@ -3396,12 +3397,10 @@ export const DiscoverView: React.FC = () => {
                           )
                         }
                       />
-                    ) : selectedPaper.pdf_url ||
-                      (selectedPaper.is_open_access &&
-                        (selectedPaper.canonical_doi || selectedPaper.url)) ? (
+                    ) : selectedPaper.pdf_url ? (
                       <EmbeddedPdfViewer
                         paperId={selectedPaper.paper_id || selectedPaper.id}
-                        remotePdfUrl={selectedPaper.pdf_url || selectedPaper.url}
+                        remotePdfUrl={selectedPaper.pdf_url}
                         paperTitle={selectedPaper.title}
                         sourceUrl={selectedPaper.url}
                         targetPage={targetPdfPage}
@@ -3431,10 +3430,10 @@ export const DiscoverView: React.FC = () => {
                         }}
                       />
                     ) : (
-                      <div className="flex-1 flex flex-col w-full h-full">
-                        {/* Top metadata strip for metadata-only fallback */}
-                        <div className="px-4 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
-                          <div className="min-w-0 pr-3">
+                      <div className="flex-1 flex flex-col w-full h-full overflow-y-auto bg-slate-50 dark:bg-slate-950/40">
+                        {/* Top Sticky Header */}
+                        <div className="px-6 py-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 sticky top-0 z-10">
+                          <div className="min-w-0 pr-4">
                             <h2 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
                               {selectedPaper.title}
                             </h2>
@@ -3452,7 +3451,7 @@ export const DiscoverView: React.FC = () => {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center gap-2 shrink-0">
                             {selectedPaper.canonical_doi && (
                               <button
                                 type="button"
@@ -3460,7 +3459,7 @@ export const DiscoverView: React.FC = () => {
                                   handleCopyDoi(selectedPaper.canonical_doi!)
                                 }
                                 title="Copy DOI"
-                                className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1 cursor-pointer font-mono"
+                                className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-mono text-slate-600 dark:text-slate-300 flex items-center gap-1 cursor-pointer transition-colors"
                               >
                                 {copiedDoi ? (
                                   <Check className="w-3 h-3 text-emerald-600" />
@@ -3476,115 +3475,183 @@ export const DiscoverView: React.FC = () => {
                                 href={selectedPaper.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1 cursor-pointer"
+                                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
                               >
-                                <ExternalLink className="w-3 h-3 text-slate-400" />
+                                <ExternalLink className="w-3.5 h-3.5" />
                                 <span>Source Page</span>
                               </a>
                             )}
                           </div>
                         </div>
 
-                        {/* Truthful Fallback Message */}
-                        <div className="flex-1 flex items-center justify-center p-6">
-                          <div className="max-w-md w-full mx-4 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl text-center space-y-4">
-                            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 mx-auto flex items-center justify-center">
-                              <BookOpen className="w-6 h-6" />
+                        {/* Main Hero Container */}
+                        <div className="p-6 md:p-8 max-w-4xl mx-auto w-full space-y-6">
+                          {/* Hero Title & Authors Card */}
+                          <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <SourceBadge sourceName={selectedPaper.source_name} size="md" />
+                              {selectedPaper.is_open_access ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                  <Unlock className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                  <span>{selectedPaper.license_name || "Open Access"}</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                  <ShieldAlert className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                                  <span>Publisher Protected</span>
+                                </span>
+                              )}
+                              {selectedPaper.peer_reviewed && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                  <Award className="w-3 h-3 text-blue-600" />
+                                  <span>Peer Reviewed</span>
+                                </span>
+                              )}
+                              {selectedPaper.publication_year && (
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                  {selectedPaper.publication_year}
+                                </span>
+                              )}
                             </div>
 
-                            <div className="space-y-1.5">
-                              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                                {selectedPaper.source_name.toLowerCase().includes("ieee")
-                                  ? "IEEE Xplore Protected Document"
-                                  : "No Direct PDF Stream Available"}
-                              </h3>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                {selectedPaper.source_name.toLowerCase().includes("ieee")
-                                  ? "IEEE Xplore protects full texts with web security challenges. In accordance with IEEE terms of service, search or download the Open Access paper through the official site, then link or import it below without duplicate copies."
-                                  : `${selectedPaper.source_name} provides article metadata and abstract on its public page, but does not expose an unauthenticated direct PDF stream link.`}
+                            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
+                              {selectedPaper.title}
+                            </h1>
+
+                            {/* Authors Strip */}
+                            {selectedPaper.authors && selectedPaper.authors.length > 0 && (
+                              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-slate-600 dark:text-slate-300">
+                                <span className="font-semibold text-slate-400">Authors:</span>
+                                {selectedPaper.authors.map((author, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium"
+                                  >
+                                    {author}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {selectedPaper.venue && (
+                              <p className="text-xs text-slate-500 dark:text-slate-400 italic pt-1">
+                                Published in: {selectedPaper.venue}
                               </p>
-                            </div>
+                            )}
 
-                            <div className="space-y-2 pt-2">
+                            {/* Primary Action Buttons */}
+                            <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                               {selectedPaper.url ? (
                                 <Button
                                   variant="primary"
                                   size="sm"
                                   onClick={() => window.open(selectedPaper.url, "_blank")}
-                                  className="w-full justify-center text-xs"
+                                  className="text-xs font-semibold px-4 py-2"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                                  Open{" "}
-                                  {selectedPaper.source_name
-                                    .toLowerCase()
-                                    .includes("ieee")
-                                    ? "IEEE Xplore Page"
-                                    : "Source Article Page"}
+                                  Open Official Article Page
                                 </Button>
                               ) : (
                                 <Button
                                   variant="primary"
                                   size="sm"
-                                  onClick={() =>
-                                    handleOpenIeeeXplore(selectedPaper.title)
-                                  }
-                                  className="w-full justify-center text-xs"
+                                  onClick={() => handleOpenIeeeXplore(selectedPaper.title)}
+                                  className="text-xs font-semibold px-4 py-2"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                                  Search on IEEE Xplore
+                                  Search Publisher Archive
                                 </Button>
                               )}
 
                               <Button
                                 variant="outline"
                                 size="sm"
+                                onClick={() => handleResolvePdf(selectedPaper)}
+                                className="text-xs font-semibold px-4 py-2 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                              >
+                                <Globe className="w-3.5 h-3.5 mr-1.5" />
+                                Resolve OA Mirrors
+                              </Button>
+
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() =>
                                   handleOpenImportModal(
-                                    selectedPaper.source_name
-                                      .toLowerCase()
-                                      .includes("ieee")
+                                    selectedPaper.source_name.toLowerCase().includes("ieee")
                                       ? "ieee"
                                       : "local",
                                     selectedPaper
                                   )
                                 }
-                                className="w-full justify-center text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                                className="text-xs font-semibold px-4 py-2 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
                               >
                                 <Upload className="w-3.5 h-3.5 mr-1.5" />
                                 Import or Link Downloaded PDF
                               </Button>
 
-                              {selectedPaper.canonical_doi && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleResolvePdf(selectedPaper)}
-                                  className="w-full justify-center text-xs text-slate-500"
-                                >
-                                  <Globe className="w-3.5 h-3.5 mr-1.5" />
-                                  Resolve OA Alternative
-                                </Button>
-                              )}
-
                               <Button
-                                variant="secondary"
+                                variant="ghost"
                                 size="sm"
-                                onClick={() => {
-                                  setQuickFilter("oa");
-                                  setFilterAccessStatus("open_access");
-                                  handleExecuteSearch(
-                                    selectedPaper.title || submittedQuery,
-                                    undefined,
-                                    false,
-                                    undefined,
-                                    true
-                                  );
-                                }}
-                                className="w-full justify-center text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-semibold"
+                                onClick={() => handleToggleSave(selectedPaper)}
+                                className="text-xs font-semibold px-3 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                               >
-                                <Unlock className="w-3.5 h-3.5 mr-1.5 text-emerald-600 dark:text-emerald-400" />
-                                Fetch Open Access Papers Only for this Topic
+                                <Bookmark className="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
+                                {selectedPaper.is_imported ? "In Library" : "Save to Library"}
                               </Button>
+                            </div>
+                          </div>
+
+                          {/* Abstract Card */}
+                          <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                <BookOpen className="w-4 h-4 text-indigo-500" />
+                                Abstract & Summary
+                              </h3>
+                              {selectedPaper.abstract_text && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(selectedPaper.abstract_text || "");
+                                    showToast("Abstract copied to clipboard!", "success");
+                                  }}
+                                  className="text-[11px] text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                  <span>Copy Abstract</span>
+                                </button>
+                              )}
+                            </div>
+
+                            {selectedPaper.abstract_text ? (
+                              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+                                {selectedPaper.abstract_text}
+                              </p>
+                            ) : (
+                              <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-xs italic space-y-2">
+                                <p>No abstract text was provided in the publisher metadata feed for this record.</p>
+                                <p className="text-[11px] text-slate-400">Click "Open Official Article Page" to view the complete article on the publisher website.</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Publisher Access Guidance */}
+                          <div className="p-5 rounded-2xl bg-amber-500/5 dark:bg-amber-400/5 border border-amber-500/20 flex items-start gap-3.5">
+                            <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                              <ShieldAlert className="w-5 h-5" />
+                            </div>
+                            <div className="space-y-1 text-xs">
+                              <h4 className="font-bold text-slate-800 dark:text-slate-200">
+                                {selectedPaper.source_name.toLowerCase().includes("ieee")
+                                  ? "IEEE Xplore Protected Document"
+                                  : "No Direct PDF Stream Available"}
+                              </h4>
+                              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                {selectedPaper.source_name.toLowerCase().includes("ieee")
+                                  ? "IEEE Xplore protects full text documents with subscription paywalls and session tokens. In accordance with terms of service, search or download the Open Access paper through the official site, then link or import it."
+                                  : `${selectedPaper.source_name} provides article metadata and abstract on its public page, but does not expose an unauthenticated direct PDF stream link.`}
+                              </p>
                             </div>
                           </div>
                         </div>

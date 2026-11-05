@@ -298,7 +298,7 @@ describe("Streaming Search & Direct PDF In-Panel Preview (Part K Requirements)",
     // Center panel shows truthful fallback without perpetual spinner or fake PDF
     expect(screen.getByText(/No Direct PDF Stream Available/i)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Open Source Article Page/i })
+      screen.getByRole("button", { name: /Open (Official|Source) Article Page/i })
     ).toBeInTheDocument();
   });
 });

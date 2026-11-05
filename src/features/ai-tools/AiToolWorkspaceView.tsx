@@ -916,9 +916,14 @@ export const AiToolWorkspaceView: React.FC<AiToolWorkspaceViewProps> = ({ toolId
               <Icon className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                {toolMeta.name}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  {toolMeta.name}
+                </h1>
+                <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 leading-none">
+                  Beta
+                </span>
+              </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {toolMeta.desc}
               </p>

@@ -47,6 +47,7 @@ interface CategoryConfig {
   id: NavCategory;
   label: string;
   shortLabel: string;
+  tag?: string;
   icon: React.ComponentType<{ className?: string }>;
   items: SubNavItem[];
 }
@@ -125,6 +126,7 @@ export const Sidebar: React.FC = () => {
         id: "ai_tools",
         label: "AI TOOLS",
         shortLabel: "AI Tools",
+        tag: "Beta",
         icon: Wrench,
         items: [
           {
@@ -151,6 +153,7 @@ export const Sidebar: React.FC = () => {
             id: "academic_writing_assistant",
             label: "Academic Writing Assistant",
             icon: PenTool,
+            badge: "Beta",
           },
           {
             id: "paraphrasing_tool",
@@ -520,9 +523,16 @@ export const Sidebar: React.FC = () => {
         <div className="w-54 sm:w-56 bg-slate-50/90 dark:bg-[#0b101b] text-slate-700 dark:text-slate-300 flex flex-col justify-between h-full border-r border-slate-200 dark:border-slate-800/80 shrink-0 animate-in fade-in duration-150 transition-colors duration-200">
           {/* Header with Category Name */}
           <div className="h-12 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 shrink-0">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              {currentCategory.label}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                {currentCategory.label}
+              </span>
+              {currentCategory.tag && (
+                <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 leading-none tracking-normal">
+                  {currentCategory.tag}
+                </span>
+              )}
+            </div>
 
             <button
               type="button"
@@ -579,11 +589,14 @@ export const Sidebar: React.FC = () => {
 
                   {item.badge !== undefined && (
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-md font-bold tabular-nums border ${
+                      aria-label={`${item.badge} tag`}
+                      className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full leading-none tracking-normal border ${
                         item.badgeColor ||
-                        (isActive
-                          ? "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-white/10 dark:text-slate-200 dark:border-white/10"
-                          : "bg-slate-200/80 text-slate-600 border-slate-300 dark:bg-white/[0.05] dark:text-slate-400 dark:border-white/[0.08]")
+                        (item.badge === "Beta" || item.badge === "BETA"
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                          : isActive
+                            ? "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-white/10 dark:text-slate-200 dark:border-white/10"
+                            : "bg-slate-200/80 text-slate-600 border-slate-300 dark:bg-white/[0.05] dark:text-slate-400 dark:border-white/[0.08]")
                       }`}
                     >
                       {item.badge}

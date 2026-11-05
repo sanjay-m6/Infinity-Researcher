@@ -292,6 +292,9 @@ export const AiToolsHubView: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded text-[11px] font-mono bg-slate-800 border border-slate-700 text-slate-300">
             <Cpu className="w-3.5 h-3.5" />
             <span>AI Research & Writing Suite</span>
+            <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 leading-none">
+              Beta
+            </span>
           </div>
 
           <h1 className="text-2xl font-bold tracking-tight text-white">

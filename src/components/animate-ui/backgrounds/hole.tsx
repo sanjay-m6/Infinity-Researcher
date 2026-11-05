@@ -52,17 +52,43 @@ function useSafeInView(ref: React.RefObject<Element | null>): boolean {
   return isInView;
 }
 
+function useIsDarkMode(): boolean {
+  const [isDark, setIsDark] = React.useState<boolean>(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("dark");
+  });
+
+  React.useEffect(() => {
+    if (typeof document === "undefined") return;
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+}
+
 export function HoleBackground({
-  strokeColor = "#737373",
-  numberOfLines = 50,
-  numberOfDiscs = 50,
-  particleRGBColor = [255, 255, 255],
+  strokeColor,
+  numberOfLines = 48,
+  numberOfDiscs = 48,
+  particleRGBColor,
   className,
   children,
   ...props
 }: HoleBackgroundProps) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  const [particleR, particleG, particleB] = particleRGBColor;
+  const isDark = useIsDarkMode();
+
+  const activeStrokeColor =
+    strokeColor || (isDark ? "rgba(148, 163, 184, 0.35)" : "rgba(99, 102, 241, 0.22)");
+
+  const [particleR, particleG, particleB] = particleRGBColor || (isDark ? [148, 163, 184] : [99, 102, 241]);
 
   const inView = useSafeInView(canvasRef);
   const pageVisible = usePageVisible();
@@ -73,23 +99,19 @@ export function HoleBackground({
     discs: [] as any[],
     lines: [] as any[],
     particles: [] as any[],
-    clip: {},
     startDisc: {},
     endDisc: {},
     rect: { width: 0, height: 0 },
     render: { width: 0, height: 0, dpi: 1 },
-    particleArea: {},
     linesCanvas: null,
   });
 
   const linear = (p: number) => p;
-  const easeInExpo = (p: number) => (p === 0 ? 0 : Math.pow(2, 10 * (p - 1)));
 
   const tweenValue = React.useCallback(
-    (start: number, end: number, p: number, ease: "inExpo" | null = null) => {
+    (start: number, end: number, p: number) => {
       const delta = end - start;
-      const easeFn = ease === "inExpo" ? easeInExpo : linear;
-      return start + delta * easeFn(p);
+      return start + delta * linear(p);
     },
     []
   );
@@ -98,7 +120,7 @@ export function HoleBackground({
     (disc: any) => {
       const { startDisc, endDisc } = stateRef.current;
       disc.x = tweenValue(startDisc.x, endDisc.x, disc.p);
-      disc.y = tweenValue(startDisc.y, endDisc.y, disc.p, "inExpo");
+      disc.y = tweenValue(startDisc.y, endDisc.y, disc.p);
       disc.w = Math.max(0, tweenValue(startDisc.w, endDisc.w, disc.p));
       disc.h = Math.max(0, tweenValue(startDisc.h, endDisc.h, disc.p));
     },
@@ -130,49 +152,28 @@ export function HoleBackground({
     if (width <= 0 || height <= 0) return;
 
     stateRef.current.discs = [];
+    const maxDim = Math.max(width, height);
+
+    // Spans comfortably past viewport bounds so the tunnel frames the entire screen
     stateRef.current.startDisc = {
       x: width * 0.5,
-      y: height * 0.45,
-      w: Math.max(0, width * 0.75),
-      h: Math.max(0, height * 0.7),
+      y: height * 0.48,
+      w: maxDim * 0.85,
+      h: maxDim * 0.58,
     };
+    // Converges inward towards the central horizon behind the content
     stateRef.current.endDisc = {
       x: width * 0.5,
-      y: height * 0.95,
-      w: 0,
-      h: 0,
+      y: height * 0.48,
+      w: maxDim * 0.04,
+      h: maxDim * 0.027,
     };
-    let prevBottom = height;
-    stateRef.current.clip = {};
+
     for (let i = 0; i < numberOfDiscs; i++) {
       const p = i / numberOfDiscs;
       const disc = { p, x: 0, y: 0, w: 0, h: 0 };
       tweenDisc(disc);
-      const bottom = disc.y + disc.h;
-      if (bottom <= prevBottom) {
-        stateRef.current.clip = { disc: { ...disc }, i };
-      }
-      prevBottom = bottom;
       stateRef.current.discs.push(disc);
-    }
-    if (!stateRef.current.clip.disc) {
-      stateRef.current.clip = { disc: { ...stateRef.current.startDisc }, i: 0 };
-    }
-
-    if (typeof Path2D !== "undefined") {
-      const clipPath = new Path2D();
-      const disc = stateRef.current.clip.disc;
-      clipPath.ellipse(
-        disc.x,
-        disc.y,
-        Math.max(0, disc.w),
-        Math.max(0, disc.h),
-        0,
-        0,
-        Math.PI * 2
-      );
-      clipPath.rect(disc.x - disc.w, 0, disc.w * 2, disc.y);
-      stateRef.current.clip.path = clipPath;
     }
   }, [numberOfDiscs, tweenDisc]);
 
@@ -205,58 +206,39 @@ export function HoleBackground({
     if (!ctx) return;
     ctx.scale(dpi, dpi);
 
-    const clipPath = stateRef.current.clip?.path;
-
     stateRef.current.lines.forEach((line: any) => {
-      ctx.save();
-      let lineIsIn = false;
-      line.forEach((p1: any, j: number) => {
-        if (j === 0) return;
-        const p0 = line[j - 1];
-        if (
-          !lineIsIn &&
-          clipPath &&
-          (ctx.isPointInPath(clipPath, p1.x * dpi, p1.y * dpi) ||
-            ctx.isPointInStroke(clipPath, p1.x * dpi, p1.y * dpi))
-        ) {
-          lineIsIn = true;
-        } else if (lineIsIn && clipPath) {
-          ctx.clip(clipPath);
-        }
-        ctx.beginPath();
-        ctx.moveTo(p0.x, p0.y);
-        ctx.lineTo(p1.x, p1.y);
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.closePath();
+      ctx.beginPath();
+      line.forEach((p: any, j: number) => {
+        if (j === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
       });
-      ctx.restore();
+      ctx.strokeStyle = activeStrokeColor;
+      ctx.lineWidth = 1.25;
+      ctx.stroke();
+      ctx.closePath();
     });
     stateRef.current.linesCanvas = offCanvas;
-  }, [numberOfLines, strokeColor]);
+  }, [numberOfLines, activeStrokeColor]);
 
   const initParticle = React.useCallback(
     (start: boolean = false) => {
-      const area = stateRef.current.particleArea || {};
-      const sx = (area.sx || 0) + (area.sw || 0) * Math.random();
-      const ex = (area.ex || 0) + (area.ew || 0) * Math.random();
-      const dx = ex - sx;
-      const y = start ? (area.h || 0) * Math.random() : area.h || 0;
-      const r = 0.5 + Math.random() * 4;
-      const vy = 0.5 + Math.random();
+      const { width, height } = stateRef.current.rect;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.4 + Math.random() * 1.2;
+      const maxDist = Math.max(width, height) * 0.45;
+      const rDist = start ? Math.random() * maxDist : Math.random() * 50;
       return {
-        x: sx,
-        sx,
-        dx,
-        y,
-        vy,
-        p: 0,
-        r,
-        c: `rgba(${particleR}, ${particleG}, ${particleB}, ${Math.random() * 0.8 + 0.2})`,
+        x: width * 0.5 + Math.cos(angle) * rDist,
+        y: height * 0.48 + Math.sin(angle) * rDist,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 0.25,
+        r: 0.8 + Math.random() * 2.2,
+        alpha: 0.25 + Math.random() * 0.65,
+        maxLife: 180 + Math.random() * 220,
+        life: start ? Math.random() * 180 : 0,
       };
     },
-    [particleR, particleG, particleB]
+    []
   );
 
   const setParticles = React.useCallback(() => {
@@ -264,17 +246,7 @@ export function HoleBackground({
     if (width <= 0 || height <= 0) return;
 
     stateRef.current.particles = [];
-    const disc = stateRef.current.clip?.disc || { w: width * 0.5 };
-    stateRef.current.particleArea = {
-      sw: disc.w * 0.5,
-      ew: disc.w * 2,
-      h: height * 0.85,
-    };
-    stateRef.current.particleArea.sx =
-      (width - stateRef.current.particleArea.sw) / 2;
-    stateRef.current.particleArea.ex =
-      (width - stateRef.current.particleArea.ew) / 2;
-    const totalParticles = 100;
+    const totalParticles = 75;
     for (let i = 0; i < totalParticles; i++) {
       stateRef.current.particles.push(initParticle(true));
     }
@@ -282,44 +254,20 @@ export function HoleBackground({
 
   const drawDiscs = React.useCallback(
     (ctx: CanvasRenderingContext2D) => {
-      ctx.strokeStyle = strokeColor;
-      ctx.lineWidth = 2;
-      const outerDisc = stateRef.current.startDisc;
-      if (outerDisc?.w > 0 && outerDisc?.h > 0) {
-        ctx.beginPath();
-        ctx.ellipse(
-          outerDisc.x,
-          outerDisc.y,
-          outerDisc.w,
-          outerDisc.h,
-          0,
-          0,
-          Math.PI * 2
-        );
-        ctx.stroke();
-        ctx.closePath();
-      }
-      const clipPath = stateRef.current.clip?.path;
-      const clipDiscW = stateRef.current.clip?.disc?.w || 0;
+      ctx.strokeStyle = activeStrokeColor;
+      ctx.lineWidth = 1.25;
 
       stateRef.current.discs.forEach((disc: any, i: number) => {
-        if (i % 5 !== 0) return;
+        if (i % 4 !== 0) return; // Draw every 4th disc for clean spacing
         if (disc.w <= 0 || disc.h <= 0) return;
 
-        if (clipPath && disc.w < clipDiscW - 5) {
-          ctx.save();
-          ctx.clip(clipPath);
-        }
         ctx.beginPath();
         ctx.ellipse(disc.x, disc.y, disc.w, disc.h, 0, 0, Math.PI * 2);
         ctx.stroke();
         ctx.closePath();
-        if (clipPath && disc.w < clipDiscW - 5) {
-          ctx.restore();
-        }
       });
     },
-    [strokeColor]
+    [activeStrokeColor]
   );
 
   const drawLines = React.useCallback((ctx: CanvasRenderingContext2D) => {
@@ -329,37 +277,34 @@ export function HoleBackground({
     }
   }, []);
 
-  const drawParticles = React.useCallback((ctx: CanvasRenderingContext2D) => {
-    const clipPath = stateRef.current.clip?.path;
-    ctx.save();
-    if (clipPath) {
-      ctx.clip(clipPath);
-    }
-    stateRef.current.particles.forEach((particle: any) => {
-      ctx.fillStyle = particle.c;
-      ctx.beginPath();
-      ctx.rect(particle.x, particle.y, particle.r, particle.r);
-      ctx.closePath();
-      ctx.fill();
-    });
-    ctx.restore();
-  }, []);
+  const drawParticles = React.useCallback(
+    (ctx: CanvasRenderingContext2D) => {
+      stateRef.current.particles.forEach((particle: any) => {
+        const fade = Math.max(0, 1 - particle.life / particle.maxLife);
+        ctx.fillStyle = `rgba(${particleR}, ${particleG}, ${particleB}, ${particle.alpha * fade})`;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+      });
+    },
+    [particleR, particleG, particleB]
+  );
 
   const moveDiscs = React.useCallback(() => {
     stateRef.current.discs.forEach((disc: any) => {
-      disc.p = (disc.p + 0.001) % 1;
+      disc.p = (disc.p + 0.0008) % 1;
       tweenDisc(disc);
     });
   }, [tweenDisc]);
 
   const moveParticles = React.useCallback(() => {
-    const areaH = stateRef.current.particleArea?.h || 1;
-    stateRef.current.particles.forEach((particle: any, idx: number) => {
-      particle.p = 1 - particle.y / areaH;
-      particle.x = particle.sx + particle.dx * particle.p;
-      particle.y -= particle.vy;
-      if (particle.y < 0) {
-        stateRef.current.particles[idx] = initParticle();
+    stateRef.current.particles.forEach((p: any, idx: number) => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life++;
+      if (p.life > p.maxLife) {
+        stateRef.current.particles[idx] = initParticle(false);
       }
     });
   }, [initParticle]);
@@ -433,36 +378,41 @@ export function HoleBackground({
     <div
       data-slot="hole-background"
       className={cn(
-        "relative size-full overflow-hidden",
+        "relative size-full overflow-hidden select-none",
         "before:pointer-events-none after:pointer-events-none",
-        'before:content-[""] before:absolute before:top-1/2 before:left-1/2 before:block before:size-[140%] before:[background:radial-gradient(ellipse_at_50%_55%,transparent_10%,#f8fafc_50%)] dark:before:[background:radial-gradient(ellipse_at_50%_55%,transparent_10%,#070b12_50%)] before:[transform:translate3d(-50%,-50%,0)]',
-        'after:content-[""] after:absolute after:z-[5] after:top-1/2 after:left-1/2 after:block after:size-full after:[background:radial-gradient(ellipse_at_50%_75%,#6366f1_20%,transparent_75%)] after:[transform:translate3d(-50%,-50%,0)] after:mix-blend-overlay',
+        // Smooth edge vignette that covers the ENTIRE background without cutoffs
+        'before:content-[""] before:absolute before:inset-0 before:block before:size-full before:[background:radial-gradient(ellipse_at_50%_48%,transparent_35%,rgba(248,250,252,0.65)_75%,#f8fafc_100%)] dark:before:[background:radial-gradient(ellipse_at_50%_48%,transparent_35%,rgba(7,11,18,0.7)_75%,#070b12_100%)]',
+        // Ambient soft bloom overlay
+        'after:content-[""] after:absolute after:z-[5] after:inset-0 after:block after:size-full after:[background:radial-gradient(ellipse_at_50%_48%,rgba(99,102,241,0.12)_0%,transparent_65%)] after:mix-blend-overlay',
         className
       )}
       {...props}
     >
+      {/* 2D Canvas Tunnel Grid */}
       <canvas
         ref={canvasRef}
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 block size-full opacity-25 dark:opacity-35"
+        className="pointer-events-none absolute inset-0 block size-full opacity-85 dark:opacity-80"
       />
+
+      {/* Luminous Core Aurora rotating and pulsing in the center */}
       <motion.div
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute top-[-71.5%] left-1/2 z-[3] w-[35%] h-[140%] rounded-b-full blur-3xl opacity-40 dark:opacity-75 mix-blend-multiply dark:mix-blend-plus-lighter [transform:translate3d(-50%,0,0)] [background-position:0%_100%] [background-size:100%_200%]",
-          "[background:linear-gradient(20deg,#6366f1,#8b5cf6_16.5%,#ec4899_33%,#ec489940_49.5%,#6366f1_66%,#3b82f6_85.5%,#8b5cf6_100%)_0_100%_/_100%_200%] dark:[background:linear-gradient(20deg,#00f8f1,#ffbd1e20_16.5%,#fe848f_33%,#fe848f20_49.5%,#00f8f1_66%,#00f8f160_85.5%,#ffbd1e_100%)_0_100%_/_100%_200%]"
+          "pointer-events-none absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-[3] w-[50%] h-[50%] rounded-full blur-[100px] opacity-40 dark:opacity-55 mix-blend-multiply dark:mix-blend-plus-lighter",
+          "[background:radial-gradient(circle,rgba(99,102,241,0.7)_0%,rgba(168,85,247,0.45)_35%,rgba(236,72,153,0.25)_65%,transparent_80%)] dark:[background:radial-gradient(circle,rgba(0,248,241,0.55)_0%,rgba(139,92,246,0.45)_35%,rgba(254,132,143,0.3)_65%,transparent_80%)]"
         )}
-        animate={{ backgroundPosition: playing ? "0% 300%" : "0% 100%" }}
+        animate={{
+          scale: playing ? [1, 1.12, 1] : 1,
+          rotate: playing ? [0, 180, 360] : 0,
+        }}
         transition={
           playing
-            ? { duration: 5, ease: "linear", repeat: Infinity }
+            ? { duration: 16, ease: "linear", repeat: Infinity }
             : { duration: 0 }
         }
       />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute top-0 left-0 z-[7] size-full dark:[background:repeating-linear-gradient(transparent,transparent_1px,white_1px,white_2px)] mix-blend-overlay opacity-20"
-      />
+
       {children}
     </div>
   );

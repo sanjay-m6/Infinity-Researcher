@@ -9,15 +9,15 @@ export const AuthView: React.FC = () => {
   const [mode, setMode] = useState<"login" | "signup">("login");
 
   return (
-    <div className="relative w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto bg-slate-50 dark:bg-[#070b12] text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="relative w-full h-full flex flex-col items-center justify-between p-4 sm:p-6 lg:p-8 overflow-y-auto bg-slate-50 dark:bg-[#070b12] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {/* Animated Hole Background tunnel & aurora */}
       <HoleBackground className="absolute inset-0 pointer-events-none z-0" />
 
-      <div className="w-full max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 lg:gap-16 relative z-10 my-auto py-6">
+      <div className="flex-1 w-full max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 lg:gap-16 relative z-10 my-auto py-4">
         {/* Desktop Scholarly Hero Panel (Visible on lg screens to balance canvas & eliminate empty void) */}
-        <div className="hidden lg:flex flex-col flex-1 max-w-lg space-y-6 text-left">
+        <div className="hidden lg:flex flex-col flex-1 max-w-lg space-y-5 text-left">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10 p-2.5 shadow-xs flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-white/10 p-2.5 shadow-md flex items-center justify-center backdrop-blur-md">
               <img
                 src={applicationIcon}
                 alt="Infinity Researcher"
@@ -25,7 +25,7 @@ export const AuthView: React.FC = () => {
               />
             </div>
             <div>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/40 mb-1">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/50 mb-1">
                 Academic Research Platform
               </span>
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -39,8 +39,8 @@ export const AuthView: React.FC = () => {
             synthesize, and organize scientific literature with total privacy.
           </p>
 
-          <div className="space-y-3.5 pt-2">
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-white/[0.06] shadow-xs">
+          <div className="space-y-3 pt-1">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/75 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/75 dark:border-white/[0.08] shadow-xs hover:border-indigo-400/30 transition-all">
               <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/60 dark:border-indigo-800/40 flex items-center justify-center shrink-0 text-indigo-600 dark:text-indigo-400">
                 <Search className="w-4 h-4" />
               </div>
@@ -55,7 +55,7 @@ export const AuthView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-white/[0.06] shadow-xs">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/75 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/75 dark:border-white/[0.08] shadow-xs hover:border-emerald-400/30 transition-all">
               <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
                 <Database className="w-4 h-4" />
               </div>
@@ -70,7 +70,7 @@ export const AuthView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-white/[0.06] shadow-xs">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/75 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/75 dark:border-white/[0.08] shadow-xs hover:border-sky-400/30 transition-all">
               <div className="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200/60 dark:border-sky-800/40 flex items-center justify-center shrink-0 text-sky-600 dark:text-sky-400">
                 <ShieldCheck className="w-4 h-4" />
               </div>
@@ -86,7 +86,7 @@ export const AuthView: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-2 text-[11px] text-slate-400 dark:text-slate-500">
+          <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-400 dark:text-slate-500">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span>100% Local Core • All data stored locally on your device</span>
           </div>
@@ -103,7 +103,7 @@ export const AuthView: React.FC = () => {
       </div>
 
       {/* Subtle branding footer */}
-      <div className="mt-auto py-4 text-center text-[11px] text-slate-400 dark:text-slate-500 relative z-10 select-none">
+      <div className="shrink-0 py-3 text-center text-[11px] text-slate-400 dark:text-slate-500 relative z-10 select-none">
         Infinity Researcher • 100% Local-First Academic Research Engine
       </div>
     </div>

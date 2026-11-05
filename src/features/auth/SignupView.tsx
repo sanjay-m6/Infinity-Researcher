@@ -58,7 +58,7 @@ export const SignupView: React.FC<SignupModalProps> = ({ onSwitchToLogin }) => {
   };
 
   return (
-    <div className="w-full max-w-[420px] bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/[0.08] rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/70 p-7 sm:p-8 backdrop-blur-xl relative z-10 transition-colors duration-200">
+    <div className="w-full max-w-[420px] bg-white/85 dark:bg-slate-900/85 border border-slate-200/80 dark:border-white/[0.08] rounded-2xl shadow-2xl shadow-indigo-500/5 dark:shadow-black/70 p-7 sm:p-8 backdrop-blur-xl relative z-10 transition-colors duration-200">
       {/* Brand Header */}
       <div className="text-center mb-6">
         <div className="flex justify-center mb-3">

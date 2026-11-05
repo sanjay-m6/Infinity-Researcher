@@ -25,7 +25,24 @@ impl MedrxivAdapter {
         Self
     }
 
-    fn strip_html_tags(s: &str) -> String {
+    pub fn url_encode(input: &str) -> String {
+        let mut encoded = String::with_capacity(input.len() * 2);
+        for byte in input.bytes() {
+            match byte {
+                b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                    encoded.push(byte as char);
+                }
+                b' ' => encoded.push('+'),
+                _ => {
+                    use std::fmt::Write;
+                    let _ = write!(encoded, "%{:02X}", byte);
+                }
+            }
+        }
+        encoded
+    }
+
+    pub fn strip_html_tags(s: &str) -> String {
         let mut out = String::with_capacity(s.len());
         let mut in_tag = false;
         for c in s.chars() {
@@ -44,6 +61,257 @@ impl MedrxivAdapter {
             .replace("&#39;", "'")
             .trim()
             .to_string()
+    }
+
+    pub fn parse_epmc_json(body: &str) -> Result<Vec<DiscoveredSearchResult>, String> {
+        let val: serde_json::Value = serde_json::from_str(body)
+            .map_err(|e| format!("Failed parsing medRxiv JSON response: {e}"))?;
+
+        let empty_vec = Vec::new();
+        let items = val["resultList"]["result"].as_array().unwrap_or(&empty_vec);
+
+        let mut results = Vec::new();
+        for item in items {
+            let raw_title = item["title"].as_str().unwrap_or("").trim();
+            let title = Self::strip_html_tags(raw_title)
+                .trim_end_matches('.')
+                .trim()
+                .to_string();
+            if title.is_empty() {
+                continue;
+            }
+
+            let authors: Vec<String> =
+                if let Some(author_list) = item["authorList"]["author"].as_array() {
+                    author_list
+                        .iter()
+                        .filter_map(|a| a["fullName"].as_str().map(|s| s.trim().to_string()))
+                        .filter(|s| !s.is_empty())
+                        .collect()
+                } else if let Some(author_str) = item["authorString"].as_str() {
+                    author_str
+                        .split(',')
+                        .map(|s| s.trim().to_string())
+                        .filter(|s| !s.is_empty())
+                        .collect()
+                } else {
+                    vec!["medRxiv Author".to_string()]
+                };
+
+            let pub_year = item["pubYear"].as_str().and_then(|y| y.parse::<i32>().ok());
+            let pub_date = pub_year.map(|y| format!("{y}-01-01"));
+            let doi = item["doi"].as_str().map(|d| d.trim().to_string());
+
+            let abstract_text = item["abstractText"]
+                .as_str()
+                .map(Self::strip_html_tags)
+                .filter(|a| !a.is_empty());
+
+            let landing_url = if let Some(ref d) = doi {
+                format!("https://doi.org/{d}")
+            } else {
+                let id = item["id"].as_str().unwrap_or("");
+                format!("https://europepmc.org/article/PPR/{id}")
+            };
+
+            let pdf_url = doi
+                .as_ref()
+                .map(|d| format!("https://www.medrxiv.org/content/{d}.full.pdf"));
+
+            let id = format!(
+                "medrxiv_{}",
+                doi.as_deref()
+                    .unwrap_or_else(|| item["id"].as_str().unwrap_or(""))
+                    .replace('/', "_")
+            );
+
+            results.push(DiscoveredSearchResult {
+                id,
+                title,
+                authors,
+                publication_date: pub_date,
+                publication_year: pub_year,
+                venue: Some("medRxiv Preprints".to_string()),
+                canonical_doi: doi,
+                abstract_text,
+                landing_url: landing_url.clone(),
+                pdf_url,
+                source_id: "medrxiv".to_string(),
+                source_name: "medRxiv Preprints".to_string(),
+                content_type: "preprint".to_string(),
+                is_open_access: true,
+                license_name: Some("CC-BY / CSHL Open Access".to_string()),
+                peer_reviewed: Some(false),
+                subject_tags: vec!["Medicine".to_string(), "Preprint".to_string()],
+                language: Some("en".to_string()),
+                relevance_score: 1.0,
+                provenance_urls: vec![landing_url],
+                metadata_confidence: Some(0.95),
+            });
+        }
+
+        Ok(results)
+    }
+
+    pub fn parse_crossref_medrxiv_json(
+        json_str: &str,
+        cancel: Arc<AtomicBool>,
+    ) -> Result<Vec<DiscoveredSearchResult>, String> {
+        let cr_val: serde_json::Value = serde_json::from_str(json_str)
+            .map_err(|e| format!("Failed to parse Crossref medRxiv response: {e}"))?;
+
+        let empty_vec = Vec::new();
+        let items = cr_val["message"]["items"].as_array().unwrap_or(&empty_vec);
+
+        let mut results = Vec::new();
+        for item in items {
+            if cancel.load(Ordering::Relaxed) {
+                return Err("Search was cancelled by user.".to_string());
+            }
+
+            let raw_title = item["title"]
+                .as_array()
+                .and_then(|t| t.first())
+                .and_then(|t| t.as_str())
+                .unwrap_or("")
+                .trim();
+
+            let title = Self::strip_html_tags(raw_title);
+            if title.is_empty() {
+                continue;
+            }
+
+            let mut authors = Vec::new();
+            if let Some(author_list) = item["author"].as_array() {
+                for a in author_list {
+                    let full_name = match (a["given"].as_str(), a["family"].as_str()) {
+                        (Some(g), Some(f)) => format!("{} {}", g.trim(), f.trim()),
+                        (None, Some(f)) => f.trim().to_string(),
+                        (Some(g), None) => g.trim().to_string(),
+                        _ => a["name"].as_str().unwrap_or("").trim().to_string(),
+                    };
+                    if !full_name.is_empty() {
+                        authors.push(full_name);
+                    }
+                }
+            }
+            if authors.is_empty() {
+                authors.push("medRxiv Author".to_string());
+            }
+
+            let pub_year = item["published-print"]["date-parts"][0][0]
+                .as_i64()
+                .or_else(|| item["published-online"]["date-parts"][0][0].as_i64())
+                .or_else(|| item["created"]["date-parts"][0][0].as_i64())
+                .map(|y| y as i32);
+
+            let pub_date = pub_year.map(|y| format!("{}-01-01", y));
+
+            let venue = item["container-title"]
+                .as_array()
+                .and_then(|c| c.first())
+                .and_then(|c| c.as_str())
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .or(Some("medRxiv Preprints".to_string()));
+
+            let doi = item["DOI"]
+                .as_str()
+                .map(|d| d.trim().to_string())
+                .filter(|d| !d.is_empty());
+
+            let landing_url = doi
+                .as_ref()
+                .map(|d| format!("https://doi.org/{d}"))
+                .or_else(|| item["URL"].as_str().map(|u| u.to_string()))
+                .unwrap_or_else(|| "https://www.medrxiv.org".to_string());
+
+            let pdf_url = doi
+                .as_ref()
+                .map(|d| format!("https://www.medrxiv.org/content/{d}.full.pdf"));
+
+            let abstract_text = item["abstract"]
+                .as_str()
+                .map(|a| Self::strip_html_tags(a))
+                .filter(|a| !a.is_empty());
+
+            let item_id = doi.as_deref().unwrap_or(&landing_url);
+            let id_slug: String = item_id
+                .chars()
+                .filter(|c| c.is_alphanumeric())
+                .take(12)
+                .collect();
+            let unique_part = uuid::Uuid::new_v4().to_string();
+
+            results.push(DiscoveredSearchResult {
+                id: format!(
+                    "medrxiv_{}_{}",
+                    if id_slug.is_empty() { "work" } else { &id_slug },
+                    &unique_part[..8]
+                ),
+                title,
+                authors,
+                publication_date: pub_date,
+                publication_year: pub_year,
+                venue,
+                canonical_doi: doi,
+                abstract_text,
+                landing_url: landing_url.clone(),
+                pdf_url,
+                source_id: "medrxiv".to_string(),
+                source_name: "medRxiv Preprints".to_string(),
+                content_type: "preprint".to_string(),
+                is_open_access: true,
+                license_name: Some("CC-BY / CSHL Open Access".to_string()),
+                peer_reviewed: Some(false),
+                subject_tags: vec!["Medicine".to_string(), "Preprint".to_string()],
+                language: Some("en".to_string()),
+                relevance_score: 1.0,
+                provenance_urls: vec![landing_url],
+                metadata_confidence: Some(0.95),
+            });
+        }
+
+        Ok(results)
+    }
+
+    pub async fn search_crossref_fallback(
+        client: &reqwest::Client,
+        query: &WebsiteSearchQuery,
+        cancel: Arc<AtomicBool>,
+    ) -> Result<Vec<DiscoveredSearchResult>, String> {
+        let limit = query.limit_per_source.unwrap_or(50).clamp(1, 100);
+        let encoded_q = Self::url_encode(&query.query);
+        let crossref_url = format!(
+            "https://api.crossref.org/works?query={}&filter=prefix:10.1101&rows={}",
+            encoded_q, limit
+        );
+
+        let validated_crossref = UrlGuard::validate_url(&crossref_url)
+            .map_err(|e| format!("Anti-SSRF blocked Crossref medRxiv URL: {e}"))?;
+
+        info!(query = %query.query, "Querying Crossref index fallback for medRxiv (prefix 10.1101)");
+
+        let cr_resp = client
+            .get(validated_crossref.as_str())
+            .header(
+                "User-Agent",
+                "InfinityResearcher/1.0 (mailto:dev@infinityresearcher.org)",
+            )
+            .header("Accept", "application/json")
+            .send()
+            .await
+            .map_err(|e| format!("Failed reaching Crossref for medRxiv fallback: {e}"))?;
+
+        if !cr_resp.status().is_success() {
+            return Err(format!("Crossref medRxiv returned HTTP status: {}", cr_resp.status()));
+        }
+
+        let body = CrawlEngine::read_response_body_bounded(cr_resp)
+            .await
+            .map_err(|e| format!("Failed reading Crossref medRxiv response body: {e}"))?;
+
+        Self::parse_crossref_medrxiv_json(&body, cancel)
     }
 }
 
@@ -184,122 +452,72 @@ impl SourceAdapter for MedrxivAdapter {
             encoded_q, limit
         );
 
-        let validated_url = UrlGuard::validate_url(&url_str)
-            .map_err(|e| format!("Anti-SSRF blocked Europe PMC URL for medRxiv: {e}"))?;
+        if let Ok(validated_url) = UrlGuard::validate_url(&url_str) {
+            info!(url = %validated_url, "Querying medRxiv preprints via open science index");
 
-        info!(url = %validated_url, "Querying medRxiv preprints via open science index");
+            let resp_res = client
+                .get(validated_url.as_str())
+                .header(
+                    "User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                )
+                .header("Accept", "application/json")
+                .send()
+                .await;
 
-        let resp = client
-            .get(validated_url.as_str())
-            .header(
-                "User-Agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            )
-            .header("Accept", "application/json")
-            .send()
-            .await
-            .map_err(|e| format!("Failed to reach Europe PMC index for medRxiv: {e}"))?;
-
-        if resp.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {
-            return Err("Europe PMC rate limit reached (HTTP 429).".to_string());
-        }
-        if !resp.status().is_success() {
-            return Err(format!(
-                "Europe PMC returned HTTP status: {}",
-                resp.status()
-            ));
-        }
-
-        let body = CrawlEngine::read_response_body_bounded(resp)
-            .await
-            .map_err(|e| format!("Failed reading response body: {e}"))?;
-
-        let val: serde_json::Value = serde_json::from_str(&body)
-            .map_err(|e| format!("Failed parsing medRxiv JSON response: {e}"))?;
-
-        let empty_vec = Vec::new();
-        let items = val["resultList"]["result"].as_array().unwrap_or(&empty_vec);
-
-        let mut results = Vec::new();
-        for item in items {
-            let raw_title = item["title"].as_str().unwrap_or("").trim();
-            let title = Self::strip_html_tags(raw_title)
-                .trim_end_matches('.')
-                .trim()
-                .to_string();
-            if title.is_empty() {
-                continue;
+            if let Ok(resp) = resp_res {
+                if resp.status().is_success() {
+                    if let Ok(body) = CrawlEngine::read_response_body_bounded(resp).await {
+                        if let Ok(results) = Self::parse_epmc_json(&body) {
+                            if !results.is_empty() {
+                                return Ok(results);
+                            }
+                        }
+                    }
+                }
             }
-
-            let authors: Vec<String> =
-                if let Some(author_list) = item["authorList"]["author"].as_array() {
-                    author_list
-                        .iter()
-                        .filter_map(|a| a["fullName"].as_str().map(|s| s.trim().to_string()))
-                        .filter(|s| !s.is_empty())
-                        .collect()
-                } else if let Some(author_str) = item["authorString"].as_str() {
-                    author_str
-                        .split(',')
-                        .map(|s| s.trim().to_string())
-                        .filter(|s| !s.is_empty())
-                        .collect()
-                } else {
-                    vec!["medRxiv Author".to_string()]
-                };
-
-            let pub_year = item["pubYear"].as_str().and_then(|y| y.parse::<i32>().ok());
-            let pub_date = pub_year.map(|y| format!("{y}-01-01"));
-            let doi = item["doi"].as_str().map(|d| d.trim().to_string());
-
-            let abstract_text = item["abstractText"]
-                .as_str()
-                .map(Self::strip_html_tags)
-                .filter(|a| !a.is_empty());
-
-            let landing_url = if let Some(ref d) = doi {
-                format!("https://doi.org/{d}")
-            } else {
-                let id = item["id"].as_str().unwrap_or("");
-                format!("https://europepmc.org/article/PPR/{id}")
-            };
-
-            let pdf_url = doi
-                .as_ref()
-                .map(|d| format!("https://www.medrxiv.org/content/{d}.full.pdf"));
-
-            let id = format!(
-                "medrxiv_{}",
-                doi.as_deref()
-                    .unwrap_or_else(|| item["id"].as_str().unwrap_or(""))
-                    .replace('/', "_")
-            );
-
-            results.push(DiscoveredSearchResult {
-                id,
-                title,
-                authors,
-                publication_date: pub_date,
-                publication_year: pub_year,
-                venue: Some("medRxiv Preprints".to_string()),
-                canonical_doi: doi,
-                abstract_text,
-                landing_url: landing_url.clone(),
-                pdf_url,
-                source_id: "medrxiv".to_string(),
-                source_name: "medRxiv Preprints".to_string(),
-                content_type: "preprint".to_string(),
-                is_open_access: true,
-                license_name: Some("CC-BY / CSHL Open Access".to_string()),
-                peer_reviewed: Some(false),
-                subject_tags: vec!["Medicine".to_string(), "Preprint".to_string()],
-                language: Some("en".to_string()),
-                relevance_score: 1.0,
-                provenance_urls: vec![landing_url],
-                metadata_confidence: Some(0.95),
-            });
         }
 
-        Ok(results)
+        // Resilient Fallback: If Europe PMC is unreachable (HTTP 503/429/timeout), fallback to Crossref
+        info!(query = %query.query, "Europe PMC unavailable or empty; executing resilient Crossref fallback for medRxiv");
+        Self::search_crossref_fallback(client, query, cancel).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_crossref_medrxiv_json() {
+        let json_data = r#"{
+            "status": "ok",
+            "message": {
+                "items": [
+                    {
+                        "title": ["Clinical Outcomes of Novel Antiviral Therapy: A Randomized Trial"],
+                        "author": [
+                            {"given": "Robert", "family": "Johnson"}
+                        ],
+                        "published-print": {"date-parts": [[2024, 2, 10]]},
+                        "container-title": ["medRxiv"],
+                        "DOI": "10.1101/2024.02.10.24302611",
+                        "URL": "https://doi.org/10.1101/2024.02.10.24302611"
+                    }
+                ]
+            }
+        }"#;
+
+        let cancel = Arc::new(AtomicBool::new(false));
+        let results = MedrxivAdapter::parse_crossref_medrxiv_json(json_data, cancel).unwrap();
+        assert_eq!(results.len(), 1);
+        let p = &results[0];
+        assert_eq!(p.title, "Clinical Outcomes of Novel Antiviral Therapy: A Randomized Trial");
+        assert_eq!(p.authors, vec!["Robert Johnson"]);
+        assert_eq!(p.publication_year, Some(2024));
+        assert_eq!(p.canonical_doi, Some("10.1101/2024.02.10.24302611".to_string()));
+        assert_eq!(p.pdf_url, Some("https://www.medrxiv.org/content/10.1101/2024.02.10.24302611.full.pdf".to_string()));
+        assert_eq!(p.source_id, "medrxiv");
+        assert!(p.is_open_access);
     }
 }

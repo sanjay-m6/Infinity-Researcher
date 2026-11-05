@@ -144,3 +144,47 @@ async def test_malformed_html_handling(malformed_html):
 
     # Malformed cards without titles should be gracefully skipped
     assert len(papers) == 0
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_biorxiv_crossref_fallback_on_epmc_503():
+    # bioRxiv direct search fails
+    respx.get(url__regex=r"https://www\.biorxiv\.org/search/.*").respond(status_code=403)
+    # Europe PMC returns 503
+    respx.get(url__regex=r"https://www\.ebi\.ac\.uk/europepmc/.*").respond(status_code=503)
+    # Crossref returns mock results
+    respx.get(url__regex=r"https://api\.crossref\.org/works.*prefix:10\.1101.*").respond(
+        status_code=200,
+        json={
+            "message": {
+                "items": [
+                    {
+                        "title": ["Single-cell Transcriptomic Profiling via Crossref Fallback"],
+                        "author": [{"given": "Alice", "family": "Smith"}],
+                        "published-print": {"date-parts": [[2024, 3, 15]]},
+                        "container-title": ["bioRxiv"],
+                        "DOI": "10.1101/2024.03.15.585123",
+                        "URL": "https://doi.org/10.1101/2024.03.15.585123",
+                    }
+                ]
+            }
+        },
+    )
+
+    adapter = BiorxivAdapter()
+    filter_req = QueryFilter(query="transcriptomic")
+
+    papers = []
+    async with httpx.AsyncClient() as client:
+        async for paper in adapter.search("transcriptomic", filter_req, client):
+            papers.append(paper)
+
+    assert len(papers) == 1
+    p = papers[0]
+    assert "Single-cell Transcriptomic Profiling via Crossref Fallback" in p.title
+    assert "Alice Smith" in p.authors
+    assert p.doi == "10.1101/2024.03.15.585123"
+    assert p.pdf_url == "https://www.biorxiv.org/content/10.1101/2024.03.15.585123.full.pdf"
+    assert p.source_id == "biorxiv"
+

@@ -76,7 +76,7 @@ class AdapterSearchEngine:
         })
 
         async with httpx.AsyncClient(
-            timeout=25.0,
+            timeout=35.0,
             follow_redirects=True,
             limits=httpx.Limits(max_keepalive_connections=20, max_connections=40),
         ) as client:

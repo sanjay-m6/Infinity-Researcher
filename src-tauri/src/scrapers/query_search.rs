@@ -140,7 +140,7 @@ impl WebsiteSearchEngine {
         ENGINE_START_TIME.get_or_init(Instant::now);
 
         let client = Client::builder()
-            .timeout(std::time::Duration::from_secs(14))
+            .timeout(std::time::Duration::from_secs(35))
             .redirect(reqwest::redirect::Policy::custom(|attempt| {
                 if attempt.previous().len() >= 4 {
                     attempt.error("Too many redirects")
@@ -451,7 +451,8 @@ impl WebsiteSearchEngine {
                 }
 
                 let s_time = Instant::now();
-                let timeout_duration = std::time::Duration::from_secs(14);
+                // Increased per-source timeout to 35s to allow slower scholarly sources like arXiv to return fully
+                let timeout_duration = std::time::Duration::from_secs(35);
                 let timeout_res = tokio::time::timeout(
                     timeout_duration,
                     adapter.search(&client, &query_copy, cancel.clone()),
@@ -474,7 +475,7 @@ impl WebsiteSearchEngine {
                 let res = match timeout_res {
                     Ok(inner) => inner,
                     Err(_) => Err(format!(
-                        "Search timed out after 14 seconds for {src_name}. Server did not respond in time."
+                        "Search timed out after 35 seconds for {src_name}. Server did not respond in time."
                     )),
                 };
 
@@ -562,14 +563,14 @@ impl WebsiteSearchEngine {
         let mut completed_sources_count = 0;
         let total_sources_count = tasks.len();
 
-        // Enforce an overall search deadline (25 seconds) so the search job can never hang indefinitely
-        let search_deadline = tokio::time::sleep(std::time::Duration::from_secs(25));
+        // Enforce an overall search deadline (45 seconds) so the search job can never hang indefinitely
+        let search_deadline = tokio::time::sleep(std::time::Duration::from_secs(45));
         tokio::pin!(search_deadline);
 
         loop {
             tokio::select! {
                 _ = &mut search_deadline => {
-                    tracing::warn!(session_id = %session_id, "Overall search deadline of 25s reached; aborting remaining in-flight tasks");
+                    tracing::warn!(session_id = %session_id, "Overall search deadline of 45s reached; aborting remaining in-flight tasks");
                     tasks.abort_all();
                     job_guard.finalize_timed_out(total_discovered);
                     return;

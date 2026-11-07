@@ -67,7 +67,7 @@ function isNewerVersion(remoteVer: string, currentVer: string): boolean {
   return false;
 }
 
-export function useAppUpdater(currentVersion = "0.1.1"): UseAppUpdaterReturn {
+export function useAppUpdater(currentVersion = "0.1.2"): UseAppUpdaterReturn {
   const [status, setStatus] = useState<UpdateStatus>("idle");
   const [updateInfo, setUpdateInfo] = useState<UpdateDetails | null>(null);
   const [progress, setProgress] = useState<UpdateProgress | null>(null);

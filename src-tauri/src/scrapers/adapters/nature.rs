@@ -305,7 +305,10 @@ impl NatureAdapter {
             .map_err(|e| format!("Failed reaching Crossref for Nature fallback: {e}"))?;
 
         if !cr_resp.status().is_success() {
-            return Err(format!("Crossref Nature returned HTTP status: {}", cr_resp.status()));
+            return Err(format!(
+                "Crossref Nature returned HTTP status: {}",
+                cr_resp.status()
+            ));
         }
 
         let body = CrawlEngine::read_response_body_bounded(cr_resp)
@@ -512,11 +515,20 @@ mod tests {
         let results = NatureAdapter::parse_crossref_nature_json(json_data, cancel).unwrap();
         assert_eq!(results.len(), 1);
         let p = &results[0];
-        assert_eq!(p.title, "Quantum inverse iteration algorithm for programmable quantum simulators");
+        assert_eq!(
+            p.title,
+            "Quantum inverse iteration algorithm for programmable quantum simulators"
+        );
         assert_eq!(p.authors, vec!["Jane Scientist"]);
         assert_eq!(p.publication_year, Some(2023));
-        assert_eq!(p.canonical_doi, Some("10.1038/s41534-019-0239-7".to_string()));
-        assert_eq!(p.pdf_url, Some("https://www.nature.com/articles/s41534-019-0239-7.pdf".to_string()));
+        assert_eq!(
+            p.canonical_doi,
+            Some("10.1038/s41534-019-0239-7".to_string())
+        );
+        assert_eq!(
+            p.pdf_url,
+            Some("https://www.nature.com/articles/s41534-019-0239-7.pdf".to_string())
+        );
         assert_eq!(p.source_id, "nature_srep");
         assert!(p.is_open_access);
     }

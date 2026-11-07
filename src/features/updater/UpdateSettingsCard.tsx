@@ -21,7 +21,7 @@ export interface UpdateSettingsCardProps {
 }
 
 export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
-  currentVersion = "0.1.1",
+  currentVersion = "0.1.2",
 }) => {
   const {
     status,

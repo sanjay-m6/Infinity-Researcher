@@ -304,7 +304,10 @@ impl MedrxivAdapter {
             .map_err(|e| format!("Failed reaching Crossref for medRxiv fallback: {e}"))?;
 
         if !cr_resp.status().is_success() {
-            return Err(format!("Crossref medRxiv returned HTTP status: {}", cr_resp.status()));
+            return Err(format!(
+                "Crossref medRxiv returned HTTP status: {}",
+                cr_resp.status()
+            ));
         }
 
         let body = CrawlEngine::read_response_body_bounded(cr_resp)
@@ -512,11 +515,22 @@ mod tests {
         let results = MedrxivAdapter::parse_crossref_medrxiv_json(json_data, cancel).unwrap();
         assert_eq!(results.len(), 1);
         let p = &results[0];
-        assert_eq!(p.title, "Clinical Outcomes of Novel Antiviral Therapy: A Randomized Trial");
+        assert_eq!(
+            p.title,
+            "Clinical Outcomes of Novel Antiviral Therapy: A Randomized Trial"
+        );
         assert_eq!(p.authors, vec!["Robert Johnson"]);
         assert_eq!(p.publication_year, Some(2024));
-        assert_eq!(p.canonical_doi, Some("10.1101/2024.02.10.24302611".to_string()));
-        assert_eq!(p.pdf_url, Some("https://www.medrxiv.org/content/10.1101/2024.02.10.24302611.full.pdf".to_string()));
+        assert_eq!(
+            p.canonical_doi,
+            Some("10.1101/2024.02.10.24302611".to_string())
+        );
+        assert_eq!(
+            p.pdf_url,
+            Some(
+                "https://www.medrxiv.org/content/10.1101/2024.02.10.24302611.full.pdf".to_string()
+            )
+        );
         assert_eq!(p.source_id, "medrxiv");
         assert!(p.is_open_access);
     }

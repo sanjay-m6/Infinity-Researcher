@@ -61,15 +61,20 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: "python-engine/requirements*.txt"
+          cache-dependency-path: |
+            python-engine/requirements*.txt
+            python-engine/pyproject.toml
 
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f python-engine/requirements.txt ]; then
+          if [ -f python-engine/requirements-dev.txt ]; then
+            pip install -r python-engine/requirements-dev.txt
+          elif [ -f python-engine/requirements.txt ]; then
             pip install -r python-engine/requirements.txt
+            pip install pytest pytest-asyncio respx
           fi
-          pip install pytest
+          pip install -e ./python-engine
 
       - name: Python Syntax & Compilation Verification
         run: |
@@ -78,7 +83,7 @@ jobs:
       - name: Python Engine Tests (pytest)
         run: |
           if [ -d python-engine/tests ]; then
-            python -m pytest python-engine/tests -q
+            python -m pytest python-engine/tests -v
           else
             echo "No python-engine/tests directory found; skipping pytest."
           fi

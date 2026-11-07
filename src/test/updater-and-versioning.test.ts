@@ -38,14 +38,14 @@ describe("Version Management & SemVer Strategy", () => {
     const check = validateVersions(process.cwd());
     expect(check.valid).toBe(true);
     expect(check.errors).toHaveLength(0);
-    expect(check.version).toBe("0.1.1");
-    expect(check.versions.packageJson.version).toBe("0.1.1");
-    expect(check.versions.tauriConf.version).toBe("0.1.1");
-    expect(check.versions.cargoToml.version).toBe("0.1.1");
+    expect(check.version).toBe("0.1.2");
+    expect(check.versions.packageJson.version).toBe("0.1.2");
+    expect(check.versions.tauriConf.version).toBe("0.1.2");
+    expect(check.versions.cargoToml.version).toBe("0.1.2");
   });
 
   it("detects and rejects mismatched git tags", () => {
-    const validTag = validateVersions(process.cwd(), "v0.1.1");
+    const validTag = validateVersions(process.cwd(), "v0.1.2");
     expect(validTag.valid).toBe(true);
 
     const invalidTag = validateVersions(process.cwd(), "v0.9.9");

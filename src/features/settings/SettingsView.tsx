@@ -364,7 +364,7 @@ export const SettingsView: React.FC = () => {
                 Tauri / Rust Bridge
               </span>
               <span className="font-mono text-[10px] text-slate-700 dark:text-slate-300 font-medium">
-                {isTauri ? `v${backendHealth?.app_version || "0.1.1"}` : "Preview"}
+                {isTauri ? `v${backendHealth?.app_version || "0.1.2"}` : "Preview"}
               </span>
             </div>
 
@@ -919,7 +919,7 @@ export const SettingsView: React.FC = () => {
                         App Version
                       </span>
                       <span className="text-xs font-semibold font-mono text-slate-800 dark:text-slate-200 mt-1 block">
-                        v{backendHealth?.app_version || "0.1.1"}
+                        v{backendHealth?.app_version || "0.1.2"}
                       </span>
                     </div>
 
@@ -944,7 +944,7 @@ export const SettingsView: React.FC = () => {
                 "download",
               ]) && (
                 <UpdateSettingsCard
-                  currentVersion={backendHealth?.app_version || "0.1.1"}
+                  currentVersion={backendHealth?.app_version || "0.1.2"}
                 />
               )}
 
@@ -975,7 +975,7 @@ export const SettingsView: React.FC = () => {
                             Infinity Researcher
                           </h2>
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 font-mono">
-                            v{backendHealth?.app_version || "0.1.1"}
+                            v{backendHealth?.app_version || "0.1.2"}
                           </span>
                         </div>
                         <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">

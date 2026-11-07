@@ -305,7 +305,10 @@ impl BiorxivAdapter {
             .map_err(|e| format!("Failed reaching Crossref for bioRxiv fallback: {e}"))?;
 
         if !cr_resp.status().is_success() {
-            return Err(format!("Crossref bioRxiv returned HTTP status: {}", cr_resp.status()));
+            return Err(format!(
+                "Crossref bioRxiv returned HTTP status: {}",
+                cr_resp.status()
+            ));
         }
 
         let body = CrawlEngine::read_response_body_bounded(cr_resp)
@@ -513,11 +516,20 @@ mod tests {
         let results = BiorxivAdapter::parse_crossref_biorxiv_json(json_data, cancel).unwrap();
         assert_eq!(results.len(), 1);
         let p = &results[0];
-        assert_eq!(p.title, "Single-cell Transcriptomic Profiling of Murine T-cells");
+        assert_eq!(
+            p.title,
+            "Single-cell Transcriptomic Profiling of Murine T-cells"
+        );
         assert_eq!(p.authors, vec!["Alice Smith"]);
         assert_eq!(p.publication_year, Some(2024));
-        assert_eq!(p.canonical_doi, Some("10.1101/2024.03.15.585123".to_string()));
-        assert_eq!(p.pdf_url, Some("https://www.biorxiv.org/content/10.1101/2024.03.15.585123.full.pdf".to_string()));
+        assert_eq!(
+            p.canonical_doi,
+            Some("10.1101/2024.03.15.585123".to_string())
+        );
+        assert_eq!(
+            p.pdf_url,
+            Some("https://www.biorxiv.org/content/10.1101/2024.03.15.585123.full.pdf".to_string())
+        );
         assert_eq!(p.source_id, "biorxiv");
         assert!(p.is_open_access);
     }

@@ -241,7 +241,10 @@ impl PmcAdapter {
             if let Some(link_arr) = item["link"].as_array() {
                 for link_entry in link_arr {
                     if let Some(u) = link_entry["URL"].as_str() {
-                        let c_type = link_entry["content-type"].as_str().unwrap_or("").to_lowercase();
+                        let c_type = link_entry["content-type"]
+                            .as_str()
+                            .unwrap_or("")
+                            .to_lowercase();
                         if c_type.contains("pdf") || u.to_lowercase().ends_with(".pdf") {
                             pdf_url = Some(u.replace("http://", "https://"));
                             break;
@@ -324,7 +327,10 @@ impl PmcAdapter {
             .map_err(|e| format!("Failed reaching Crossref for PMC fallback: {e}"))?;
 
         if !cr_resp.status().is_success() {
-            return Err(format!("Crossref PMC returned HTTP status: {}", cr_resp.status()));
+            return Err(format!(
+                "Crossref PMC returned HTTP status: {}",
+                cr_resp.status()
+            ));
         }
 
         let body = CrawlEngine::read_response_body_bounded(cr_resp)
@@ -539,11 +545,17 @@ mod tests {
         let results = PmcAdapter::parse_crossref_pmc_json(json_data, cancel).unwrap();
         assert_eq!(results.len(), 1);
         let p = &results[0];
-        assert_eq!(p.title, "Applications of Support Vector Machine Learning in Cancer Genomics");
+        assert_eq!(
+            p.title,
+            "Applications of Support Vector Machine Learning in Cancer Genomics"
+        );
         assert_eq!(p.authors, vec!["George Davis"]);
         assert_eq!(p.publication_year, Some(2023));
         assert_eq!(p.canonical_doi, Some("10.21873/cgp.20063".to_string()));
-        assert_eq!(p.pdf_url, Some("https://cgp.iiarjournals.org/content/cgp/20/3/245.full.pdf".to_string()));
+        assert_eq!(
+            p.pdf_url,
+            Some("https://cgp.iiarjournals.org/content/cgp/20/3/245.full.pdf".to_string())
+        );
         assert_eq!(p.source_id, "pmc");
         assert!(p.is_open_access);
     }

@@ -5,6 +5,30 @@ All notable changes to the Infinity Researcher desktop application will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-11-07
+
+### Added
+- **Multi-Layer Resilient Auto-Update Discovery:**
+  - Added primary raw manifest update discovery (`raw.githubusercontent.com/.../latest.json`) bypassing cross-domain 302 redirects.
+  - Added secondary web fetch fallback querying the GitHub Releases API when native updater transport fails.
+  - Added direct browser installer download actions (`.exe`, `.dmg`, `.AppImage`) and direct link to GitHub Releases in the update failure state.
+- **Python Engine Test & Dependency Automation:**
+  - Added `python-engine/requirements.txt` and `python-engine/requirements-dev.txt` for automatic dependency installation.
+  - Added package installation (`pip install -e ./python-engine`) in CI to ensure test modules cleanly import `paper_scraper`.
+- **System Platform Target Triple Diagnostics:**
+  - Added compile-time `target_triple` detection to Rust `PlatformInfo` (`x86_64-pc-windows-msvc`, `aarch64-apple-darwin`, `x86_64-unknown-linux-gnu`) eliminating `undefined` platform display.
+
+### Fixed
+- **CI Quality Gate Failures:**
+  - Fixed Python CI test execution in `.github/workflows/ci.yml` by installing project requirements (`scrapy`, `httpx`, `respx`, `pytest-asyncio`).
+  - Fixed Rust cross-platform matrix failures (`ubuntu-latest`, `macos-latest`, `windows-latest`) by formatting all adapter sources to comply with `cargo fmt --check`.
+  - Harmonized article page accessibility label in `DiscoverView.tsx` and extended test timeout to prevent parallel Vitest run aborts.
+- **Auto-Update Transport & Manifest Generation:**
+  - Fixed `tauri-plugin-updater` reqwest network error on Windows by providing explicit headers (`User-Agent`, `Accept`) and fallback routes.
+  - Fixed `scripts/generate-update-manifest.mjs` to auto-infer release tag from version and populate platform binaries even when Minisign signature files are not present.
+- **Commit Attribution Integrity:**
+  - Enforced repository owner identity (`sanjay-m6` / `sanjay-m6@users.noreply.github.com`) in `AGENTS.md` and `.agents/rules/` for all git commits and releases.
+
 ## [0.1.1] - 2026-11-05
 
 ### Added

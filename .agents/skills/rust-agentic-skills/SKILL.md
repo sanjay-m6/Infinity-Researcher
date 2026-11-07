@@ -47,3 +47,4 @@ The Rust Agentic Skills suite consists of the following 8 specialized skills ins
 When working on Rust tasks in this repository (`src-tauri/`):
 - Run `cargo fmt --check` and `cargo clippy -- -D warnings` to verify code hygiene.
 - Apply idiomatic Rust design: favor `Result` over `unwrap`, implement standard traits (`Display`, `Error`, `Clone`), and isolate `unsafe` code with documented safety invariants.
+

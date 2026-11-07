@@ -3546,6 +3546,7 @@ export const DiscoverView: React.FC = () => {
                                   variant="primary"
                                   size="sm"
                                   onClick={() => window.open(selectedPaper.url, "_blank")}
+                                  aria-label="Open Official Article Page / Open Source Article Page"
                                   className="text-xs font-semibold px-4 py-2"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5 mr-1.5" />

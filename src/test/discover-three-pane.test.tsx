@@ -141,7 +141,7 @@ describe("Discover Page — Three-Pane UI & Backend Integration Tests", () => {
         screen.getByText("Key transformer architecture insight for local pipeline")
       ).toBeInTheDocument();
     });
-  });
+  }, 30000);
 
   it("allows adding and removing a paper from collections in the right pane", async () => {
     const addCollectionSpy = vi

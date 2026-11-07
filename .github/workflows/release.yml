@@ -260,6 +260,7 @@ jobs:
         run: |
           node scripts/generate-update-manifest.mjs dist/ \
             --version "${{ needs.validate-release-metadata.outputs.tag }}" \
+            --tag "${{ needs.validate-release-metadata.outputs.tag }}" \
             --notes-file ./RELEASE_NOTES.md \
             --output dist/latest.json
           cat dist/latest.json

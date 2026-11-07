@@ -21,7 +21,7 @@ export interface UpdateSettingsCardProps {
 }
 
 export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
-  currentVersion = "0.1.0",
+  currentVersion = "0.1.1",
 }) => {
   const {
     status,
@@ -38,7 +38,7 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
     dismissUpdate,
     setAutoCheckEnabled,
     setChannel,
-  } = useAppUpdater();
+  } = useAppUpdater(currentVersion);
 
   const [showNotes, setShowNotes] = React.useState(true);
   const [platform, setPlatform] = React.useState<AppPlatformInfo | null>(null);
@@ -143,15 +143,25 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void checkForUpdates(true)}
-            className="shrink-0 text-rose-600 dark:text-rose-400 border-rose-300 dark:border-rose-800"
-          >
-            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-            Retry Check
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void checkForUpdates(true)}
+              className="shrink-0 text-rose-600 dark:text-rose-400 border-rose-300 dark:border-rose-800"
+            >
+              <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+              Retry Check
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.open("https://github.com/sanjay-m6/Infinity-Researcher/releases", "_blank", "noopener,noreferrer")}
+              className="text-xs text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40"
+            >
+              GitHub Releases
+            </Button>
+          </div>
         </div>
       )}
 
@@ -177,7 +187,7 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
                 onClick={() => void downloadAndInstall()}
               >
                 <Download className="w-3.5 h-3.5 mr-1.5" />
-                Download & Install
+                {updateInfo.isExternalDownload ? "Download Installer" : "Download & Install"}
               </Button>
               <Button
                 variant="ghost"
@@ -340,7 +350,7 @@ export const UpdateSettingsCard: React.FC<UpdateSettingsCardProps> = ({
         <span>
           Platform:{" "}
           {isTauri && platform
-            ? `${platform.os.toUpperCase()} (${platform.arch}) · ${platform.target_triple}`
+            ? `${platform.os.toUpperCase()} (${platform.arch}) · ${platform.target_triple || platform.family || platform.arch || "x86_64"}`
             : isTauri
               ? "Native Desktop"
               : "Web Preview"}

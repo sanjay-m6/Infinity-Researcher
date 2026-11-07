@@ -24,6 +24,7 @@ pub struct PlatformInfo {
     pub os: String,
     pub arch: String,
     pub family: String,
+    pub target_triple: String,
     pub app_version: String,
     pub is_apple_silicon: bool,
     pub app_data_dir: String,
@@ -37,6 +38,25 @@ pub fn get_platform_info() -> PlatformInfo {
     let family = std::env::consts::FAMILY.to_string();
     let is_apple_silicon = os == "macos" && arch == "aarch64";
 
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    let target_triple = "x86_64-pc-windows-msvc".to_string();
+    #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
+    let target_triple = "aarch64-pc-windows-msvc".to_string();
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    let target_triple = "x86_64-unknown-linux-gnu".to_string();
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    let target_triple = "aarch64-apple-darwin".to_string();
+    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+    let target_triple = "x86_64-apple-darwin".to_string();
+    #[cfg(not(any(
+        all(target_os = "windows", target_arch = "x86_64"),
+        all(target_os = "windows", target_arch = "aarch64"),
+        all(target_os = "linux", target_arch = "x86_64"),
+        all(target_os = "macos", target_arch = "aarch64"),
+        all(target_os = "macos", target_arch = "x86_64"),
+    )))]
+    let target_triple = format!("{}-{}-{}", arch, os, family);
+
     let app_data = default_app_data_dir().to_string_lossy().to_string();
     let documents = default_library_dir().to_string_lossy().to_string();
 
@@ -44,6 +64,7 @@ pub fn get_platform_info() -> PlatformInfo {
         os,
         arch,
         family,
+        target_triple,
         app_version: env!("CARGO_PKG_VERSION").to_string(),
         is_apple_silicon,
         app_data_dir: app_data,

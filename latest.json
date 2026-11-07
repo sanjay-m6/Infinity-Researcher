@@ -1,0 +1,19 @@
+{
+  "version": "v0.1.1",
+  "notes": "Infinity Researcher v0.1.1 — Academic paper scraper resilience, auth cleanup, and AI tools beta badges.",
+  "pub_date": "2026-11-05T19:12:48.278Z",
+  "platforms": {
+    "windows-x86_64": {
+      "url": "https://github.com/sanjay-m6/Infinity-Researcher/releases/download/v0.1.1/Infinity.Researcher_0.1.1_x64-setup.exe"
+    },
+    "darwin-aarch64": {
+      "url": "https://github.com/sanjay-m6/Infinity-Researcher/releases/download/v0.1.1/Infinity.Researcher_0.1.1_aarch64.dmg"
+    },
+    "darwin-x86_64": {
+      "url": "https://github.com/sanjay-m6/Infinity-Researcher/releases/download/v0.1.1/Infinity.Researcher.app.tar.gz"
+    },
+    "linux-x86_64": {
+      "url": "https://github.com/sanjay-m6/Infinity-Researcher/releases/download/v0.1.1/Infinity.Researcher_0.1.1_amd64.AppImage"
+    }
+  }
+}

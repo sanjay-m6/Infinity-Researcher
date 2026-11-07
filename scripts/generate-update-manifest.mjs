@@ -78,6 +78,27 @@ export function buildTauriUpdaterManifest(options) {
     }
   }
 
+  // Fallback: If no .sig files were present, populate platforms with the installer packages
+  if (Object.keys(platforms).length === 0) {
+    for (const file of files) {
+      const lower = file.toLowerCase();
+      const url = `${baseUrl}/${encodeURIComponent(file)}`;
+      if (lower.endsWith('.exe') || lower.endsWith('.msi')) {
+        if (!platforms['windows-x86_64']) {
+          platforms['windows-x86_64'] = { signature: '', url };
+        }
+      } else if (lower.endsWith('.dmg') || lower.endsWith('.app.tar.gz')) {
+        if (lower.includes('aarch64') || lower.includes('arm64')) {
+          if (!platforms['darwin-aarch64']) platforms['darwin-aarch64'] = { signature: '', url };
+        } else {
+          if (!platforms['darwin-x86_64']) platforms['darwin-x86_64'] = { signature: '', url };
+        }
+      } else if (lower.endsWith('.appimage') || lower.endsWith('.deb')) {
+        if (!platforms['linux-x86_64']) platforms['linux-x86_64'] = { signature: '', url };
+      }
+    }
+  }
+
   return {
     version: tag.startsWith('v') ? tag : `v${version}`,
     notes,
@@ -99,6 +120,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--version' && args[i + 1]) {
       version = args[i + 1];
+      if (!args.includes('--tag')) {
+        tag = version.startsWith('v') ? version : `v${version}`;
+      }
       i++;
     } else if (args[i] === '--tag' && args[i + 1]) {
       tag = args[i + 1];
